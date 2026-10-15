@@ -3,14 +3,14 @@ import gsap from 'gsap'
 /** Book dimensions in metres (matches blender/scripts/build_scene.py). */
 export const W = 0.44 // page width
 export const D = 0.26 // page depth (top-to-bottom of a page)
-export const PAGE_T = 0.0009 // visual thickness per paper sheet
-export const COVER_T = 0.0028 // board thickness
-export const CURL = 1.25 // radians of extra bend at a page's free edge mid-turn
+export const PAGE_T = 0.0016 // visual thickness per sheet (each stands in for a few real leaves)
+export const COVER_T = 0.0045 // board thickness
+export const CURL = 1.4 // radians of extra bend at a page's free edge mid-turn
 
 /** Timings measured from the reference recording (24 fps). */
-const TURN = 1.0 // single page turn: ~24 frames
-const COVER_TURN = 1.15
-const CASCADE_STAGGER = 0.13 // contents jump: sheets fan over ~3 frames apart
+const TURN = 1.15 // single page turn: ~24 frames, a touch slower for heavier stock
+const COVER_TURN = 1.4
+const CASCADE_STAGGER = 0.14 // contents jump: sheets fan over ~3 frames apart
 
 export type Phase = 'closed' | 'opening' | 'open' | 'closing' | 'end'
 
@@ -26,9 +26,13 @@ class BookController {
   turned = 0
   phase: Phase = 'closed'
   /** Whole-book pose: x slides so the closed book / open spread stays centred. */
-  pose = { x: -W / 2, lift: 0, tilt: 0, yaw: (4 * Math.PI) / 180 }
-  /** Camera blend 0 = hero overview, 1 = reading close-up. */
-  cam = { t: 0 }
+  pose = { x: -W / 2, lift: 0, tilt: 0, roll: 0, yaw: (4 * Math.PI) / 180 }
+  /**
+   * Camera: t blends hero overview (0) -> reading close-up (1); nudge leans toward the turning page;
+   * focus blends into a loupe-like inspection of the right page.
+   */
+  cam = { t: 0, nudge: 0, focus: 0 }
+  inspecting = false
   private queue = Promise.resolve()
   private listeners = new Set<() => void>()
   private animating = 0
@@ -86,7 +90,15 @@ class BookController {
   private turnTween(tl: gsap.core.Timeline, i: number, to: 0 | 1, at: number, fast = false) {
     this.sheets[i].dir = to === 1 ? 1 : -1
     const dur = this.isCover(i) ? COVER_TURN : fast ? TURN * 0.85 : TURN
-    tl.to(this.sheets[i], { p: to, duration: dur, ease: this.isCover(i) ? 'power2.inOut' : 'power1.inOut' }, at)
+    tl.to(this.sheets[i], { p: to, duration: dur, ease: 'power2.inOut' }, at)
+  }
+
+  /** Camera leans toward the travelling page, then eases back; the book gives a small settle when it lands. */
+  private lean(tl: gsap.core.Timeline, dir: number, landAt: number) {
+    tl.to(this.cam, { nudge: dir, duration: 0.5, ease: 'power2.out' }, 0)
+    tl.to(this.cam, { nudge: 0, duration: 1.2, ease: 'power2.inOut' }, 0.5)
+    tl.to(this.pose, { roll: -dir * 0.006, duration: 0.12, ease: 'power1.out' }, landAt)
+    tl.to(this.pose, { roll: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' }, landAt + 0.12)
   }
 
   open() {
@@ -100,14 +112,14 @@ class BookController {
         },
       })
       // f17-f25: book lifts and tips toward the camera, squaring up
-      tl.to(this.pose, { lift: 0.035, tilt: -0.16, yaw: 0, duration: 0.55, ease: 'power2.out' }, 0)
-      // f17-f53: camera pushes in and lowers
-      tl.to(this.cam, { t: 1, duration: 1.7, ease: 'power3.inOut' }, 0.15)
+      tl.to(this.pose, { lift: 0.07, tilt: -0.3, roll: 0.05, yaw: 0, duration: 0.7, ease: 'power3.out' }, 0)
+      // f17-f53: camera swoops in and lowers
+      tl.to(this.cam, { t: 1, duration: 2.0, ease: 'power3.inOut' }, 0.1)
       // f25-f41: cover swings over the spine; spread slides to centre
-      this.turnTween(tl, 0, 1, 0.35)
-      tl.to(this.pose, { x: 0, duration: 1.25, ease: 'power2.inOut' }, 0.3)
-      // f41-f49: settle back onto the desk
-      tl.to(this.pose, { lift: 0, tilt: 0, duration: 0.7, ease: 'power2.inOut' }, 0.95)
+      this.turnTween(tl, 0, 1, 0.45)
+      tl.to(this.pose, { x: 0, duration: 1.4, ease: 'power2.inOut' }, 0.35)
+      // f41-f49: heavy settle back onto the desk
+      tl.to(this.pose, { lift: 0, tilt: 0, roll: 0, duration: 0.9, ease: 'back.out(1.6)' }, 1.15)
       return tl
     })
   }
@@ -126,6 +138,7 @@ class BookController {
       } else {
         for (let i = from - 1; i >= k; i--) this.turnTween(tl, i, 0, (from - 1 - i) * CASCADE_STAGGER, count > 1)
       }
+      this.lean(tl, k > from ? -1 : 1, (count - 1) * CASCADE_STAGGER + TURN * 0.8)
       this.turned = k
       this.emit()
       return tl
@@ -161,6 +174,39 @@ class BookController {
     })
   }
 
+  /** Close the book from any spread: riffle back to the front cover and return to the hero view. */
+  closeBook() {
+    this.inspect(false)
+    this.run(() => {
+      if (this.phase !== 'open') return null
+      this.setPhase('closing')
+      const from = this.turned
+      const tl = gsap.timeline({
+        onComplete: () => {
+          this.turned = 0
+          this.setPhase('closed')
+        },
+      })
+      for (let i = from - 1; i >= 1; i--) this.turnTween(tl, i, 0, (from - 1 - i) * 0.09, true)
+      const coverAt = Math.max(0, from - 2) * 0.09 + 0.35
+      this.turnTween(tl, 0, 0, coverAt)
+      tl.to(this.pose, { lift: 0.05, tilt: -0.2, roll: -0.04, duration: 0.6, ease: 'power2.out' }, coverAt)
+      tl.to(this.pose, { x: -W / 2, yaw: (4 * Math.PI) / 180, duration: 1.4, ease: 'power2.inOut' }, coverAt + 0.1)
+      tl.to(this.pose, { lift: 0, tilt: 0, roll: 0, duration: 0.9, ease: 'back.out(1.6)' }, coverAt + 0.9)
+      tl.to(this.cam, { t: 0, duration: 1.9, ease: 'power3.inOut' }, coverAt + 0.1)
+      return tl
+    })
+  }
+
+  /** Loupe mode: camera glides down over the right-hand page; the pointer pans across it. */
+  inspect(on = !this.inspecting) {
+    if (on && this.phase !== 'open') return
+    if (on === this.inspecting) return
+    this.inspecting = on
+    gsap.to(this.cam, { focus: on ? 1 : 0, duration: on ? 1.6 : 1.2, ease: 'power3.inOut', overwrite: 'auto' })
+    this.emit()
+  }
+
   /** "Read again": riffle everything back to the front cover and return to the hero state. */
   restart() {
     this.run(() => {
@@ -180,3 +226,5 @@ class BookController {
 }
 
 export const book = new BookController()
+
+if (import.meta.env.DEV) Object.assign(window, { __book: book })

@@ -8,22 +8,27 @@ import { studio } from './content/projects'
 function useBook() {
   return useSyncExternalStore(
     (cb) => book.subscribe(cb),
-    () => (book.ready ? book.phase : 'loading'),
+    () => (book.ready ? book.phase : 'loading') + (book.inspecting ? ':inspect' : ''),
   )
 }
 
 export default function App() {
-  const phase = useBook()
+  const [phase, mode] = useBook().split(':')
+  const inspecting = mode === 'inspect'
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === ' ') book.next()
       if (e.key === 'ArrowLeft') book.prev()
+      if (e.key === 'Escape') {
+        if (book.inspecting) book.inspect(false)
+        else book.closeBook()
+      }
     }
     let lastWheel = 0
     const onWheel = (e: WheelEvent) => {
       const now = performance.now()
-      if (Math.abs(e.deltaY) < 20 || now - lastWheel < 900 || book.busy) return
+      if (Math.abs(e.deltaY) < 20 || now - lastWheel < 900 || book.busy || book.inspecting) return
       lastWheel = now
       if (e.deltaY > 0) book.next()
       else book.prev()
@@ -66,6 +71,12 @@ export default function App() {
         </h1>
         <p>{studio.hint}</p>
       </section>
+
+      <nav className={`dock ${phase === 'open' ? 'show' : ''}`}>
+        <button onClick={() => book.inspect()}>{inspecting ? '← Back to spread' : 'Inspect page'}</button>
+        <span />
+        <button onClick={() => book.closeBook()}>Close book</button>
+      </nav>
 
       <div className={`veil ${phase === 'loading' ? 'show' : ''}`}>
         <span>Setting the desk…</span>

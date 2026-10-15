@@ -306,6 +306,29 @@ function tex(c: HTMLCanvasElement, flipU = false) {
   return t
 }
 
+/** Full-resolution photo for a page (a CC0 8K photo from Poly Haven here). Three downsizes it if the GPU's texture limit is lower. */
+async function photo(url: string): Promise<THREE.Texture | null> {
+  try {
+    // dev servers answer missing files with index.html, so check we really have an image
+    const head = await fetch(url, { method: 'HEAD' })
+    if (!head.ok || !head.headers.get('content-type')?.startsWith('image/')) return null
+    // decode off the main thread: an 8K JPEG would otherwise stall a frame for hundreds of ms
+    const loader = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'flipY' })
+    const bitmap = await loader.loadAsync(url)
+    const t = new THREE.Texture(bitmap as unknown as HTMLImageElement)
+    t.flipY = false
+    t.colorSpace = THREE.SRGBColorSpace
+    t.anisotropy = 16
+    t.needsUpdate = true
+    return t
+  } catch {
+    return null
+  }
+}
+
+/** First right-hand page: a full-bleed 8K-class photo (6932×4096), proving out print-sharp imagery inside the book. */
+export const HERO_PHOTO = '/images/city_8k.jpg'
+
 export interface SheetFaces {
   front: THREE.Texture // visible while the sheet lies on the right
   back: THREE.Texture // visible once turned onto the left (mirrored for the back face)
@@ -331,11 +354,12 @@ export async function paintBook(): Promise<SheetFaces[]> {
 
   // Spread k: left = sheet[k-1].back, right = sheet[k].front.
   const n = rights.length + 1 // sheets incl. both covers
+  const hero = await photo(HERO_PHOTO)
   const sheets: SheetFaces[] = []
   for (let i = 0; i < n; i++) {
-    const front = i === 0 ? coverOutside() : rights[i - 1]
+    const front = i === 0 ? tex(coverOutside()) : i === 1 && hero ? hero : tex(rights[i - 1])
     const back = i === n - 1 ? coverOutside(true) : lefts[i]
-    sheets.push({ front: tex(front), back: tex(back, true) })
+    sheets.push({ front, back: tex(back, true) })
   }
   return sheets
 }
