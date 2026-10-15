@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import { book, W, D, PAGE_T, COVER_T, CURL } from './bookState'
-import { paintBook, contentsHit, type SheetFaces } from '../content/paint'
+import { paintBook, contentsHit, type Face, type SheetFaces } from '../content/paint'
 
 const SEG_X = 64 // along the page width (where it bends; dense near the gutter via easing)
 const SEG_Z = 8 // across the depth (corner peel twist)
@@ -98,6 +98,37 @@ function deform(g: THREE.BufferGeometry, p: number, dir: number, curl: number, y
   g.computeBoundingSphere()
 }
 
+/**
+ * Hover-to-play motion loops. One <video> per clip (shared by mirrored and unmirrored uses),
+ * one VideoTexture per face so the mirrored back pages keep their own UV transform.
+ */
+const clips = new Map<string, HTMLVideoElement>()
+if (import.meta.env.DEV) Object.assign(window, { __clips: clips })
+function clip(url: string) {
+  let v = clips.get(url)
+  if (!v) {
+    v = document.createElement('video')
+    v.src = url
+    v.muted = true
+    v.loop = true
+    v.playsInline = true
+    v.crossOrigin = 'anonymous'
+    v.preload = 'auto'
+    clips.set(url, v)
+  }
+  return v
+}
+
+function videoTexture(face: Face) {
+  const t = new THREE.VideoTexture(clip(face.video!))
+  t.colorSpace = THREE.SRGBColorSpace
+  t.anisotropy = 16
+  t.wrapS = face.map.wrapS
+  t.repeat.copy(face.map.repeat)
+  t.offset.copy(face.map.offset)
+  return t
+}
+
 function paperMaterials(f: SheetFaces) {
   const make = (map: THREE.Texture, side: THREE.Side) =>
     new THREE.MeshStandardMaterial({
@@ -111,7 +142,7 @@ function paperMaterials(f: SheetFaces) {
       emissiveIntensity: 0.08, // printed screens read slightly luminous in the reference
       shadowSide: THREE.DoubleSide,
     })
-  return [make(f.front, THREE.FrontSide), make(f.back, THREE.BackSide)]
+  return [make(f.front.map, THREE.FrontSide), make(f.back.map, THREE.BackSide)]
 }
 
 function onSheetClick(i: number, e: ThreeEvent<MouseEvent>) {
@@ -132,15 +163,56 @@ function onSheetClick(i: number, e: ThreeEvent<MouseEvent>) {
 function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }) {
   const geom = useMemo(() => sheetGeometry(), [])
   const mats = useMemo(() => paperMaterials(faces), [faces])
+  const videos = useMemo(
+    () => [faces.front.video ? videoTexture(faces.front) : null, faces.back.video ? videoTexture(faces.back) : null],
+    [faces],
+  )
+  const playing = useRef(-1) // which face (0 front, 1 back) currently shows its video
   const { yR, yL } = restHeights(i, n)
   const last = useRef(-1)
+
+  const showStill = () => {
+    const k = playing.current
+    if (k < 0) return
+    clip((k === 0 ? faces.front : faces.back).video!).pause()
+    mats[k].map = mats[k].emissiveMap = k === 0 ? faces.front.map : faces.back.map
+    playing.current = -1
+  }
+  const hover = (on: boolean) => {
+    const s = book.sheets[i]
+    if (!s || (s.p !== 0 && s.p !== 1)) return
+    const k = s.p === 0 ? 0 : 1 // resting on the right shows the front, on the left the back
+    const vt = videos[k]
+    if (!vt) return
+    const v = clip((k === 0 ? faces.front : faces.back).video!)
+    if (on) {
+      if (playing.current !== k) {
+        showStill()
+        mats[k].map = mats[k].emissiveMap = vt
+        playing.current = k
+      }
+      v.play().catch(() => {})
+    } else v.pause() // keep the paused frame; the still returns when the page moves
+  }
+
   useFrame(() => {
     const s = book.sheets[i]
     if (!s || s.p === last.current) return
     last.current = s.p
+    if (s.p !== 0 && s.p !== 1) showStill()
     deform(geom, s.p, s.dir, CURL, yR, yL)
   })
-  return <mesh geometry={geom} material={mats} castShadow receiveShadow onClick={(e) => onSheetClick(i, e)} />
+  return (
+    <mesh
+      geometry={geom}
+      material={mats}
+      castShadow
+      receiveShadow
+      onClick={(e) => onSheetClick(i, e)}
+      onPointerOver={() => hover(true)}
+      onPointerOut={() => hover(false)}
+    />
+  )
 }
 
 /** Rigid board: rotates about the spine, with real thickness and a shell for the edges. */
@@ -271,8 +343,10 @@ export function Book() {
       // upload every page to the GPU behind the loading veil; an 8K texture would otherwise
       // stall the first frame it appears in (mid-animation)
       for (const s of f) {
-        gl.initTexture(s.front)
-        gl.initTexture(s.back)
+        gl.initTexture(s.front.map)
+        gl.initTexture(s.back.map)
+        if (s.front.video) clip(s.front.video)
+        if (s.back.video) clip(s.back.video)
       }
       book.init(f.length - 2)
       setFaces(f)

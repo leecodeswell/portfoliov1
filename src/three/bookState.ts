@@ -3,7 +3,7 @@ import gsap from 'gsap'
 /** Book dimensions in metres (matches blender/scripts/build_scene.py). */
 export const W = 0.44 // page width
 export const D = 0.26 // page depth (top-to-bottom of a page)
-export const PAGE_T = 0.0016 // visual thickness per sheet (each stands in for a few real leaves)
+export const PAGE_T = 0.0032 // visual thickness per sheet (each stands in for several real leaves)
 export const COVER_T = 0.0045 // board thickness
 export const CURL = 1.4 // radians of extra bend at a page's free edge mid-turn
 

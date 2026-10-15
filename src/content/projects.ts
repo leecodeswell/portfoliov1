@@ -1,81 +1,49 @@
 /**
- * Placeholder case studies. Each project fills one spread (left + right page).
- * Replace with real work; `art` picks a procedural illustration until real imagery/video is dropped in.
+ * Portfolio projects. Each fills one spread: a left and a right page captured from the live site
+ * by capture/capture.mjs (2x still + motion loop). Re-run the capture after a site changes.
  */
-export type Art = 'particles' | 'exploded' | 'keypad' | 'clouds' | 'dunes' | 'planet'
+export interface PageMedia {
+  still: string // 3840x2270 jpg, shown at rest
+  video?: string // 1920x1134 mp4 loop, plays while the page is hovered
+}
 
 export interface Project {
   name: string
+  subtitle: string
   discipline: string
-  year: string
-  headline: [string, string] // second line is set in italic serif
-  blurb: string
-  art: Art
-  accent: string
-  light?: boolean // paper-white spread instead of ink-dark
+  url: string
+  pages: [PageMedia, PageMedia]
 }
 
 export const studio = {
   name: 'ares',
   tagline: 'Interactive Portfolio\nthat you can explore',
-  hint: 'Click on pages to view works, use ← → to turn',
+  hint: 'Click on pages to turn, hover to see them in motion',
   contact: 'hello@ares.studio',
 }
 
+const page = (name: string): PageMedia => ({ still: `/pages/${name}.jpg`, video: `/pages/${name}.mp4` })
+
 export const projects: Project[] = [
   {
-    name: 'Lumen',
-    discipline: 'Vision AI · Web',
-    year: '2026',
-    headline: ['Clarity,', 'rendered.'],
-    blurb: 'A launch site for adaptive optics: a living particle field that resolves into focus as you scroll.',
-    art: 'particles',
-    accent: '#3f6dff',
+    name: 'Lorem Ipsum',
+    subtitle: 'Portfolium',
+    discipline: 'Fragrance · Interactive bas-relief',
+    url: 'https://leecodeswell.github.io/cologne/',
+    pages: [page('cologne-relief'), page('cologne-bottle')],
   },
   {
-    name: 'Monolith',
-    discipline: 'Hardware · 3D',
-    year: '2026',
-    headline: ['Built like', 'a sculpture.'],
-    blurb: 'Exploded product renders for a machined-aluminium device; every layer annotated and interactive.',
-    art: 'exploded',
-    accent: '#c8a36b',
+    name: 'AETERNUM',
+    subtitle: 'Interactive Watch Showcase',
+    discipline: 'Horology · Real-time 3D',
+    url: 'https://leecodeswell.github.io/3Dexample/',
+    pages: [page('aeternum-hero'), page('aeternum-explode')],
   },
   {
-    name: 'Keyframe',
-    discipline: 'Product · Motion',
-    year: '2025',
-    headline: ['Sixteen keys.', 'Endless moves.'],
-    blurb: 'A macro pad brand world: tactile glow, configurable layers and a configurator that feels physical.',
-    art: 'keypad',
-    accent: '#2f7bff',
-  },
-  {
-    name: 'Cirrus',
-    discipline: 'SaaS · Brand',
-    year: '2025',
-    headline: ['Storage that', 'floats.'],
-    blurb: 'Identity and marketing site for weightless cloud storage. Soft volumes, airy type, zero friction.',
-    art: 'clouds',
-    accent: '#4b7dff',
-    light: true,
-  },
-  {
-    name: 'Strata',
-    discipline: 'Travel · Editorial',
-    year: '2024',
-    headline: ['Landscapes,', 'layered.'],
-    blurb: 'An editorial booking experience where every destination is told in geological layers.',
-    art: 'dunes',
-    accent: '#e3873a',
-  },
-  {
-    name: 'Orbit',
-    discipline: 'Experiential · WebGL',
-    year: '2024',
-    headline: ['Tickets to', 'elsewhere.'],
-    blurb: 'A speculative space-travel agency: real-time planets, trajectories and boarding passes.',
-    art: 'planet',
-    accent: '#ff6a3d',
+    name: 'Ares',
+    subtitle: 'by Lee Thompson',
+    discipline: 'Studio · Intro & hero',
+    url: 'https://leecodeswell.github.io/Ares/',
+    pages: [page('ares-intro'), page('ares-hero')],
   },
 ]
