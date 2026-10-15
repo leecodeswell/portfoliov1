@@ -3,8 +3,14 @@
  * by capture/capture.mjs (2x still + motion loop). Re-run the capture after a site changes.
  */
 export interface PageMedia {
-  still: string // 3840x2270 jpg, shown at rest
+  still: string // 3840x2270 jpg, shown at rest and while the page turns
   video?: string // 1920x1134 mp4 loop, plays while the page is hovered
+  live?: LiveSite // the real site, embedded on the page once its spread settles
+}
+
+export interface LiveSite {
+  src: string
+  scroll?: number // scrollY to open at (only possible for same-origin sites)
 }
 
 export interface Project {
@@ -22,7 +28,17 @@ export const studio = {
   contact: 'hello@ares.studio',
 }
 
-const page = (name: string): PageMedia => ({ still: `/pages/${name}.jpg`, video: `/pages/${name}.mp4` })
+const page = (name: string, src: string, scroll = 0): PageMedia => ({
+  still: `/pages/${name}.jpg`,
+  video: `/pages/${name}.mp4`,
+  live: { src, scroll },
+})
+
+// Same origin as the portfolio on leecodeswell.github.io (proxied in dev, see vite.config.ts)
+const COLOGNE = '/cologne/'
+const AETERNUM = '/3Dexample/'
+// Ares has its own domain: cross-origin in production, so its pages open at the top
+const ARES = import.meta.env.DEV ? '/ares-web/' : 'https://ares-web.com/'
 
 export const projects: Project[] = [
   {
@@ -30,20 +46,20 @@ export const projects: Project[] = [
     subtitle: 'Portfolium',
     discipline: 'Fragrance · Interactive bas-relief',
     url: 'https://leecodeswell.github.io/cologne/',
-    pages: [page('cologne-relief'), page('cologne-bottle')],
+    pages: [page('cologne-relief', COLOGNE), page('cologne-bottle', COLOGNE, 4300)],
   },
   {
     name: 'AETERNUM',
     subtitle: 'Interactive Watch Showcase',
     discipline: 'Horology · Real-time 3D',
     url: 'https://leecodeswell.github.io/3Dexample/',
-    pages: [page('aeternum-hero'), page('aeternum-explode')],
+    pages: [page('aeternum-hero', AETERNUM), page('aeternum-explode', AETERNUM, 2700)],
   },
   {
     name: 'Ares',
     subtitle: 'by Lee Thompson',
     discipline: 'Studio · Intro & hero',
     url: 'https://leecodeswell.github.io/Ares/',
-    pages: [page('ares-intro'), page('ares-hero')],
+    pages: [page('ares-intro', ARES), page('ares-hero', ARES, 2400)],
   },
 ]

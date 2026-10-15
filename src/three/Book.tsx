@@ -3,6 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import { book, W, D, PAGE_T, COVER_T, CURL } from './bookState'
 import { paintBook, contentsHit, type Face, type SheetFaces } from '../content/paint'
+import { LivePages } from './LivePages'
 
 const SEG_X = 64 // along the page width (where it bends; dense near the gutter via easing)
 const SEG_Z = 8 // across the depth (corner peel twist)
@@ -129,20 +130,36 @@ function videoTexture(face: Face) {
   return t
 }
 
+/**
+ * Page faces behave like screens: the content is emitted at its true colour (no grade, see
+ * Experience.tsx) while a small lit component keeps the paper's curl shading, a soft sheen and
+ * cast shadows. The gutter fold darkens the emission too so pages still sink into the spine.
+ */
+function screenMaterial(map: THREE.Texture, side: THREE.Side) {
+  const m = new THREE.MeshStandardMaterial({
+    map,
+    side,
+    vertexColors: true,
+    color: new THREE.Color().setScalar(0.18),
+    roughness: 0.38,
+    metalness: 0,
+    emissive: new THREE.Color('#ffffff'),
+    emissiveMap: map,
+    emissiveIntensity: 0.92,
+    shadowSide: THREE.DoubleSide,
+  })
+  m.defines = { NO_GRADE: '' }
+  m.onBeforeCompile = (sh) => {
+    sh.fragmentShader = sh.fragmentShader.replace(
+      '#include <emissivemap_fragment>',
+      '#include <emissivemap_fragment>\n  totalEmissiveRadiance *= mix( vec3( 1.0 ), vColor.rgb, 0.75 );',
+    )
+  }
+  return m
+}
+
 function paperMaterials(f: SheetFaces) {
-  const make = (map: THREE.Texture, side: THREE.Side) =>
-    new THREE.MeshStandardMaterial({
-      map,
-      side,
-      vertexColors: true,
-      roughness: 0.66,
-      metalness: 0,
-      emissive: new THREE.Color('#ffffff'),
-      emissiveMap: map,
-      emissiveIntensity: 0.08, // printed screens read slightly luminous in the reference
-      shadowSide: THREE.DoubleSide,
-    })
-  return [make(f.front.map, THREE.FrontSide), make(f.back.map, THREE.BackSide)]
+  return [screenMaterial(f.front.map, THREE.FrontSide), screenMaterial(f.back.map, THREE.BackSide)]
 }
 
 function onSheetClick(i: number, e: ThreeEvent<MouseEvent>) {
@@ -223,9 +240,10 @@ function CoverBoard({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   const geom = useMemo(() => sheetGeometry(bw, bd, false), [bw, bd])
   const [front, back] = useMemo(() => {
     const m = paperMaterials(faces)
-    const outside = i === 0 ? m[0] : m[1]
-    outside.roughness = 0.58
-    outside.emissiveIntensity = 0
+    // the board's outside is black cloth, not a printed page: lit and graded like the rest of the scene
+    const k = i === 0 ? 0 : 1
+    const map = k === 0 ? faces.front.map : faces.back.map
+    m[k] = new THREE.MeshStandardMaterial({ map, side: m[k].side, roughness: 0.58, shadowSide: THREE.DoubleSide })
     return m
   }, [faces, i])
   const edge = useMemo(() => {
@@ -369,6 +387,7 @@ export function Book() {
       <group ref={yaw}>
         <group ref={pose}>
           <Body n={n} />
+          <LivePages faces={faces} restHeight={(i, side) => (side === 'R' ? restHeights(i, n).yR : restHeights(i, n).yL)} />
           {faces.map((f, i) =>
             i === 0 || i === n - 1 ? <CoverBoard key={i} i={i} n={n} faces={f} /> : <PaperSheet key={i} i={i} n={n} faces={f} />,
           )}

@@ -26,7 +26,7 @@ export function Desk() {
       {/* catches the real-time book's shadow on top of the baked desk */}
       <mesh rotation-x={-Math.PI / 2} position-y={0.0004} receiveShadow>
         <planeGeometry args={[1.8, 1.2]} />
-        <shadowMaterial opacity={0.6} />
+        <shadowMaterial opacity={0.6} defines={{ NO_GRADE: '' }} />
       </mesh>
     </>
   )

@@ -50,6 +50,37 @@ canvas { display: block; cursor: pointer; }
 }
 .dock button:hover { background: rgba(255, 255, 255, 0.08); }
 
+/* live sites laid on the open spread (CSS 3D, tracked to the WebGL pages) */
+.live-layer { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.live-page {
+  position: relative; overflow: hidden; pointer-events: auto; background: transparent;
+  opacity: 0; transition: opacity 0.7s ease;
+}
+.live-page.ready { opacity: 1; }
+.live-page iframe { position: absolute; inset: 0; border: 0; display: block; background: transparent; }
+/* fade into the curved paper at the gutter so the flat site meets the fold softly */
+.live-L { -webkit-mask-image: linear-gradient(to left, transparent 0, #000 6%); mask-image: linear-gradient(to left, transparent 0, #000 6%); }
+.live-R { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6%); mask-image: linear-gradient(to right, transparent 0, #000 6%); }
+.live-shade { position: absolute; inset: 0; pointer-events: none; }
+.live-L .live-shade {
+  background:
+    linear-gradient(to left, rgba(0,0,0,0.35), rgba(0,0,0,0) 12%),
+    linear-gradient(115deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 40%);
+}
+.live-R .live-shade {
+  background:
+    linear-gradient(to right, rgba(0,0,0,0.35), rgba(0,0,0,0) 12%),
+    linear-gradient(245deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 40%);
+}
+.live-edge {
+  position: absolute; top: 0; bottom: 0; width: 90px; border: 0; padding: 0; cursor: pointer;
+  background: transparent; color: rgba(255,255,255,0); font: 300 64px var(--sans); transition: background 0.35s ease, color 0.35s ease;
+}
+.live-R .live-edge { right: 0; }
+.live-L .live-edge { left: 0; }
+.live-R .live-edge:hover { background: linear-gradient(to left, rgba(0,0,0,0.45), rgba(0,0,0,0)); color: rgba(255,255,255,0.85); }
+.live-L .live-edge:hover { background: linear-gradient(to right, rgba(0,0,0,0.45), rgba(0,0,0,0)); color: rgba(255,255,255,0.85); }
+
 .veil {
   position: fixed; inset: 0; display: grid; place-items: center; background: #000; z-index: 4;
   opacity: 0; pointer-events: none; transition: opacity 1.2s ease;

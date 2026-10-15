@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { projects, studio, type PageMedia } from './projects'
+import { projects, studio, type LiveSite, type PageMedia } from './projects'
 
 /** Page canvas size, matching the page aspect W:D = 0.44:0.26. */
 export const PX_W = 2048
@@ -181,6 +181,7 @@ async function photo(url: string): Promise<THREE.Texture | null> {
 export interface Face {
   map: THREE.Texture
   video?: string // motion loop played while hovered
+  live?: LiveSite // real site embedded once the spread settles
 }
 
 export interface SheetFaces {
@@ -194,7 +195,7 @@ async function face(src: Source, mirrored: boolean): Promise<Face> {
   if (src instanceof HTMLCanvasElement) return { map: tex(src, mirrored) }
   const t = await photo(src.still)
   if (!t) return { map: tex(canvas('#111').c, mirrored) }
-  return { map: mirrored ? mirror(t) : t, video: src.video }
+  return { map: mirrored ? mirror(t) : t, video: src.video, live: src.live }
 }
 
 /** Sheets: [front cover, intro + project pages…, contact, back cover]. Spread k: left = sheet[k-1].back, right = sheet[k].front. */
