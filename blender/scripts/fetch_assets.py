@@ -2,8 +2,7 @@
 import json, os, urllib.request
 ROOT = os.path.join(os.path.dirname(__file__), "..", "assets")
 UA = {"User-Agent": "portfoliov1"}
-ASSETS = [("smoked_walnut_veneer", "4k", "blend"), ("black_oak_veneer", "4k", "blend"),
-          ("cheiridopsis_succulent", "2k", "blend"), ("ceramic_pot", "2k", "blend")]
+ASSETS = [("smoked_walnut_veneer", "4k", "blend")]
 
 def get(url):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA)).read()

@@ -4,7 +4,6 @@ Run:  blender -b --factory-startup --python blender/scripts/build_scene.py
 Units are metres. The desk top is the z=0 plane; the camera looks almost straight down.
 """
 import bpy, bmesh, math, os
-import numpy as np
 from mathutils import Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -118,32 +117,6 @@ def place(obs, diameter, x, y, z=0.0):
         o.scale = o.scale * s
 
 
-def latte_image(size=1024):
-    """Paint crema + heart-shaped microfoam as a float image."""
-    v, u = np.mgrid[1:-1:size * 1j, -1:1:size * 1j]
-    r = np.sqrt(u * u + v * v)
-    crema = np.array([0.30, 0.15, 0.06])
-    dark = np.array([0.16, 0.07, 0.03])
-    foam = np.array([0.93, 0.86, 0.74])
-    rng = np.random.default_rng(3)
-    noise = rng.normal(0, 1, (size // 16, size // 16))
-    noise = np.kron(noise, np.ones((16, 16)))[:size, :size]
-    col = crema[None, None] * (1 - 0.35 * r[..., None]) + dark * 0.35 * r[..., None]
-    col *= (1 + 0.06 * noise[..., None])
-    # heart:  (x^2 + y^2 - 1)^3 - x^2 y^3 < 0
-    x, y = u * 1.9, (v + 0.05) * 1.9
-    f = (x * x + y * y - 1) ** 3 - x * x * y ** 3
-    heart = np.clip(0.5 - f * 6, 0, 1)
-    ring = np.clip((r - 0.86) * 12, 0, 1)  # foam rim against the cup wall
-    a = np.clip(heart + ring, 0, 1)[..., None]
-    col = col * (1 - a) + foam * a * (1 + 0.03 * noise[..., None])
-    rgba = np.concatenate([np.clip(col, 0, 1), np.ones((size, size, 1))], axis=2)
-    img = bpy.data.images.new("latte_art", size, size, float_buffer=True)
-    img.pixels.foreach_set(rgba[::-1].astype(np.float32).ravel())
-    img.pack()
-    return img
-
-
 # ---------------------------------------------------------------- scene
 def build():
     reset()
@@ -202,7 +175,7 @@ def build():
     pn.links.new(wave.outputs["Fac"], pb.inputs["Height"])
     pn.links.new(pb.outputs["Normal"], pn.nodes["Principled BSDF"].inputs["Normal"])
 
-    W, D = 0.36, 0.24
+    W, D = 0.44, 0.26
     book = link(bpy.data.objects.new("Book", None))
     parts = [
         box("Book_CoverBottom", (W, D, 0.003), (0, 0, 0.0015), cover, bevel=0.0012),
@@ -214,7 +187,7 @@ def build():
     cu = bpy.data.curves.new("Logo", "FONT")
     cu.body = "ares"
     cu.font = bpy.data.fonts.load("C:/Windows/Fonts/seguisb.ttf")
-    cu.size = 0.042
+    cu.size = 0.048
     cu.space_character = 1.08
     cu.align_x, cu.align_y = "CENTER", "CENTER"
     cu.extrude = 0.00008
@@ -246,7 +219,7 @@ def build():
     coffee = mat("Coffee", (1, 1, 1), rough=0.35, spec=0.5)
     cn = coffee.node_tree
     it = cn.nodes.new("ShaderNodeTexImage")
-    it.image = latte_image()
+    it.image = bpy.data.images.load(os.path.join(ROOT, "textures", "latte.png"))
     cn.links.new(it.outputs["Color"], cn.nodes["Principled BSDF"].inputs["Base Color"])
     bpy.ops.mesh.primitive_circle_add(vertices=96, radius=0.0442, fill_type="NGON", location=(0, 0, 0.0625))
     disc = bpy.context.active_object
@@ -259,7 +232,7 @@ def build():
     latte = link(bpy.data.objects.new("Latte", None))
     for o in (saucer, cup, handle, disc):
         o.parent = latte
-    disc.rotation_euler.z = math.radians(-90)  # heart points away from the handle
+    disc.rotation_euler.z = math.radians(15)  # heart tip toward the viewer
     latte.location = (0.50, 0.15, 0)
     latte.rotation_euler.z = math.radians(-35)
 
@@ -284,15 +257,69 @@ def build():
     pencil.rotation_euler = (math.radians(90), 0, math.radians(-125))
     pencil.location = (-0.46, -0.16, 0.0038)
 
-    # Succulent in a ceramic pot (Poly Haven scans).
-    pots, _ = append(os.path.join(ASSETS, "ceramic_pot", "ceramic_pot_2k.blend"), objects=["ceramic_pot"])
-    plants, _ = append(os.path.join(ASSETS, "cheiridopsis_succulent", "cheiridopsis_succulent_2k.blend"),
-                       objects=["cheiridopsis_succulent_a_LOD0"])
-    fix_image_paths()
-    place(pots, 0.10, -0.50, 0.16)
-    bpy.context.view_layer.update()
-    lo, hi = world_bbox(pots)
-    place(plants, 0.11, -0.50, 0.16, hi.z - 0.012)
+    # Succulent: procedural echeveria rosette in a dark cylindrical pot (matches the reference).
+    pot_m = mat("Pot", (0.035, 0.035, 0.037), rough=0.75, spec=0.3)
+    pot = lathe("Pot", [(0, 0.0), (0.040, 0.0), (0.0425, 0.003), (0.0425, 0.068), (0.0405, 0.0695),
+                        (0.0385, 0.068), (0.0385, 0.058), (0.0, 0.058)], pot_m, steps=96)
+    rim_m = mat("PotRim", (0.55, 0.55, 0.55), rough=0.4)
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.0405, minor_radius=0.0014, location=(0, 0, 0.069))
+    rim = bpy.context.active_object
+    rim.data.materials.append(rim_m)
+    smooth(rim)
+    leaf_m = mat("EcheveriaLeaf", (0.60, 0.72, 0.76), rough=0.45, spec=0.4, sss=0.25)
+    ln = leaf_m.node_tree
+    lb = ln.nodes["Principled BSDF"]
+    lb.inputs["Subsurface Radius"].default_value = (0.004, 0.006, 0.004)
+    # farina bloom: paler, rougher toward leaf tips via a gradient on generated coords
+    gen = ln.nodes.new("ShaderNodeTexCoord")
+    sep = ln.nodes.new("ShaderNodeSeparateXYZ")
+    ramp = ln.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].color = (0.30, 0.42, 0.44, 1)
+    ramp.color_ramp.elements[1].color = (0.70, 0.80, 0.84, 1)
+    ln.links.new(gen.outputs["Generated"], sep.inputs[0])
+    ln.links.new(sep.outputs["X"], ramp.inputs["Fac"])
+    ln.links.new(ramp.outputs["Color"], lb.inputs["Base Color"])
+    plant = link(bpy.data.objects.new("Succulent", None))
+    golden = math.radians(137.5)
+    n = 72
+    for i in range(n):
+        t = i / (n - 1)                    # 0 = outer leaf, 1 = centre
+        L = 0.034 * (1 - t) ** 0.6 + 0.005  # leaf length
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=1)
+        lf = bpy.context.active_object
+        lf.name = f"Leaf{i:02d}"
+        # echeveria leaf: widest past the middle, then a short pointed tip; thick base, cupped upward
+        for v in lf.data.vertices:
+            u = (v.co.x + 1) / 2
+            w = 1.9 * u ** 0.55 * (1 - u) ** 0.45
+            v.co.y *= 0.42 * w
+            v.co.z = v.co.z * (0.16 * (1 - 0.6 * u) + 0.02) + 0.10 * u * u * (abs(v.co.y) * 6 + 1)
+            v.co.x = u
+        lf.scale = (L, L, L)
+        lf.location = (0, 0, 0.058 + 0.016 * t ** 1.5)
+        lf.rotation_euler = (0, -math.radians(4 + 70 * t ** 1.6), golden * i)
+        lf.data.materials.append(leaf_m)
+        smooth(lf, subdiv=1)
+        lf.parent = plant
+    for o in (pot, rim):
+        o.parent = plant
+    plant.location = (-0.50, 0.16, 0)
+
+    # Teaspoon resting on the saucer.
+    steel = mat("Steel", (0.8, 0.8, 0.8), rough=0.18)
+    steel.node_tree.nodes["Principled BSDF"].inputs["Metallic"].default_value = 1.0
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1)
+    bowl = bpy.context.active_object
+    bowl.scale = (0.012, 0.0085, 0.0014)
+    bowl.location = (0, 0, 0.0)
+    bowl.data.materials.append(steel)
+    smooth(bowl)
+    hd = box("SpoonHandle", (0.075, 0.0042, 0.0012), (0.048, 0, 0.0012), steel, bevel=0.0005)
+    spoon = link(bpy.data.objects.new("Spoon", None))
+    bowl.parent = hd.parent = spoon
+    spoon.parent = latte
+    spoon.location = (-0.040, -0.052, 0.0118)
+    spoon.rotation_euler = (math.radians(-3), 0, math.radians(-38))
 
     # Folded business card.
     card_m = mat("Card", (0.85, 0.85, 0.84), rough=0.6, spec=0.35)
@@ -331,6 +358,25 @@ def build():
     co.location = (0, -0.30, 1.30)
     co.rotation_euler = (math.radians(14), 0, 0)
     sc.camera = co
+
+    # Close-up cameras for checking detail (render with: render_preview.py -- name samples pct CamName).
+    for name, loc, look, lens in [
+        ("CamCloseLatte", (0.33, -0.05, 0.30), (0.50, 0.15, 0.04), 70),
+        ("CamCloseBook", (-0.10, -0.42, 0.22), (0.02, -0.03, 0.01), 50),
+        ("CamCloseSucculent", (-0.36, -0.05, 0.25), (-0.50, 0.16, 0.06), 70),
+    ]:
+        cd = bpy.data.cameras.new(name)
+        cd.lens = lens
+        cd.dof.use_dof = True
+        cd.dof.aperture_fstop = 2.8
+        c = link(bpy.data.objects.new(name, cd))
+        c.location = loc
+        tgt = link(bpy.data.objects.new(name + "_Target", None))
+        tgt.location = look
+        cd.dof.focus_object = tgt
+        tc = c.constraints.new("TRACK_TO")
+        tc.target = tgt
+        tc.track_axis, tc.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
 
     # Render settings.
     sc.render.engine = "CYCLES"
