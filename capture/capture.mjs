@@ -105,7 +105,10 @@ for (const shot of todo) {
     console.log(`${shot.name}: ${frames.length} frames over ${span.toFixed(1)}s (${(frames.length / span).toFixed(1)} fps captured)`)
     execFileSync(ffmpeg, [
       '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(dir, 'list.txt'),
-      '-vf', 'scale=1920:1134:flags=lanczos,fps=30', '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxrate', '8M', '-bufsize', '16M',
+      ...(shot.boomerang
+        ? ['-filter_complex', '[0]scale=1920:1134:flags=lanczos,fps=30,split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1']
+        : ['-vf', 'scale=1920:1134:flags=lanczos,fps=30']),
+      '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-maxrate', '7M', '-bufsize', '14M',
       '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${OUT}/${shot.name}.mp4`,
     ])
     fs.rmSync(dir, { recursive: true, force: true })

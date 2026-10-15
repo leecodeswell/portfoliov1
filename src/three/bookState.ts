@@ -102,8 +102,9 @@ class BookController {
   }
 
   open() {
-    if (!this.ready || this.phase !== 'closed') return
+    if (!this.ready) return
     this.run(() => {
+      if (this.phase !== 'closed') return null
       this.setPhase('opening')
       const tl = gsap.timeline({
         onComplete: () => {
@@ -143,6 +144,14 @@ class BookController {
       this.emit()
       return tl
     })
+  }
+
+  /** Open (from any state) straight to spread k — used by the contact card on the desk. */
+  openTo(k: number) {
+    if (!this.ready) return
+    if (this.phase === 'end') this.restart()
+    this.open()
+    this.goTo(k)
   }
 
   next() {

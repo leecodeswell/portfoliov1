@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { projects, studio, type LiveSite, type PageMedia } from './projects'
+import { pages, projects, studio, type LiveSite, type PageMedia } from './projects'
 
 /** Page canvas size, matching the page aspect W:D = 0.44:0.26. */
 export const PX_W = 2048
@@ -93,7 +93,7 @@ function contentsPage(): HTMLCanvasElement {
     text(g, p.name, 860, y, 56, INK, { weight: 500, spacing: -1 })
     text(g, p.subtitle, 860, y + 50, 28, '#777', { font: SERIF, italic: true, weight: 400 })
     text(g, p.discipline, 1400, y, 28, '#777', { weight: 400 })
-    text(g, String(4 + i * 2).padStart(2, '0'), PX_W - 140, y, 30, '#888', { weight: 400, align: 'right' })
+    text(g, String(p.spread * 2 - 1).padStart(2, '0'), PX_W - 140, y, 30, '#888', { weight: 400, align: 'right' })
     g.fillStyle = '#d6d4cf'
     g.fillRect(760, y + 82, PX_W - 900, 2)
   })
@@ -115,22 +115,17 @@ function introPage(): HTMLCanvasElement {
   return c
 }
 
+/** Inside of the back cover: the contact page. Clicking it opens a mail to the studio. */
 function contactPage(): HTMLCanvasElement {
   const { c, g } = canvas(INK)
   text(g, 'ares', 90, 92, 30, '#fff', { weight: 600 })
-  text(g, "Let's make", 110, 420, 170, '#fff', { weight: 600, spacing: -6 })
-  text(g, 'something real.', 110, 600, 170, '#fff', { font: SERIF, italic: true, weight: 400 })
-  text(g, studio.contact, 110, 760, 46, '#7d9bff', { weight: 500 })
-  wrap(g, 'Available for websites, product launches and interactive 3D.', 110, 860, 820, 32, '#ffffffaa')
+  text(g, 'Get in', 110, 420, 190, '#fff', { weight: 600, spacing: -6 })
+  text(g, 'touch.', 110, 620, 210, '#fff', { font: SERIF, italic: true, weight: 400 })
+  text(g, studio.contact, 110, 790, 50, '#8fa8ff', { weight: 500 })
+  g.fillStyle = '#8fa8ff'
+  g.fillRect(110, 808, g.measureText(studio.contact).width, 3)
+  wrap(g, 'Websites, product launches and interactive 3D. Click this page to write to Lee.', 110, 900, 820, 32, '#ffffffaa')
   grain(g, 12, 77)
-  return c
-}
-
-function endPaper(): HTMLCanvasElement {
-  const { c, g } = canvas('#f2f1ee')
-  text(g, '● ares', PX_W / 2, PX_H / 2 + 20, 64, INK, { weight: 600, align: 'center' })
-  text(g, 'Websites by Lee Thompson', PX_W / 2, PX_H / 2 + 90, 26, '#888', { weight: 400, align: 'center' })
-  grain(g, 8, 99)
   return c
 }
 
@@ -180,7 +175,8 @@ async function photo(url: string): Promise<THREE.Texture | null> {
 
 export interface Face {
   map: THREE.Texture
-  video?: string // motion loop played while hovered
+  video?: string
+  play?: PageMedia['play']
   live?: LiveSite // real site embedded once the spread settles
 }
 
@@ -195,10 +191,10 @@ async function face(src: Source, mirrored: boolean): Promise<Face> {
   if (src instanceof HTMLCanvasElement) return { map: tex(src, mirrored) }
   const t = await photo(src.still)
   if (!t) return { map: tex(canvas('#111').c, mirrored) }
-  return { map: mirrored ? mirror(t) : t, video: src.video, live: src.live }
+  return { map: mirrored ? mirror(t) : t, video: src.video, play: src.play, live: src.live }
 }
 
-/** Sheets: [front cover, intro + project pages…, contact, back cover]. Spread k: left = sheet[k-1].back, right = sheet[k].front. */
+/** Sheets: [front cover, page sheets…, back cover]. Spread k: left = sheet[k-1].back, right = sheet[k].front. */
 export async function paintBook(): Promise<SheetFaces[]> {
   await Promise.all([
     document.fonts.load(`600 100px "Inter Tight"`),
@@ -206,15 +202,9 @@ export async function paintBook(): Promise<SheetFaces[]> {
     document.fonts.load(`italic 400 100px "Instrument Serif"`),
   ]).catch(() => undefined)
 
-  // Faces in reading order. Spread 1: contents | intro. Each project: its two pages. Last: contact | endpaper.
-  const lefts: Source[] = [contentsPage()]
-  const rights: Source[] = [introPage()]
-  for (const p of projects) {
-    lefts.push(p.pages[0])
-    rights.push(p.pages[1])
-  }
-  lefts.push(contactPage())
-  rights.push(endPaper())
+  // Spreads: contents | intro · Lorem Ipsum relief (live) | sequence · Ares intro | journey · AETERNUM | contact
+  const lefts: Source[] = [contentsPage(), pages.cologneRelief, pages.aresIntro, pages.aeternum]
+  const rights: Source[] = [introPage(), pages.cologneSequence, pages.aresJourney, contactPage()]
 
   const n = rights.length + 1 // sheets incl. both covers
   return Promise.all(
@@ -228,12 +218,12 @@ export async function paintBook(): Promise<SheetFaces[]> {
 const CONTENTS_TOP = 520
 const CONTENTS_ROW = 150
 
-/** Contents hit-test: page-space uv -> spread index, or null. Project i lives on spread i + 2. */
+/** Contents hit-test: page-space uv -> spread index, or null. */
 export function contentsHit(u: number, v: number): number | null {
   const y = (1 - v) * PX_H
   const x = u * PX_W
   if (x < 740) return null
   const row = Math.floor((y - CONTENTS_TOP + 70) / CONTENTS_ROW)
   if (row < 0 || row >= projects.length) return null
-  return row + 2
+  return projects[row].spread
 }

@@ -1,16 +1,17 @@
 /**
- * Portfolio projects. Each fills one spread: a left and a right page captured from the live site
- * by capture/capture.mjs (2x still + motion loop). Re-run the capture after a site changes.
+ * Portfolio content. Pages are captured from the live sites by capture/capture.mjs
+ * (2x still + motion clip); re-run the capture after a site changes.
  */
 export interface PageMedia {
-  still: string // 3840x2270 jpg, shown at rest and while the page turns
-  video?: string // 1920x1134 mp4 loop, plays while the page is hovered
-  live?: LiveSite // the real site, embedded on the page once its spread settles
+  still: string // 3840x2270 jpg: shown at rest and while the page turns (the clip's first frame)
+  video?: string // 1920x1134 mp4
+  play?: 'hover' | 'loop' // hover: plays while the cursor is on the page; loop: plays while the page is open
+  live?: LiveSite // the real site, embedded once the spread settles
 }
 
 export interface LiveSite {
   src: string
-  scroll?: number // scrollY to open at (only possible for same-origin sites)
+  lockScroll?: boolean // keep the site on its first screen (cursor interaction only)
 }
 
 export interface Project {
@@ -18,27 +19,33 @@ export interface Project {
   subtitle: string
   discipline: string
   url: string
-  pages: [PageMedia, PageMedia]
+  spread: number // where it opens in the book (contents links)
 }
 
 export const studio = {
   name: 'ares',
   tagline: 'Interactive Portfolio\nthat you can explore',
   hint: 'Click on pages to turn, hover to see them in motion',
-  contact: 'hello@ares.studio',
+  contact: 'thompsontechnologiesleet@gmail.com',
 }
 
-const page = (name: string, src: string, scroll = 0): PageMedia => ({
+const media = (name: string, play?: PageMedia['play']): PageMedia => ({
   still: `/pages/${name}.jpg`,
-  video: `/pages/${name}.mp4`,
-  live: { src, scroll },
+  video: play ? `/pages/${name}.mp4` : undefined,
+  play,
 })
 
 // Same origin as the portfolio on leecodeswell.github.io (proxied in dev, see vite.config.ts)
 const COLOGNE = '/cologne/'
-const AETERNUM = '/3Dexample/'
-// Ares has its own domain: cross-origin in production, so its pages open at the top
-const ARES = import.meta.env.DEV ? '/ares-web/' : 'https://ares-web.com/'
+
+/** Book pages in reading order. Spread 1 is contents | intro; the back cover's inside is contact. */
+export const pages = {
+  cologneRelief: { ...media('cologne-relief'), live: { src: COLOGNE, lockScroll: true } },
+  cologneSequence: media('cologne-sequence', 'hover'),
+  aresIntro: media('ares-intro', 'loop'),
+  aresJourney: media('ares-journey', 'hover'),
+  aeternum: media('aeternum-explode', 'hover'),
+}
 
 export const projects: Project[] = [
   {
@@ -46,20 +53,20 @@ export const projects: Project[] = [
     subtitle: 'Portfolium',
     discipline: 'Fragrance · Interactive bas-relief',
     url: 'https://leecodeswell.github.io/cologne/',
-    pages: [page('cologne-relief', COLOGNE), page('cologne-bottle', COLOGNE, 4300)],
+    spread: 2,
+  },
+  {
+    name: 'Ares',
+    subtitle: 'by Lee Thompson',
+    discipline: 'Studio · Intro & journey',
+    url: 'https://ares-web.com/',
+    spread: 3,
   },
   {
     name: 'AETERNUM',
     subtitle: 'Interactive Watch Showcase',
     discipline: 'Horology · Real-time 3D',
     url: 'https://leecodeswell.github.io/3Dexample/',
-    pages: [page('aeternum-hero', AETERNUM), page('aeternum-explode', AETERNUM, 2700)],
-  },
-  {
-    name: 'Ares',
-    subtitle: 'by Lee Thompson',
-    discipline: 'Studio · Intro & hero',
-    url: 'https://leecodeswell.github.io/Ares/',
-    pages: [page('ares-intro', ARES), page('ares-hero', ARES, 2400)],
+    spread: 4,
   },
 ]

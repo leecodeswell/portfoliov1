@@ -5,6 +5,7 @@ import { BlendFunction } from 'postprocessing'
 import { Desk } from './Desk'
 import { Book } from './Book'
 import { CameraRig } from './CameraRig'
+import { ContactCard } from './ContactCard'
 
 /**
  * Grade per material instead of per frame: everything physical (desk, props, book boards) gets AgX
@@ -72,8 +73,9 @@ export function Experience() {
       <KeyLight />
       <Desk />
       <Book />
+      <ContactCard />
       <EffectComposer multisampling={4}>
-        <Bloom mipmapBlur intensity={0.25} luminanceThreshold={1.0} luminanceSmoothing={0.15} />
+        <Bloom mipmapBlur intensity={0.22} luminanceThreshold={1.25} luminanceSmoothing={0.1} />
         <Vignette offset={0.32} darkness={0.55} />
         <Noise opacity={0.05} blendFunction={BlendFunction.OVERLAY} />
       </EffectComposer>

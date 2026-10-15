@@ -17,7 +17,7 @@ const LIFT = 0.0012
 /**
  * Real, interactive project sites placed on the open spread with CSS 3D transforms. They track
  * the paper exactly as the camera sways or inspects, and hand back to the WebGL stills whenever a
- * page moves (CSS can't curl). Only the open spread is live, so at most two sites run at once.
+ * page moves (CSS can't curl). Only pages flagged `live` use this — currently the cologne relief.
  */
 export function LivePages({ faces, restHeight }: { faces: SheetFaces[]; restHeight: (i: number, side: 'L' | 'R') => number }) {
   const { camera, gl, size } = useThree()
@@ -28,12 +28,12 @@ export function LivePages({ faces, restHeight }: { faces: SheetFaces[]; restHeig
     return r
   }, [])
   const scene = useMemo(() => new THREE.Scene(), [])
-  const state = useRef({ spread: -1, candidate: -1, since: 0, pages: [] as LivePage[] })
+  const state = useRef({ spread: -1, candidate: -1, since: 0, pages: [] as LivePage[], cache: new Map<string, LivePage>() })
 
   useEffect(() => {
     gl.domElement.parentElement!.appendChild(renderer.domElement)
     return () => {
-      state.current.pages.forEach((p) => p.dispose())
+      state.current.cache.forEach((p) => p.dispose())
       renderer.domElement.remove()
     }
   }, [gl, renderer])
@@ -56,7 +56,7 @@ export function LivePages({ faces, restHeight }: { faces: SheetFaces[]; restHeig
     }
     // go dark immediately when anything moves; go live once the spread has settled
     if (s.spread !== -1 && want !== s.spread) {
-      s.pages.forEach((p) => p.dispose())
+      s.pages.forEach((p) => p.hide())
       s.pages = []
       s.spread = -1
     }
@@ -64,8 +64,14 @@ export function LivePages({ faces, restHeight }: { faces: SheetFaces[]; restHeig
       s.spread = want
       const left: Face | undefined = faces[want - 1]?.back
       const right: Face | undefined = faces[want]?.front
-      if (left?.live) s.pages.push(new LivePage(left.live, 'L', scene))
-      if (right?.live) s.pages.push(new LivePage(right.live, 'R', scene))
+      for (const [face, side] of [[left, 'L'], [right, 'R']] as const) {
+        if (!face?.live) continue
+        const key = `${want}${side}`
+        let page = s.cache.get(key)
+        if (!page) s.cache.set(key, (page = new LivePage(face.live, side, scene)))
+        page.show()
+        s.pages.push(page)
+      }
     }
     for (const p of s.pages) {
       const a = anchors.current[p.side]
@@ -89,15 +95,6 @@ class LivePage {
   obj: CSS3DObject
   private root: HTMLDivElement
   private frame: HTMLIFrameElement
-  private dead = false
-  private win: (Window & typeof globalThis) | null = null
-  private hovered = false
-  private dir = 1
-  private manualUntil = 0
-  private lastY = 0
-  private stuckSince = 0
-  private timer = 0
-  private native = false // site ignores synthetic wheels: scroll it directly
 
   constructor(
     site: LiveSite,
@@ -113,11 +110,11 @@ class LivePage {
     frame.src = site.src
     frame.width = String(VW)
     frame.height = String(VH)
-    frame.allow = 'autoplay; fullscreen; accelerometer; gyroscope'
+    frame.allow = 'autoplay; fullscreen'
     frame.title = 'Live project'
     frame.addEventListener('load', () => this.prepare(site))
 
-    // paper cues layered over the site: gutter fold, a soft sheen, edge shading
+    // paper cues layered over the site: gutter fold, a soft sheen
     const shade = document.createElement('div')
     shade.className = 'live-shade'
 
@@ -128,97 +125,60 @@ class LivePage {
     edge.innerHTML = `<span>${side === 'R' ? '›' : '‹'}</span>`
     edge.addEventListener('click', () => (side === 'R' ? book.next() : book.prev()))
 
-    // hovering a page tours the site: scroll to the bottom, then back up, until the pointer leaves
-    root.addEventListener('pointerenter', () => (this.hovered = true))
-    root.addEventListener('pointerleave', () => (this.hovered = false))
-
     root.append(frame, shade, edge)
     this.root = root
     this.frame = frame
     this.obj = new CSS3DObject(root)
-    scene.add(this.obj)
+    this.obj.visible = false
   }
 
-  /** Same-origin sites: hide scrollbars and open at this page's section, then fade in. */
+  /** Same-origin: hide scrollbars and (optionally) pin the site to its first screen, then fade in. */
   private async prepare(site: LiveSite) {
-    let win: Window | null = null
     try {
-      win = this.frame.contentWindow
+      const win = this.frame.contentWindow as (Window & typeof globalThis) | null
       const doc = win?.document
-      if (doc) {
+      if (win && doc) {
         const style = doc.createElement('style')
         style.textContent = 'html{scrollbar-width:none}::-webkit-scrollbar{display:none}'
         doc.head.append(style)
+        if (site.lockScroll) {
+          // swallow scrolling before the site's smooth-scroller sees it; the cursor still drives the relief
+          const stop = (e: Event) => {
+            e.preventDefault()
+            e.stopImmediatePropagation()
+          }
+          win.addEventListener('wheel', stop, { capture: true, passive: false })
+          win.addEventListener('touchmove', stop, { capture: true, passive: false })
+          win.addEventListener(
+            'keydown',
+            (e) => [' ', 'PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key) && stop(e),
+            { capture: true },
+          )
+          win.scrollTo(0, 0)
+        }
       }
     } catch {
-      win = null // cross-origin: show it as it opens
+      // cross-origin: shown as it opens
     }
-    await wait(site.scroll ? 900 : 300) // let the site boot its smooth scroller / intro
-    if (win && site.scroll) await seedScroll(win, site.scroll)
-    if (this.dead) return
+    await new Promise((r) => setTimeout(r, 400)) // let it paint its first frame
     this.root.classList.add('ready')
-    if (win) {
-      this.win = win as Window & typeof globalThis
-      // a real wheel from the visitor takes over; the tour resumes a few seconds after they stop
-      this.win.addEventListener('wheel', (e) => e.isTrusted && (this.manualUntil = performance.now() + 3500), { passive: true })
-      this.timer = window.setInterval(() => this.tour(), 50)
-    }
   }
 
-  private tour() {
-    const w = this.win
-    const now = performance.now()
-    if (!w || !this.hovered || now < this.manualUntil) {
-      this.stuckSince = now
-      return
-    }
-    const y = w.scrollY
-    if (Math.abs(y - this.lastY) > 0.5) this.stuckSince = now
-    this.lastY = y
-    // reached an end (or the page stopped moving): turn around
-    const max = w.document.documentElement.scrollHeight - w.innerHeight
-    const atEnd = (this.dir > 0 && y >= max - 2) || (this.dir < 0 && y <= 2)
-    if (!atEnd && now - this.stuckSince > 700 && !this.native) {
-      this.native = true
-      this.stuckSince = now
-    } else if (atEnd || now - this.stuckSince > 700) {
-      this.dir *= -1
-      this.stuckSince = now
-    }
-    if (this.native) w.scrollBy(0, this.dir * 14)
-    else w.document.documentElement.dispatchEvent(new w.WheelEvent('wheel', { deltaY: this.dir * 45, bubbles: true, cancelable: true }))
+  show() {
+    if (!this.obj.parent) this.scene.add(this.obj)
+    this.obj.visible = true
+    this.root.style.display = ''
+  }
+
+  /** Hidden, not destroyed: a display:none iframe stops rendering but keeps its state for an instant return. */
+  hide() {
+    this.obj.visible = false
+    this.root.style.display = 'none'
   }
 
   dispose() {
-    this.dead = true
-    clearInterval(this.timer)
     this.scene.remove(this.obj)
-    this.frame.src = 'about:blank' // stop the site's render loop right away
+    this.frame.src = 'about:blank'
     this.root.remove()
-  }
-}
-
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
-
-/** Scroll a same-origin site with real wheel events so smooth-scroll libraries animate to the section. */
-async function seedScroll(win: Window, target: number) {
-  const W_ = win as Window & typeof globalThis
-  const start = performance.now()
-  let last = W_.scrollY
-  let stuckSince = performance.now()
-  while (performance.now() - start < 6000) {
-    const y = W_.scrollY
-    const left = target - y
-    if (Math.abs(left) < 20) return
-    W_.document.documentElement.dispatchEvent(
-      new W_.WheelEvent('wheel', { deltaY: Math.sign(left) * Math.min(400, Math.abs(left)), bubbles: true, cancelable: true }),
-    )
-    if (Math.abs(y - last) > 1) stuckSince = performance.now()
-    last = y
-    if (performance.now() - stuckSince > 500) {
-      W_.scrollTo(0, target) // no wheel-driven scroller: jump natively
-      return
-    }
-    await wait(40)
   }
 }

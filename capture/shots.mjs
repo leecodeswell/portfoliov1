@@ -1,14 +1,16 @@
 /**
  * One entry per book page. `pre` runs before recording, `rec` is what the motion loop shows.
- * `still: 'before'` takes the still at the start of the recording instead of the end.
+ * `still: 'before'` takes the still at the start of the recording instead of the end, so the
+ * page rests on the video's first frame. `boomerang: true` plays the clip forward then back.
  * Step types: { wait: ms } | { wheel: px, ms } | { scroll: targetScrollY, ms } | { mouse: [[x0, y0], [x1, y1]], ms }
+ * Scroll positions were mapped with capture/map.mjs.
  */
 const COLOGNE = 'https://leecodeswell.github.io/cologne/'
 const AETERNUM = 'https://leecodeswell.github.io/3Dexample/'
-const ARES = 'https://leecodeswell.github.io/Ares/'
+const ARES = 'https://ares-web.com/'
 
 export const shots = [
-  // Lorem Ipsum — the interactive bas-relief responds to the cursor
+  // Lorem Ipsum — hero still (the page itself is live in the book, for the bas-relief cursor effect)
   {
     name: 'cologne-relief',
     url: COLOGNE,
@@ -18,45 +20,37 @@ export const shots = [
       { mouse: [[500, 900], [1300, 250]], ms: 2500 },
     ],
   },
-  // Lorem Ipsum — the hero bottle glides in to the gold-leaf macro
+  // Lorem Ipsum — from the Aqua Coloniensis film filling the screen to the end of Crystallum
   {
-    name: 'cologne-bottle',
+    name: 'cologne-sequence',
     url: COLOGNE,
-    pre: [{ scroll: 1800, ms: 1500 }, { wait: 1500 }],
-    rec: [{ scroll: 4300, ms: 7000 }, { wait: 1200 }],
-  },
-  // AETERNUM — idle watch hero, cinematic light drifting with the cursor
-  {
-    name: 'aeternum-hero',
-    url: AETERNUM,
-    settle: 4000,
+    pre: [{ scroll: 3000, ms: 2500 }, { wait: 2500 }],
     still: 'before',
-    rec: [
-      { mouse: [[700, 450], [1400, 700]], ms: 3500 },
-      { mouse: [[1400, 700], [900, 380]], ms: 3500 },
-    ],
+    rec: [{ scroll: 9300, ms: 20000 }, { wait: 800 }],
   },
-  // AETERNUM — the movement explodes into its parts
+  // AETERNUM — from the hero, the movement explodes into its parts (plays while hovered)
   {
     name: 'aeternum-explode',
     url: AETERNUM,
     settle: 4000,
+    still: 'before',
     rec: [{ wait: 400 }, { scroll: 2700, ms: 7000 }, { wait: 1500 }],
   },
-  // Ares — the intro: pixel-art welcome, the light burst, then the reveal
+  // Ares — intro from the welcome to the first all-white frame, played as a boomerang
   {
     name: 'ares-intro',
     url: ARES,
     settle: 2500,
     still: 'before',
-    rec: [{ wait: 1500 }, { scroll: 2400, ms: 7000 }, { wait: 1500 }],
+    boomerang: true,
+    rec: [{ wait: 1000 }, { scroll: 1000, ms: 5000 }, { wait: 300 }],
   },
-  // Ares — title and soldier bust; a slow drift shows the layered parallax
+  // Ares — from the end of the colonnade look-down to the bottom of the page
   {
-    name: 'ares-hero',
+    name: 'ares-journey',
     url: ARES,
-    pre: [{ scroll: 2400, ms: 3000 }, { wait: 4000 }],
+    pre: [{ scroll: 3650, ms: 4000 }, { wait: 3000 }],
     still: 'before',
-    rec: [{ scroll: 2650, ms: 6000 }, { wait: 800 }, { scroll: 2400, ms: 6000 }, { wait: 800 }],
+    rec: [{ scroll: 13400, ms: 30000 }, { wait: 1000 }],
   },
 ]

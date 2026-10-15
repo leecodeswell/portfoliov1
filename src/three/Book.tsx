@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { useTexture } from '@react-three/drei'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import * as THREE from 'three'
 import { book, W, D, PAGE_T, COVER_T, CURL } from './bookState'
 import { paintBook, contentsHit, type Face, type SheetFaces } from '../content/paint'
 import { LivePages } from './LivePages'
+import { studio } from '../content/projects'
 
 const SEG_X = 64 // along the page width (where it bends; dense near the gutter via easing)
 const SEG_Z = 8 // across the depth (corner peel twist)
@@ -11,7 +14,13 @@ const BOARD_OVERHANG = 0.005
 /** Pages leave the spine slightly above the boards and swell up to their stack height over this distance. */
 const GUTTER = 0.022
 const SPINE_Y = COVER_T + 0.0008
-const gutter = (s: number) => 1 - Math.exp(-s / GUTTER)
+/**
+ * How far a sheet has risen from the spine toward its stack height. Never zero: each sheet keeps a
+ * sliver of its stack order right into the fold, otherwise every page meets at one line and the
+ * pages underneath bleed through the top one near the seam.
+ */
+const GUTTER_FLOOR = 0.18
+const gutter = (s: number) => GUTTER_FLOOR + (1 - GUTTER_FLOOR) * (1 - Math.exp(-s / GUTTER))
 
 /** Column positions, packed toward the spine where the gutter curve needs resolution. */
 const COLS = Array.from({ length: SEG_X + 1 }, (_, i) => Math.pow(i / SEG_X, 1.35))
@@ -100,8 +109,9 @@ function deform(g: THREE.BufferGeometry, p: number, dir: number, curl: number, y
 }
 
 /**
- * Hover-to-play motion loops. One <video> per clip (shared by mirrored and unmirrored uses),
- * one VideoTexture per face so the mirrored back pages keep their own UV transform.
+ * Page motion clips. One <video> per clip, one VideoTexture per face (mirrored back pages keep their
+ * own UV transform). A page only switches to its clip once a decoded frame is on screen; switching
+ * earlier shows an empty texture, which reads as the page flashing white.
  */
 const clips = new Map<string, HTMLVideoElement>()
 if (import.meta.env.DEV) Object.assign(window, { __clips: clips })
@@ -115,6 +125,7 @@ function clip(url: string) {
     v.playsInline = true
     v.crossOrigin = 'anonymous'
     v.preload = 'auto'
+    v.load()
     clips.set(url, v)
   }
   return v
@@ -145,7 +156,7 @@ function screenMaterial(map: THREE.Texture, side: THREE.Side) {
     metalness: 0,
     emissive: new THREE.Color('#ffffff'),
     emissiveMap: map,
-    emissiveIntensity: 0.92,
+    emissiveIntensity: 0.86,
     shadowSide: THREE.DoubleSide,
   })
   m.defines = { NO_GRADE: '' }
@@ -168,6 +179,8 @@ function onSheetClick(i: number, e: ThreeEvent<MouseEvent>) {
   if (book.phase === 'closed') return book.open()
   if (book.phase !== 'open' || book.busy) return
   const onLeft = i < book.turned
+  // the back cover's inside is the contact page
+  if (!onLeft && i === book.sheetCount - 1) return void (window.location.href = `mailto:${studio.contact}`)
   if (onLeft && i === 0 && e.uv) {
     // contents page lives on the front cover's inside (mirrored face)
     const target = contentsHit(1 - e.uv.x, e.uv.y)
@@ -184,39 +197,48 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     () => [faces.front.video ? videoTexture(faces.front) : null, faces.back.video ? videoTexture(faces.back) : null],
     [faces],
   )
-  const playing = useRef(-1) // which face (0 front, 1 back) currently shows its video
+  const playing = useRef(-1) // which face (0 front, 1 back) currently shows its clip
+  const hovered = useRef(false)
   const { yR, yL } = restHeights(i, n)
   const last = useRef(-1)
+  const faceOf = (k: number) => (k === 0 ? faces.front : faces.back)
 
   const showStill = () => {
     const k = playing.current
     if (k < 0) return
-    clip((k === 0 ? faces.front : faces.back).video!).pause()
-    mats[k].map = mats[k].emissiveMap = k === 0 ? faces.front.map : faces.back.map
+    clip(faceOf(k).video!).pause()
+    mats[k].map = mats[k].emissiveMap = faceOf(k).map
     playing.current = -1
   }
-  const hover = (on: boolean) => {
-    const s = book.sheets[i]
-    if (!s || (s.p !== 0 && s.p !== 1)) return
-    const k = s.p === 0 ? 0 : 1 // resting on the right shows the front, on the left the back
+  const play = (k: number) => {
     const vt = videos[k]
     if (!vt) return
-    const v = clip((k === 0 ? faces.front : faces.back).video!)
-    if (on) {
-      if (playing.current !== k) {
-        showStill()
-        mats[k].map = mats[k].emissiveMap = vt
-        playing.current = k
-      }
-      v.play().catch(() => {})
-    } else v.pause() // keep the paused frame; the still returns when the page moves
+    const v = clip(faceOf(k).video!)
+    v.play().catch(() => {})
+    if (playing.current === k) return
+    showStill()
+    playing.current = k
+    // swap only once a real frame is decoded and presented
+    const swap = () => playing.current === k && (mats[k].map = mats[k].emissiveMap = vt)
+    if (typeof v.requestVideoFrameCallback === 'function') v.requestVideoFrameCallback(() => swap())
+    else (v as HTMLVideoElement).addEventListener('playing', swap, { once: true })
   }
 
   useFrame(() => {
     const s = book.sheets[i]
-    if (!s || s.p === last.current) return
+    if (!s) return
+    // which face is the open, settled page (if any): front on the right, back on the left
+    const k = book.phase === 'open' && s.p === 0 && book.turned === i ? 0 : book.phase === 'open' && s.p === 1 && book.turned === i + 1 ? 1 : -1
+    const face = k >= 0 ? faceOf(k) : null
+    const want = face?.play === 'loop' || (face?.play === 'hover' && hovered.current)
+    if (want) play(k)
+    else if (playing.current >= 0) {
+      // hover clips hold their frame when the cursor leaves; anything else returns to its still
+      if (k === playing.current && face?.play === 'hover') clip(face.video!).pause()
+      else showStill()
+    }
+    if (s.p === last.current) return
     last.current = s.p
-    if (s.p !== 0 && s.p !== 1) showStill()
     deform(geom, s.p, s.dir, CURL, yR, yL)
   })
   return (
@@ -226,11 +248,13 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
       castShadow
       receiveShadow
       onClick={(e) => onSheetClick(i, e)}
-      onPointerOver={() => hover(true)}
-      onPointerOut={() => hover(false)}
+      onPointerOver={() => (hovered.current = true)}
+      onPointerOut={() => (hovered.current = false)}
     />
   )
 }
+
+const COVER_MAPS = ['/textures/cover_albedo.jpg', '/textures/cover_normal.jpg', '/textures/cover_orm.png']
 
 /** Rigid board: rotates about the spine, with real thickness and a shell for the edges. */
 function CoverBoard({ i, n, faces }: { i: number; n: number; faces: SheetFaces }) {
@@ -238,14 +262,39 @@ function CoverBoard({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   const bw = W + BOARD_OVERHANG
   const bd = D + BOARD_OVERHANG * 2
   const geom = useMemo(() => sheetGeometry(bw, bd, false), [bw, bd])
+  const cloth = useTexture(COVER_MAPS)
+  const gl = useThree((st) => st.gl)
+  // soft studio reflections so the silver foil reads as metal, not black
+  const studioEnv = useMemo(() => new THREE.PMREMGenerator(gl).fromScene(new RoomEnvironment(), 0.04).texture, [gl])
   const [front, back] = useMemo(() => {
     const m = paperMaterials(faces)
     // the board's outside is black cloth, not a printed page: lit and graded like the rest of the scene
     const k = i === 0 ? 0 : 1
-    const map = k === 0 ? faces.front.map : faces.back.map
-    m[k] = new THREE.MeshStandardMaterial({ map, side: m[k].side, roughness: 0.58, shadowSide: THREE.DoubleSide })
+    const side = m[k].side
+    if (i === 0) {
+      // front cover: book cloth with a debossed silver-foil 'ares' (blender/scripts/make_cover.py)
+      const [albedo, normal, orm] = cloth
+      albedo.colorSpace = THREE.SRGBColorSpace
+      for (const t of cloth) t.anisotropy = 16
+      m[k] = new THREE.MeshStandardMaterial({
+        map: albedo,
+        normalMap: normal,
+        normalScale: new THREE.Vector2(1, 1),
+        aoMap: orm,
+        roughnessMap: orm,
+        metalnessMap: orm,
+        roughness: 1,
+        metalness: 1,
+        envMap: studioEnv,
+        envMapIntensity: 0.07,
+        side,
+        shadowSide: THREE.DoubleSide,
+      })
+    } else {
+      m[k] = new THREE.MeshStandardMaterial({ map: faces.back.map, side, roughness: 0.58, shadowSide: THREE.DoubleSide })
+    }
     return m
-  }, [faces, i])
+  }, [faces, i, cloth, studioEnv])
   const edge = useMemo(() => {
     const e = new THREE.MeshStandardMaterial({ color: '#111113', roughness: 0.5 })
     const hidden = new THREE.MeshBasicMaterial({ visible: false })
@@ -292,7 +341,7 @@ function blockGeometry(h: number) {
   shape.moveTo(0, base)
   for (let i = 0; i <= 40; i++) {
     const s = Math.pow(i / 40, 1.4) * (W - 0.003)
-    shape.lineTo(s, SPINE_Y + (COVER_T + h - SPINE_Y) * gutter(s) - 0.0001)
+    shape.lineTo(s, SPINE_Y + (COVER_T + h - SPINE_Y) * gutter(s) - 0.0002)
   }
   shape.lineTo(W - 0.003, base)
   shape.closePath()
