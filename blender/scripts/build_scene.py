@@ -174,9 +174,17 @@ def build():
         hsv.inputs["Saturation"].default_value = 0.9
         nt.links.new(lnk[0].from_socket, hsv.inputs["Color"])
         nt.links.new(hsv.outputs["Color"], bsdf.inputs["Base Color"])
+    # glossier finish so the spot draws a sheen across the grain, as in the reference
+    rl = bsdf.inputs["Roughness"].links
+    if rl:
+        mul = nt.nodes.new("ShaderNodeMath")
+        mul.operation = "MULTIPLY"
+        mul.inputs[1].default_value = 0.6
+        nt.links.new(rl[0].from_socket, mul.inputs[0])
+        nt.links.new(mul.outputs[0], bsdf.inputs["Roughness"])
 
     # Book (closed, landscape hardcover). Kept as its own objects under "Book" empty.
-    cover = mat("BookCover", (0.010, 0.010, 0.011), rough=0.62, spec=0.35)
+    cover = mat("BookCover", (0.005, 0.005, 0.0055), rough=0.5, spec=0.35)
     cn = cover.node_tree
     tex = cn.nodes.new("ShaderNodeTexNoise")
     tex.inputs["Scale"].default_value = 900
@@ -204,8 +212,10 @@ def build():
     ]
     logo_mat = mat("Logo", (0.75, 0.75, 0.75), rough=0.25, spec=0.8)
     cu = bpy.data.curves.new("Logo", "FONT")
-    cu.body = "● ubernatural"
-    cu.size = 0.026
+    cu.body = "ares"
+    cu.font = bpy.data.fonts.load("C:/Windows/Fonts/seguisb.ttf")
+    cu.size = 0.042
+    cu.space_character = 1.08
     cu.align_x, cu.align_y = "CENTER", "CENTER"
     cu.extrude = 0.00008
     logo = link(bpy.data.objects.new("Book_Logo", cu))
@@ -296,18 +306,18 @@ def build():
 
     # Lighting: one soft spot pool, a little bounce, near-black world.
     sc.world = bpy.data.worlds.new("World")
-    sc.world.color = (0.002, 0.002, 0.0025)
+    sc.world.color = (0.0004, 0.0004, 0.0005)
     spot = bpy.data.lights.new("KeySpot", "SPOT")
-    spot.energy = 120
-    spot.spot_size = math.radians(36)
-    spot.spot_blend = 0.9
-    spot.shadow_soft_size = 0.35
+    spot.energy = 95
+    spot.spot_size = math.radians(42)
+    spot.spot_blend = 0.8
+    spot.shadow_soft_size = 0.12
     spot.color = (1.0, 0.95, 0.88)
     key = link(bpy.data.objects.new("KeySpot", spot))
-    key.location = (-0.05, 0.25, 1.25)
+    key.location = (-0.02, 0.32, 1.35)
     key.rotation_euler = (math.radians(-11), math.radians(-2), 0)
     fill = bpy.data.lights.new("Fill", "AREA")
-    fill.energy = 0.5
+    fill.energy = 0.12
     fill.size = 2.0
     fill.color = (0.85, 0.9, 1.0)
     fl = link(bpy.data.objects.new("Fill", fill))
