@@ -4,3 +4,4 @@ blender/renders/
 node_modules/
 dist/
 blender/desk_scene.blend
+*.tsbuildinfo
