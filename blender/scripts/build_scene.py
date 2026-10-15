@@ -128,15 +128,14 @@ def build():
     me = bpy.data.meshes.new("Desk")
     bm = bmesh.new()
     bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=1)
-    bmesh.ops.scale(bm, vec=(1.5, 1.0, 1), verts=bm.verts)
+    bmesh.ops.scale(bm, vec=(0.9, 0.6, 1), verts=bm.verts)
     uv = bm.loops.layers.uv.new("UVMap")
     for f in bm.faces:
         for l in f.loops:
-            l[uv].uv = (l.vert.co.x / 0.9 + 0.5, l.vert.co.y / 0.9 + 0.5)
+            l[uv].uv = (l.vert.co.y / 0.9 + 0.5, -l.vert.co.x / 0.9 + 0.5)  # grain runs left-right
     bm.to_mesh(me)
     desk = link(bpy.data.objects.new("Desk", me))
     desk.data.materials.append(mats[0])
-    desk.rotation_euler.z = math.radians(90)  # grain runs left-right like the reference
     # darken the scan a touch: the reference desk is nearly black wenge
     nt = mats[0].node_tree
     bsdf = nt.nodes["Principled BSDF"]
