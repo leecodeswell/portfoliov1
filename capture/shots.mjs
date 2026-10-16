@@ -10,6 +10,7 @@
 const COLOGNE = 'https://leecodeswell.github.io/cologne/'
 const AETERNUM = 'https://leecodeswell.github.io/3Dexample/'
 const ARES = 'https://ares-web.com/'
+const AUREL = 'https://leecodeswell.github.io/LuxuryCar/'
 
 export const shots = [
   // Lorem Ipsum — hero still (the page itself is live in the book, for the bas-relief cursor effect)
@@ -53,5 +54,27 @@ export const shots = [
     pre: [{ scroll: 2300, ms: 3500 }, { wait: 3000 }],
     still: 'before',
     frames: { to: 13350, method: 'wheel', step: 9, count: 3000, settle: 25 },
+  },
+  // AUREL — the studio half: first light, side-on panel sweeps, colour light (~8 s)
+  {
+    name: 'aurel-studio',
+    url: AUREL,
+    pre: [{ wheel: 2, ms: 100 }, { wait: 3000 }], // AUREL lights the car on the first scroll; let it finish
+    settle: 4000,
+    dpr: 1, // AUREL renders too slowly at 2x and dims its own lighting
+    cursor: [1900, 1120],
+    still: 'before',
+    frames: { to: 5800, count: 480, settle: 60 },
+  },
+  // AUREL — lights out: rain, foam, pressure wash, through to the wet look handed back (~14 s)
+  {
+    name: 'aurel-rain',
+    url: AUREL,
+    dpr: 1,
+    cursor: [1900, 1120],
+    settle: 4000,
+    pre: [{ scroll: 7700, ms: 2500 }, { wait: 5000 }],
+    still: 'before',
+    frames: { to: 20000, count: 740, settle: 60 },
   },
 ]

@@ -167,9 +167,10 @@ export async function paintBook(): Promise<SheetFaces[]> {
     document.fonts.load(`italic 400 100px "Instrument Serif"`),
   ]).catch(() => undefined)
 
-  // Spreads: contents | intro · Lorem Ipsum relief (live) | sequence · Ares intro | journey · AETERNUM | contact
-  const lefts: Source[] = [contentsPage(), pages.cologneRelief, pages.aresIntro, pages.aeternum]
-  const rights: Source[] = [introPage(), pages.cologneSequence, pages.aresJourney, contactPage()]
+  // Spreads: contents | intro · Lorem Ipsum relief (live) | sequence · Ares intro | journey ·
+  // AUREL studio | rain · AETERNUM | contact
+  const lefts: Source[] = [contentsPage(), pages.cologneRelief, pages.aresIntro, pages.aurelStudio, pages.aeternum]
+  const rights: Source[] = [introPage(), pages.cologneSequence, pages.aresJourney, pages.aurelRain, contactPage()]
 
   const n = rights.length + 1 // sheets incl. both covers
   return Promise.all(

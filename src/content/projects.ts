@@ -47,6 +47,8 @@ export const pages = {
   cologneSequence: media('cologne-sequence', 'hover'),
   aresIntro: media('ares-intro', 'loop'), // the welcome with its ivy swaying, looped seamlessly
   aresJourney: { ...media('ares-journey', 'hover'), resume: true },
+  aurelStudio: media('aurel-studio', 'hover'),
+  aurelRain: media('aurel-rain', 'hover'),
   aeternum: media('aeternum-explode', 'hover'),
 }
 
@@ -66,10 +68,17 @@ export const projects: Project[] = [
     spread: 3,
   },
   {
+    name: 'AUREL',
+    subtitle: 'Live 3D Automotive Study',
+    discipline: 'Automotive · Real-time 3D',
+    url: 'https://leecodeswell.github.io/LuxuryCar/',
+    spread: 4,
+  },
+  {
     name: 'AETERNUM',
     subtitle: 'Interactive Watch Showcase',
     discipline: 'Horology · Real-time 3D',
     url: 'https://leecodeswell.github.io/3Dexample/',
-    spread: 4,
+    spread: 5,
   },
 ]

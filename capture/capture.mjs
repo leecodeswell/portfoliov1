@@ -83,14 +83,16 @@ function encode(shot, input, fps) {
 }
 
 for (const shot of todo) {
-  const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 2 })
+  // `dpr: 1` for very heavy WebGL sites that slow down (and degrade themselves) at 2x
+  const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: shot.dpr ?? 2 })
   const page = await ctx.newPage()
   await page.goto(shot.url, { waitUntil: 'networkidle', timeout: 90000 })
-  await page.mouse.move(VIEW.width / 2, VIEW.height / 2)
+  // `cursor: false` leaves the mouse untouched (some sites react to any pointer movement)
+  if (shot.cursor !== false) await page.mouse.move(...(shot.cursor ?? [VIEW.width / 2, VIEW.height / 2]))
   await page.waitForTimeout(shot.settle ?? 2500)
   await act(page, shot.pre)
 
-  if (shot.still === 'before') await page.screenshot({ path: `${OUT}/${shot.name}.jpg`, quality: 90, type: 'jpeg' })
+  if (shot.still === 'before' && !shot.frames) await page.screenshot({ path: `${OUT}/${shot.name}.jpg`, quality: 90, type: 'jpeg' })
 
   if (shot.frames) {
     const { to, count, settle = 60, method = 'scrollTo', step = 24 } = shot.frames
@@ -112,6 +114,8 @@ for (const shot of todo) {
       await page.waitForTimeout(settle)
       await page.screenshot({ path: path.join(dir, `f${String(n++).padStart(5, '0')}.jpg`), quality: 92, type: 'jpeg' })
     }
+    // the page's still is exactly the clip's first frame (some sites only light up on the first scroll)
+    if (shot.still === 'before') fs.copyFileSync(path.join(dir, 'f00000.jpg'), `${OUT}/${shot.name}.jpg`)
     console.log(`${shot.name}: ${n} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s -> ${(n / 60).toFixed(1)}s at 60 fps`)
     encode(shot, ['-framerate', '60', '-i', path.join(dir, 'f%05d.jpg')], 60)
     fs.rmSync(dir, { recursive: true, force: true })
