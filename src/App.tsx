@@ -48,7 +48,7 @@ export default function App() {
         shadows={{ type: THREE.PCFSoftShadowMap }}
         dpr={[1, 2]}
         camera={{ fov: 30, near: 0.05, far: 10, position: [0, 1.3, 0.3] }}
-        gl={{ antialias: false, powerPreference: 'high-performance' }}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
         onPointerMissed={() => phase === 'closed' && book.open()}
       >
         <Suspense fallback={null}>

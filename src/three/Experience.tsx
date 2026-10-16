@@ -1,16 +1,14 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
-import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing'
-import { BlendFunction } from 'postprocessing'
 import { Desk } from './Desk'
 import { Book } from './Book'
 import { CameraRig } from './CameraRig'
 import { ContactCard } from './ContactCard'
 
 /**
- * Grade per material instead of per frame: everything physical (desk, props, book boards) gets AgX
- * plus a touch of saturation, matching the Blender renders. Materials defining NO_GRADE skip it —
- * page content behaves like a screen and keeps the sites' true colours.
+ * No full-frame post-processing: the cinematic look (AgX, a touch of saturation, film grain) is
+ * applied per material to physical things only — desk, props, book cloth. Page content defines
+ * NO_GRADE and reaches the screen pixel-for-pixel as the sites render it.
  */
 const agxSource = (() => {
   // three only compiles its tone-mapping functions when it tone maps itself, which it skips when
@@ -32,6 +30,9 @@ THREE.ShaderChunk.tonemapping_fragment = /* glsl */ `
   gl_FragColor.rgb = gradeAgX( gl_FragColor.rgb );
   float gradeLuma = dot( gl_FragColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
   gl_FragColor.rgb = mix( vec3( gradeLuma ), gl_FragColor.rgb, 1.12 );
+  // static film grain, physical objects only
+  float grain = fract( sin( dot( gl_FragCoord.xy, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) - 0.5;
+  gl_FragColor.rgb += grain * 0.018;
 #endif
 `
 
@@ -74,11 +75,6 @@ export function Experience() {
       <Desk />
       <Book />
       <ContactCard />
-      <EffectComposer multisampling={4}>
-        <Bloom mipmapBlur intensity={0.22} luminanceThreshold={1.25} luminanceSmoothing={0.1} />
-        <Vignette offset={0.32} darkness={0.55} />
-        <Noise opacity={0.05} blendFunction={BlendFunction.OVERLAY} />
-      </EffectComposer>
     </>
   )
 }

@@ -62,16 +62,9 @@ canvas { display: block; cursor: pointer; }
 .live-L { -webkit-mask-image: linear-gradient(to left, transparent 0, #000 6%); mask-image: linear-gradient(to left, transparent 0, #000 6%); }
 .live-R { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6%); mask-image: linear-gradient(to right, transparent 0, #000 6%); }
 .live-shade { position: absolute; inset: 0; pointer-events: none; }
-.live-L .live-shade {
-  background:
-    linear-gradient(to left, rgba(0,0,0,0.35), rgba(0,0,0,0) 12%),
-    linear-gradient(115deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 40%);
-}
-.live-R .live-shade {
-  background:
-    linear-gradient(to right, rgba(0,0,0,0.35), rgba(0,0,0,0) 12%),
-    linear-gradient(245deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 40%);
-}
+/* only the fold near the spine darkens, matching the WebGL pages; the site itself stays untouched */
+.live-L .live-shade { background: linear-gradient(to left, rgba(0,0,0,0.3), rgba(0,0,0,0) 5%); }
+.live-R .live-shade { background: linear-gradient(to right, rgba(0,0,0,0.3), rgba(0,0,0,0) 5%); }
 .live-edge {
   position: absolute; top: 0; bottom: 0; width: 90px; border: 0; padding: 0; cursor: pointer;
   background: transparent; color: rgba(255,255,255,0); font: 300 64px var(--sans); transition: background 0.35s ease, color 0.35s ease;

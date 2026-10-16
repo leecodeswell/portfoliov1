@@ -24,6 +24,8 @@ const gutter = (s: number) => GUTTER_FLOOR + (1 - GUTTER_FLOOR) * (1 - Math.exp(
 
 /** Column positions, packed toward the spine where the gutter curve needs resolution. */
 const COLS = Array.from({ length: SEG_X + 1 }, (_, i) => Math.pow(i / SEG_X, 1.35))
+/** Fold shading: only the last ~2 cm into the spine darkens; the rest of a flat page is untouched. */
+const foldShade = (s: number) => 0.68 + 0.32 * (1 - Math.exp(-s / 0.014))
 
 /** Grid in the sheet's local frame: s = distance from the spine (0..w), z across the page. */
 function sheetGeometry(w = W, d = D, shade = true) {
@@ -42,7 +44,7 @@ function sheetGeometry(w = W, d = D, shade = true) {
       uv[k * 2] = COLS[i]
       uv[k * 2 + 1] = 1 - j / SEG_Z
       // soft gutter darkening: light can't reach into the fold
-      const c = shade ? 0.55 + 0.45 * (1 - Math.exp(-s / 0.03)) : 1
+      const c = shade ? foldShade(s) : 1
       col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = c
     }
   for (let j = 0; j < SEG_Z; j++)
@@ -105,6 +107,16 @@ function deform(g: THREE.BufferGeometry, p: number, dir: number, curl: number, y
   }
   pos.needsUpdate = true
   g.computeVertexNormals()
+  // curl shading: a bent page turns away from the light and darkens; a flat page stays at 1.0
+  const nrm = g.attributes.normal as THREE.BufferAttribute
+  const col = g.attributes.color as THREE.BufferAttribute
+  for (let j = 0; j <= SEG_Z; j++)
+    for (let i = 0; i <= SEG_X; i++) {
+      const k = j * (SEG_X + 1) + i
+      const c = foldShade(COLS[i] * W) * (0.58 + 0.42 * Math.abs(nrm.getY(k)))
+      col.setXYZ(k, c, c, c)
+    }
+  col.needsUpdate = true
   g.computeBoundingSphere()
 }
 
@@ -142,28 +154,36 @@ function videoTexture(face: Face) {
 }
 
 /**
- * Page faces behave like screens: the content is emitted at its true colour (no grade, see
- * Experience.tsx) while a small lit component keeps the paper's curl shading, a soft sheen and
- * cast shadows. The gutter fold darkens the emission too so pages still sink into the spine.
+ * Page faces are displays: the content is emitted at exactly its source colour (no grade, no
+ * post-processing). Paper realism is layered on as shading only — the fold near the spine, the curl
+ * of a turning page (vertex colours), and the key light's shadow, e.g. a page turning over the
+ * spread. A flat page in the open is pixel-identical to the site. A faint lit term adds sheen.
  */
 function screenMaterial(map: THREE.Texture, side: THREE.Side) {
-  const m = new THREE.MeshStandardMaterial({
+  const m = new THREE.MeshPhysicalMaterial({
     map,
     side,
     vertexColors: true,
-    color: new THREE.Color().setScalar(0.18),
-    roughness: 0.38,
+    color: new THREE.Color().setScalar(0.04),
+    roughness: 0.6,
+    specularIntensity: 0.18, // a faint broad sheen; any more lifts the sites' blacks to grey
     metalness: 0,
     emissive: new THREE.Color('#ffffff'),
     emissiveMap: map,
-    emissiveIntensity: 0.86,
+    emissiveIntensity: 1,
     shadowSide: THREE.DoubleSide,
   })
   m.defines = { NO_GRADE: '' }
   m.onBeforeCompile = (sh) => {
     sh.fragmentShader = sh.fragmentShader.replace(
       '#include <emissivemap_fragment>',
-      '#include <emissivemap_fragment>\n  totalEmissiveRadiance *= mix( vec3( 1.0 ), vColor.rgb, 0.75 );',
+      `#include <emissivemap_fragment>
+  float pageShadow = 1.0;
+  #if defined( USE_SHADOWMAP ) && NUM_SPOT_LIGHT_SHADOWS > 0
+    pageShadow = getShadow( spotShadowMap[ 0 ], spotLightShadows[ 0 ].shadowMapSize, spotLightShadows[ 0 ].shadowIntensity,
+      spotLightShadows[ 0 ].shadowBias, spotLightShadows[ 0 ].shadowRadius, vSpotLightCoord[ 0 ] );
+  #endif
+  totalEmissiveRadiance *= vColor.rgb * mix( 1.0, pageShadow, 0.55 );`,
     )
   }
   return m
@@ -267,7 +287,7 @@ function CoverBoard({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   // soft studio reflections so the silver foil reads as metal, not black
   const studioEnv = useMemo(() => new THREE.PMREMGenerator(gl).fromScene(new RoomEnvironment(), 0.04).texture, [gl])
   const [front, back] = useMemo(() => {
-    const m = paperMaterials(faces)
+    const m: THREE.Material[] = paperMaterials(faces)
     // the board's outside is black cloth, not a printed page: lit and graded like the rest of the scene
     const k = i === 0 ? 0 : 1
     const side = m[k].side
