@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="la">
+<head>
+  <!-- Trimmed copy of leecodeswell/cologne for the portfolio book: hero (bas-relief) only. -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lorem Ipsum — Portfolium</title>
+  <meta name="description" content="Lorem ipsum dolor sit amet — directio artis et cinematographia odorum." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body class="is-loading">
+  <canvas class="gl" aria-hidden="true"></canvas>
+
+  <!-- Loader -->
+  <div class="loader" aria-hidden="true">
+    <div class="loader__mark">
+      <span class="loader__word">Lorem Ipsum</span>
+      <span class="loader__count"><span data-count>000</span></span>
+    </div>
+  </div>
+
+  <!-- Fixed chrome -->
+  <header class="chrome">
+    <a class="chrome__mark" href="#initium" data-cursor="link">Lorem&nbsp;Ipsum</a>
+    <span class="chrome__center">Portfolium · MMXXVI</span>
+    <nav class="chrome__nav" aria-label="Navigatio">
+      <a href="#opera" data-cursor="link">Opera</a>
+      <a href="#officia" data-cursor="link">Officia</a>
+      <a href="#contactus" data-cursor="link">Contactus</a>
+    </nav>
+  </header>
+  <div class="progress" aria-hidden="true"><span class="progress__bar"></span></div>
+  <div class="cursor" aria-hidden="true"><span class="cursor__label">Specta</span></div>
+
+  <main>
+    <!-- I. Hero -->
+    <section class="hero" id="initium">
+      <p class="eyebrow hero__eyebrow" data-intro>Directio artis &amp; cinematographia</p>
+      <h1 class="hero__title">
+        <span class="line"><span data-intro>Ars odoris,</span></span>
+        <span class="line"><span data-intro><em>lumine</em> facta.</span></span>
+      </h1>
+      <p class="hero__lede" data-intro>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Imagines moventes pro domibus odorum nobilium.
+      </p>
+      <div class="hero__foot" data-intro>
+        <span class="hero__cue"><span class="hero__cue-line"></span>Descende</span>
+        <span class="hero__note">Opera selecta<br />MMXXIV — MMXXVI</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Hover preview for the index list -->
+</body>
+</html>

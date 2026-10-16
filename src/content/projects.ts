@@ -40,8 +40,9 @@ const media = (name: string, play?: PageMedia['play']): PageMedia => ({
   play,
 })
 
-// Same origin as the portfolio on leecodeswell.github.io (proxied in dev, see vite.config.ts)
-const COLOGNE = '/cologne/'
+// A trimmed copy of the cologne site's hero ships with the book (public/live/cologne): always
+// same-origin, loads in a fraction of the full site, and can never fall back to the portfolio itself
+const COLOGNE = asset('live/cologne/index.html')
 
 /** Book pages in reading order. Spread 1 is contents | intro; the back cover's inside is contact. */
 export const pages = {

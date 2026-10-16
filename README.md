@@ -30,5 +30,5 @@ production build.
 | `capture/` | Playwright scripts that capture pages from the live sites (`node capture/capture.mjs`) |
 | `blender/scripts/` | Scene build, preview renders, light bake + glTF export, latte and cover textures |
 
-The live cologne page and the Ares clips come from the projects' own sites; the dev/preview servers
-proxy `/cologne/` and `/ares-web/` so the embedded cologne page is same-origin.
+The live cologne page is a trimmed copy of the cologne site's hero in `public/live/cologne`, so it is
+same-origin everywhere and loads fast. Every other page is a capture (`capture/`).

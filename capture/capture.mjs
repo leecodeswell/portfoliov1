@@ -87,6 +87,8 @@ for (const shot of todo) {
   const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: shot.dpr ?? 2 })
   const page = await ctx.newPage()
   await page.goto(shot.url, { waitUntil: 'networkidle', timeout: 90000 })
+  // `ready`: a selector the site sets once it has loaded (heavy 2x scenes can take a while)
+  if (shot.ready) await page.waitForSelector(shot.ready, { state: 'attached', timeout: 180000 })
   // `cursor: false` leaves the mouse untouched (some sites react to any pointer movement)
   if (shot.cursor !== false) await page.mouse.move(...(shot.cursor ?? [VIEW.width / 2, VIEW.height / 2]))
   await page.waitForTimeout(shot.settle ?? 2500)
@@ -102,17 +104,16 @@ for (const shot of todo) {
     let n = 0
     for (let i = 0; i < count; i++) {
       if (method === 'scrollTo') {
-        // ease in and out like a hand on a wheel, but exactly on rails
+        // constant speed: no slow lingering at the start or end of a clip
         const t = i / (count - 1)
-        const e = t * t * (3 - 2 * t)
-        await page.evaluate((y) => window.scrollTo(0, y), y0 + (to - y0) * e)
+        await page.evaluate((y) => window.scrollTo(0, y), y0 + (to - y0) * t)
       } else {
         // sites that animate scroll themselves: small, even, forward-only wheel steps
         if ((await page.evaluate(() => scrollY)) >= to) break
         await page.mouse.wheel(0, step)
       }
       await page.waitForTimeout(settle)
-      await page.screenshot({ path: path.join(dir, `f${String(n++).padStart(5, '0')}.jpg`), quality: 92, type: 'jpeg' })
+      await page.screenshot({ path: path.join(dir, `f${String(n++).padStart(5, '0')}.jpg`), quality: 92, type: 'jpeg', timeout: 120000 })
     }
     // the page's still is exactly the clip's first frame (some sites only light up on the first scroll)
     if (shot.still === 'before') fs.copyFileSync(path.join(dir, 'f00000.jpg'), `${OUT}/${shot.name}.jpg`)

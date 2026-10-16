@@ -10,7 +10,10 @@
 const COLOGNE = 'https://leecodeswell.github.io/cologne/'
 const AETERNUM = 'https://leecodeswell.github.io/3Dexample/'
 const ARES = 'https://ares-web.com/'
-const AUREL = 'https://leecodeswell.github.io/LuxuryCar/'
+// AUREL is captured from a local build of leecodeswell/LuxuryCar with its render-resolution cap
+// raised to a true 2x (src/Scene.jsx dpr={[2,2]}), served at :4180 (vite preview); the live site
+// caps itself at 1.5x, which looked soft once stretched across a page.
+const AUREL = process.env.AUREL_URL ?? 'http://localhost:4180/'
 
 export const shots = [
   // Lorem Ipsum — hero still (the page itself is live in the book, for the bas-relief cursor effect)
@@ -59,9 +62,9 @@ export const shots = [
   {
     name: 'aurel-studio',
     url: AUREL,
+    ready: '.loading-screen.loaded',
     pre: [{ wheel: 2, ms: 100 }, { wait: 3000 }], // AUREL lights the car on the first scroll; let it finish
     settle: 4000,
-    dpr: 1, // AUREL renders too slowly at 2x and dims its own lighting
     cursor: [1900, 1120],
     still: 'before',
     frames: { to: 5800, count: 480, settle: 60 },
@@ -70,7 +73,7 @@ export const shots = [
   {
     name: 'aurel-rain',
     url: AUREL,
-    dpr: 1,
+    ready: '.loading-screen.loaded',
     cursor: [1900, 1120],
     settle: 4000,
     pre: [{ scroll: 7700, ms: 2500 }, { wait: 5000 }],

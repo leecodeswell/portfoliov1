@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { asset } from '../asset'
+import { BookPile } from './BookPile'
 
 /**
  * Lightmaps were written at -1 EV (see blender/scripts/bake_export.py), so 2.0 restores them exactly.
@@ -18,30 +19,18 @@ const TILE = 0.9
  * normal/roughness maps (the streaks that run along the grain).
  */
 /**
- * The coffee's surface, drawn live over the baked cup: a 2K latte texture (blender/scripts/make_latte.py)
- * and a real liquid sheen from the softbox. Placement mirrors build_scene.py: the Latte group at
- * Blender (0.50, 0.15) turned -35°, the liquid disc 62.5 mm up, r 44.2 mm, turned a further +15°.
+ * The coffee's surface, drawn live over the baked mug so it catches a real wet sheen from the softbox.
+ * Placement mirrors build_scene.py: the Mug group at Blender (-0.48, 0.15), coffee disc 83 mm up, r 37.8 mm.
  */
-function LatteTop() {
-  const latte = useTexture(asset('textures/latte.png'))
-  const mat = useMemo(() => {
-    latte.colorSpace = THREE.SRGBColorSpace
-    latte.anisotropy = 16
-    return new THREE.MeshPhysicalMaterial({
-      color: 0x000000,
-      emissive: 0xffffff,
-      emissiveMap: latte,
-      emissiveIntensity: 0.62, // matches the cup's baked light
-      roughness: 0.14, // wet crema: a soft gloss
-      metalness: 0,
-    })
-  }, [latte])
+function CoffeeTop() {
+  const mat = useMemo(
+    () => new THREE.MeshPhysicalMaterial({ color: 0x1a0d07, roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04 }),
+    [],
+  )
   return (
-    <group position={[0.5, 0.0627, -0.15]} rotation-y={THREE.MathUtils.degToRad(-20)}>
-      <mesh rotation-x={-Math.PI / 2} material={mat}>
-        <circleGeometry args={[0.0443, 96]} />
-      </mesh>
-    </group>
+    <mesh position={[-0.48, 0.0832, -0.15]} rotation-x={-Math.PI / 2} material={mat}>
+      <circleGeometry args={[0.0378, 96]} />
+    </mesh>
   )
 }
 
@@ -90,7 +79,8 @@ export function Desk() {
   return (
     <>
       <primitive object={scene} />
-      <LatteTop />
+      <CoffeeTop />
+      <BookPile />
       {/* catches the real-time book's shadow on top of the baked desk */}
       <mesh rotation-x={-Math.PI / 2} position-y={0.0004} receiveShadow>
         <planeGeometry args={[1.8, 1.2]} />

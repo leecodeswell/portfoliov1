@@ -12,7 +12,6 @@ W_M, D_M = 0.44 + 0.005, 0.26 + 0.010  # board size in metres (Book.tsx: W + ove
 PX = 4096
 PY = round(PX * D_M / W_M)
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "public", "textures")
-FONT = "C:/Windows/Fonts/seguisb.ttf"
 rng = np.random.default_rng(11)
 
 
@@ -21,19 +20,26 @@ def blur(a, r):
     return np.asarray(im.filter(ImageFilter.GaussianBlur(r)), np.float32) / 255
 
 
-# --- letters: centred, wide tracking, like the Blender cover ---------------------------------------
+# --- letters: ARES in the Ares site's title face (Cormorant Garamond), a small byline beneath ------
+FONT = os.path.join(os.path.dirname(__file__), "..", "fonts", "CormorantGaramond.ttf")  # OFL, Google Fonts
 mask_im = Image.new("L", (PX, PY), 0)
 d = ImageDraw.Draw(mask_im)
-font = ImageFont.truetype(FONT, int(PX * 0.085))
-text, track = "ares", int(PX * 0.012)
-widths = [d.textlength(ch, font=font) for ch in text]
-total = sum(widths) + track * (len(text) - 1)
-x = (PX - total) / 2
-asc, desc = font.getmetrics()
-y = PY / 2 - (asc - desc * 0.2) / 2 - PY * 0.02
-for ch, w in zip(text, widths):
-    d.text((x, y), ch, font=font, fill=255)
-    x += w + track
+
+
+def tracked(text, size, weight, track, cy):
+    font = ImageFont.truetype(FONT, size)
+    font.set_variation_by_name(weight)
+    widths = [d.textlength(ch, font=font) for ch in text]
+    x = (PX - (sum(widths) + track * (len(text) - 1))) / 2
+    top, bottom = font.getbbox("ARESH")[1], font.getbbox("ARESH")[3]
+    y = cy - (top + bottom) / 2
+    for ch, w in zip(text, widths):
+        d.text((x, y), ch, font=font, fill=255)
+        x += w + track
+
+
+tracked("ARES", int(PX * 0.12), b"Medium", int(PX * 0.03), PY * 0.47)
+tracked("BY LEE THOMPSON", int(PX * 0.022), b"Medium", int(PX * 0.009), PY * 0.62)
 mask = np.asarray(mask_im.filter(ImageFilter.GaussianBlur(1.2)), np.float32) / 255
 
 # --- cloth: fine woven grain (warp/weft) + slow mottling ---------------------------------------------

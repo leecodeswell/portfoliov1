@@ -226,43 +226,56 @@ def build():
     book.location = (0.0, -0.03, 0)
     book.rotation_euler.z = math.radians(4)
 
-    # Latte: saucer, cup, handle, crema disc.
-    ceramic = mat("Ceramic", (0.88, 0.88, 0.86), rough=0.08, spec=0.6, coat=0.6, sss=0.05)
-    saucer = lathe("Saucer", [(0, 0.0), (0.04, 0.0), (0.05, 0.004), (0.075, 0.009), (0.079, 0.013),
-                             (0.076, 0.0135), (0.06, 0.0095), (0.035, 0.0065), (0.0, 0.0065)], ceramic)
-    cup_profile = [(0, 0.0065), (0.024, 0.0065), (0.032, 0.011), (0.041, 0.027), (0.0465, 0.052),
-                   (0.0482, 0.068), (0.0472, 0.0692), (0.0448, 0.067), (0.043, 0.051),
-                   (0.036, 0.027), (0.0, 0.019)]
-    cup = lathe("Cup", cup_profile, ceramic)
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.016, minor_radius=0.0045,
-                                     major_segments=48, minor_segments=16,
-                                     location=(0.052, 0, 0.042), rotation=(math.radians(90), 0, 0))
-    handle = bpy.context.active_object
-    handle.name = "CupHandle"
-    handle.scale = (0.8, 1.0, 1.0)
-    handle.data.materials.append(ceramic)
-    smooth(handle)
-    coffee = mat("Coffee", (1, 1, 1), rough=0.35, spec=0.5)
-    cn = coffee.node_tree
-    it = cn.nodes.new("ShaderNodeTexImage")
-    it.image = bpy.data.images.load(os.path.join(ROOT, "..", "public", "textures", "latte.png"))
-    cn.links.new(it.outputs["Color"], cn.nodes["Principled BSDF"].inputs["Base Color"])
-    bpy.ops.mesh.primitive_circle_add(vertices=96, radius=0.0442, fill_type="NGON", location=(0, 0, 0.0625))
-    disc = bpy.context.active_object
-    disc.name = "LatteSurface"
-    disc.data.materials.append(coffee)
-    disc.data.uv_layers.new(name="UVMap")
-    for l in disc.data.loops:
-        co = disc.data.vertices[l.vertex_index].co
-        disc.data.uv_layers[0].data[l.index].uv = (co.x / 0.0884 + 0.5, co.y / 0.0884 + 0.5)
-    latte = link(bpy.data.objects.new("Latte", None))
-    for o in (saucer, cup, handle, disc):
-        o.parent = latte
-    disc.rotation_euler.z = math.radians(15)  # heart tip toward the viewer
-    latte.location = (0.50, 0.15, 0)
-    latte.rotation_euler.z = math.radians(-35)
+    # Mug (left): plain off-white stoneware, coffee inside. The coffee's surface is drawn live on the
+    # web (src/three/Desk.tsx LatteTop) so it stays sharp; here a dark disc stands in for the bake.
+    stone = mat("Stoneware", (0.80, 0.78, 0.74), rough=0.42, spec=0.5, coat=0.25)
+    mug_profile = [(0, 0.0), (0.036, 0.0), (0.040, 0.002), (0.042, 0.010), (0.042, 0.092),
+                   (0.0405, 0.0955), (0.0385, 0.094), (0.0378, 0.090), (0.0378, 0.010), (0.0, 0.008)]
+    mug = lathe("Mug", mug_profile, stone)
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.024, minor_radius=0.0055, major_segments=48,
+                                     minor_segments=16, location=(0.052, 0, 0.050), rotation=(math.radians(90), 0, 0))
+    mug_handle = bpy.context.active_object
+    mug_handle.name = "MugHandle"
+    mug_handle.scale = (0.75, 1.0, 1.05)
+    mug_handle.data.materials.append(stone)
+    smooth(mug_handle)
+    coffee_dark = mat("CoffeeDark", (0.06, 0.03, 0.015), rough=0.2)
+    bpy.ops.mesh.primitive_circle_add(vertices=96, radius=0.0378, fill_type="NGON", location=(0, 0, 0.083))
+    brew = bpy.context.active_object
+    brew.name = "MugCoffee"
+    brew.data.materials.append(coffee_dark)
+    mug_grp = link(bpy.data.objects.new("Mug", None))
+    for o in (mug, mug_handle, brew):
+        o.parent = mug_grp
+    mug_grp.location = (-0.48, 0.15, 0)
+    mug_grp.rotation_euler.z = math.radians(-30)  # handle toward the viewer's right
 
-    # Pencil: hex body, sharpened wood cone, graphite tip.
+    # Notepad (bottom right): a small top-bound pad, the pencil lying across it.
+    pad_paper = mat("PadPaper", (0.86, 0.85, 0.80), rough=0.85, spec=0.3)
+    pad_back = mat("PadBack", (0.12, 0.11, 0.10), rough=0.7)
+    pn = pad_paper.node_tree
+    lines = pn.nodes.new("ShaderNodeTexWave")  # faint ruled lines
+    lines.wave_type = "BANDS"
+    lines.bands_direction = "Y"
+    lines.inputs["Scale"].default_value = 26
+    lines.inputs["Distortion"].default_value = 0
+    ramp = pn.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.9
+    ramp.color_ramp.elements[0].color = (0.86, 0.85, 0.80, 1)
+    ramp.color_ramp.elements[1].color = (0.62, 0.68, 0.78, 1)
+    pn.links.new(lines.outputs["Fac"], ramp.inputs["Fac"])
+    pn.links.new(ramp.outputs["Color"], pn.nodes["Principled BSDF"].inputs["Base Color"])
+    pad_w, pad_d = 0.076, 0.105
+    p_back = box("Pad_Back", (pad_w, pad_d, 0.0012), (0, 0, 0.0006), pad_back, bevel=0.0004)
+    p_block = box("Pad_Paper", (pad_w - 0.002, pad_d - 0.006, 0.006), (0, -0.002, 0.0042), pad_paper)
+    p_bind = box("Pad_Binding", (pad_w + 0.001, 0.012, 0.0085), (0, pad_d / 2 - 0.006, 0.0045), pad_back, bevel=0.0015)
+    notepad = link(bpy.data.objects.new("Notepad", None))
+    for o in (p_back, p_block, p_bind):
+        o.parent = notepad
+    notepad.location = (0.47, -0.21, 0)
+    notepad.rotation_euler.z = math.radians(-12)
+
+    # Pencil: hex body, sharpened wood cone, graphite tip — lying across the notepad.
     body_m = mat("PencilBody", (0.05, 0.05, 0.055), rough=0.3, coat=0.4)
     wood_m = mat("PencilWood", (0.55, 0.38, 0.22), rough=0.8)
     lead_m = mat("Graphite", (0.03, 0.03, 0.03), rough=0.25, spec=0.9)
@@ -280,82 +293,8 @@ def build():
     for o in (pb_, cone, tip):
         smooth(o)
         o.parent = pencil
-    pencil.rotation_euler = (math.radians(90), 0, math.radians(-125))
-    pencil.location = (-0.46, -0.16, 0.0038)
-
-    # Succulent: procedural echeveria rosette in a dark cylindrical pot (matches the reference).
-    pot_m = mat("Pot", (0.035, 0.035, 0.037), rough=0.75, spec=0.3)
-    pot = lathe("Pot", [(0, 0.0), (0.040, 0.0), (0.0425, 0.003), (0.0425, 0.068), (0.0405, 0.0695),
-                        (0.0385, 0.068), (0.0385, 0.058), (0.0, 0.058)], pot_m, steps=96)
-    rim_m = mat("PotRim", (0.55, 0.55, 0.55), rough=0.4)
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.0405, minor_radius=0.0014, location=(0, 0, 0.069))
-    rim = bpy.context.active_object
-    rim.data.materials.append(rim_m)
-    smooth(rim)
-    leaf_m = mat("EcheveriaLeaf", (0.60, 0.72, 0.76), rough=0.45, spec=0.4, sss=0.25)
-    ln = leaf_m.node_tree
-    lb = ln.nodes["Principled BSDF"]
-    lb.inputs["Subsurface Radius"].default_value = (0.004, 0.006, 0.004)
-    # farina bloom: paler, rougher toward leaf tips via a gradient on generated coords
-    gen = ln.nodes.new("ShaderNodeTexCoord")
-    sep = ln.nodes.new("ShaderNodeSeparateXYZ")
-    ramp = ln.nodes.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].color = (0.30, 0.42, 0.44, 1)
-    ramp.color_ramp.elements[1].color = (0.70, 0.80, 0.84, 1)
-    ln.links.new(gen.outputs["Generated"], sep.inputs[0])
-    ln.links.new(sep.outputs["X"], ramp.inputs["Fac"])
-    ln.links.new(ramp.outputs["Color"], lb.inputs["Base Color"])
-    plant = link(bpy.data.objects.new("Succulent", None))
-    golden = math.radians(137.5)
-    n = 72
-    for i in range(n):
-        t = i / (n - 1)                    # 0 = outer leaf, 1 = centre
-        L = 0.034 * (1 - t) ** 0.6 + 0.005  # leaf length
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=16, radius=1)
-        lf = bpy.context.active_object
-        lf.name = f"Leaf{i:02d}"
-        # echeveria leaf: widest past the middle, then a short pointed tip; thick base, cupped upward
-        for v in lf.data.vertices:
-            u = (v.co.x + 1) / 2
-            w = 1.9 * u ** 0.55 * (1 - u) ** 0.45
-            v.co.y *= 0.42 * w
-            v.co.z = v.co.z * (0.16 * (1 - 0.6 * u) + 0.02) + 0.10 * u * u * (abs(v.co.y) * 6 + 1)
-            v.co.x = u
-        lf.scale = (L, L, L)
-        lf.location = (0, 0, 0.058 + 0.016 * t ** 1.5)
-        lf.rotation_euler = (0, -math.radians(4 + 70 * t ** 1.6), golden * i)
-        lf.data.materials.append(leaf_m)
-        smooth(lf, subdiv=1)
-        lf.parent = plant
-    for o in (pot, rim):
-        o.parent = plant
-    plant.location = (-0.50, 0.16, 0)
-
-    # Teaspoon resting on the saucer.
-    steel = mat("Steel", (0.8, 0.8, 0.8), rough=0.18)
-    steel.node_tree.nodes["Principled BSDF"].inputs["Metallic"].default_value = 1.0
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1)
-    bowl = bpy.context.active_object
-    bowl.scale = (0.012, 0.0085, 0.0014)
-    bowl.location = (0, 0, 0.0)
-    bowl.data.materials.append(steel)
-    smooth(bowl)
-    hd = box("SpoonHandle", (0.075, 0.0042, 0.0012), (0.048, 0, 0.0012), steel, bevel=0.0005)
-    spoon = link(bpy.data.objects.new("Spoon", None))
-    bowl.parent = hd.parent = spoon
-    spoon.parent = latte
-    spoon.location = (-0.040, -0.052, 0.0118)
-    spoon.rotation_euler = (math.radians(-3), 0, math.radians(-38))
-
-    # Folded business card.
-    card_m = mat("Card", (0.85, 0.85, 0.84), rough=0.6, spec=0.35)
-    c1 = box("Card_A", (0.085, 0.027, 0.0004), (0, -0.0132, 0.0002), card_m)
-    c2 = box("Card_B", (0.085, 0.027, 0.0004), (0, 0.0128, 0.0055), card_m)
-    c2.rotation_euler.x = math.radians(24)
-    card = link(bpy.data.objects.new("Card", None))
-    c1.parent = c2.parent = card
-    card.location = (0.50, -0.22, 0)
-    card.rotation_euler.z = math.radians(-58)
+    pencil.rotation_euler = (math.radians(90), 0, math.radians(-150))
+    pencil.location = (0.475, -0.215, 0.0122)
 
     # Lighting: a cool studio softbox overhead, nudged right and toward the viewer. Seen from the near
     # top-down camera its reflection lies in the lower half of the frame, so the lacquer lights up in
@@ -394,9 +333,9 @@ def build():
 
     # Close-up cameras for checking detail (render with: render_preview.py -- name samples pct CamName).
     for name, loc, look, lens in [
-        ("CamCloseLatte", (0.33, -0.05, 0.30), (0.50, 0.15, 0.04), 70),
+        ("CamCloseMug", (-0.32, -0.06, 0.30), (-0.48, 0.15, 0.05), 70),
         ("CamCloseBook", (-0.10, -0.42, 0.22), (0.02, -0.03, 0.01), 50),
-        ("CamCloseSucculent", (-0.36, -0.05, 0.25), (-0.50, 0.16, 0.06), 70),
+        ("CamCloseNotepad", (0.33, -0.42, 0.25), (0.47, -0.21, 0.01), 60),
     ]:
         cd = bpy.data.cameras.new(name)
         cd.lens = lens
