@@ -7,16 +7,24 @@ Baked images are written through the Standard view at EXPOSURE stops so they kee
 side multiplies them back by 2**-EXPOSURE and applies AgX tone mapping, matching the Blender render.
 """
 import bpy, bmesh, os, sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from denoise_image import denoise
 
 EXPOSURE = -1.0
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 OUT = os.path.join(ROOT, "public", "models", "desk.glb")
 BAKE_DIR = os.path.join(ROOT, "blender", "renders", "bakes")
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-SAMPLES = int(args[0]) if args else 512
+SAMPLES = int(args[0]) if args else 1024
+# groups whose denoised bake already exists and can be reused as-is (UVs are deterministic)
+REUSE = set(args[1].split(",")) if len(args) > 1 else set()
 
+# Desk: diffuse light only. Its lacquer reflections are view-dependent, so they're rendered live in
+# the browser (src/three/Desk.tsx) from the oak's normal/roughness maps — baking them would smear the
+# softbox's reflection over the whole desk.
+BAKE_TYPE = {"Desk": "DIFFUSE"}
 # group root -> lightmap resolution (w, h)
-GROUPS = {"Desk": (4096, 2731), "Latte": (2048, 2048), "Succulent": (2048, 2048),
+GROUPS = {"Desk": (8192, 5461), "Latte": (2048, 2048), "Succulent": (2048, 2048),
           "Pencil": (512, 512), "Card": (512, 512)}
 
 sc = bpy.context.scene
@@ -88,6 +96,12 @@ def unwrap(objs, group):
 
 def bake(objs, group):
     w, h = GROUPS[group]
+    os.makedirs(BAKE_DIR, exist_ok=True)
+    raw = os.path.join(BAKE_DIR, f"{group}_raw.exr")
+    clean = os.path.join(BAKE_DIR, f"{group}_clean.exr")
+    path = os.path.join(BAKE_DIR, f"{group}.png")
+    if group in REUSE and os.path.exists(clean):
+        return finish(clean, path, group)
     img = bpy.data.images.new(f"{group}_bake", w, h, float_buffer=True)
     mats = {s.material for o in objs for s in o.material_slots if s.material}
     for m in mats:
@@ -96,14 +110,28 @@ def bake(objs, group):
         n.image = img
         m.node_tree.nodes.active = n
     only_select(objs)
-    bpy.ops.object.bake(type="COMBINED")
+    kind = BAKE_TYPE.get(group, "COMBINED")
+    if kind == "DIFFUSE":
+        bpy.ops.object.bake(type="DIFFUSE", pass_filter={"DIRECT", "INDIRECT", "COLOR"})
+    else:
+        bpy.ops.object.bake(type="COMBINED")
     for m in mats:
         m.node_tree.nodes.remove(m.node_tree.nodes["__bake"])
-    os.makedirs(BAKE_DIR, exist_ok=True)
+    # raw float bake -> OIDN denoise -> display-referred 8-bit at -1 EV (headroom for the web gain)
+    img.filepath_raw = raw
+    img.file_format = "OPEN_EXR"
+    img.save()
+    denoise(raw, clean)
+    return finish(clean, path, group)
+
+
+def finish(clean, path, group):
+    clean_img = bpy.data.images.load(clean)
     vs = sc.view_settings
     vs.view_transform, vs.look, vs.exposure = "Standard", "None", EXPOSURE
-    path = os.path.join(BAKE_DIR, f"{group}.png")
-    img.save_render(path, scene=sc)
+    fmt = sc.render.image_settings
+    fmt.file_format, fmt.color_mode, fmt.color_depth = "PNG", "RGB", "8"
+    clean_img.save_render(path, scene=sc)
     vs.view_transform, vs.look, vs.exposure = "AgX", "AgX - Medium High Contrast", 0.0
     baked = bpy.data.images.load(path)
     baked.name = f"{group}_lightmap"

@@ -1,12 +1,13 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { Desk } from './Desk'
 import { Book } from './Book'
 import { CameraRig } from './CameraRig'
 import { ContactCard } from './ContactCard'
 
 /**
- * No full-frame post-processing: the cinematic look (AgX, a touch of saturation, film grain) is
+ * No full-frame post-processing: the cinematic look (AgX and a touch of saturation) is
  * applied per material to physical things only — desk, props, book cloth. Page content defines
  * NO_GRADE and reaches the screen pixel-for-pixel as the sites render it.
  */
@@ -30,38 +31,50 @@ THREE.ShaderChunk.tonemapping_fragment = /* glsl */ `
   gl_FragColor.rgb = gradeAgX( gl_FragColor.rgb );
   float gradeLuma = dot( gl_FragColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
   gl_FragColor.rgb = mix( vec3( gradeLuma ), gl_FragColor.rgb, 1.12 );
-  // static film grain, physical objects only
-  float grain = fract( sin( dot( gl_FragCoord.xy, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) - 0.5;
-  gl_FragColor.rgb += grain * 0.018;
 #endif
 `
 
-/** Real-time key light matching the baked Blender spot (KeySpot: 95 W, 42° cone, blend 0.8). */
+// Blender KEY (blender/scripts/build_scene.py), converted Blender (x, y, z) -> three (x, z, -y)
+const KEY_POS: [number, number, number] = [0.07, 1.15, 0.04]
+const KEY_TARGET: [number, number, number] = [0.05, 0, 0.08]
+const KEY_COLOR = new THREE.Color(0.82, 0.9, 1.0)
+const KEY_SIZE: [number, number] = [0.62, 0.3]
+
+RectAreaLightUniformsLib.init()
+
+/**
+ * Real-time light for the book (the desk's lighting is baked). The softbox gives the cloth and board
+ * edges the same broad, cool studio reflection as the bake; a soft spot from the same place casts
+ * the book's shadow onto the desk. Pages are unlit and ignore both.
+ */
 function KeyLight() {
   const target = useMemo(() => {
     const o = new THREE.Object3D()
-    o.position.set(0.027, 0, -0.057)
+    o.position.set(...KEY_TARGET)
     return o
   }, [])
+  const box = useRef<THREE.RectAreaLight>(null!)
+  useEffect(() => box.current.lookAt(...KEY_TARGET), [])
   return (
     <>
       <primitive object={target} />
+      <rectAreaLight ref={box} position={KEY_POS} width={KEY_SIZE[0]} height={KEY_SIZE[1]} intensity={3.2} color={KEY_COLOR} />
       <spotLight
-        position={[-0.02, 1.35, -0.32]}
+        position={KEY_POS}
         target={target}
-        angle={THREE.MathUtils.degToRad(21)}
-        penumbra={0.8}
-        intensity={5.5}
+        angle={THREE.MathUtils.degToRad(30)}
+        penumbra={1}
+        intensity={2.2}
         decay={2}
-        color="#fff2e0"
+        color={KEY_COLOR}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.00015}
         shadow-normalBias={0.0015}
-        shadow-camera-near={0.6}
+        shadow-camera-near={0.5}
         shadow-camera-far={2}
       />
-      <hemisphereLight args={['#9fb4ff', '#1a120c', 0.025]} />
+      <hemisphereLight args={['#a9bfff', '#0b0b0e', 0.03]} />
     </>
   )
 }

@@ -1,0 +1,94 @@
+{
+  "hash": "51ee73b7",
+  "configHash": "38508584",
+  "lockfileHash": "d85e73d4",
+  "browserHash": "aa1db0bc",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "17739ef8",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "1e486387",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "39ba472a",
+      "needsInterop": true
+    },
+    "@react-three/fiber": {
+      "src": "../../node_modules/@react-three/fiber/dist/react-three-fiber.esm.js",
+      "file": "@react-three_fiber.js",
+      "fileHash": "cc58b88e",
+      "needsInterop": false
+    },
+    "three": {
+      "src": "../../node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "941198c3",
+      "needsInterop": false
+    },
+    "gsap": {
+      "src": "../../node_modules/gsap/index.js",
+      "file": "gsap.js",
+      "fileHash": "c9eec50f",
+      "needsInterop": false
+    },
+    "@react-three/drei": {
+      "src": "../../node_modules/@react-three/drei/index.js",
+      "file": "@react-three_drei.js",
+      "fileHash": "24118ab7",
+      "needsInterop": false
+    },
+    "three/examples/jsm/environments/RoomEnvironment.js": {
+      "src": "../../node_modules/three/examples/jsm/environments/RoomEnvironment.js",
+      "file": "three_examples_jsm_environments_RoomEnvironment__js.js",
+      "fileHash": "ae3f83ad",
+      "needsInterop": false
+    },
+    "three/examples/jsm/renderers/CSS3DRenderer.js": {
+      "src": "../../node_modules/three/examples/jsm/renderers/CSS3DRenderer.js",
+      "file": "three_examples_jsm_renderers_CSS3DRenderer__js.js",
+      "fileHash": "3b0ec5ea",
+      "needsInterop": false
+    },
+    "three/examples/jsm/lights/RectAreaLightUniformsLib.js": {
+      "src": "../../node_modules/three/examples/jsm/lights/RectAreaLightUniformsLib.js",
+      "file": "three_examples_jsm_lights_RectAreaLightUniformsLib__js.js",
+      "fileHash": "066b4e9c",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "hls-JDIZR26O": {
+      "file": "hls-JDIZR26O.js"
+    },
+    "chunk-NTS7UNZH": {
+      "file": "chunk-NTS7UNZH.js"
+    },
+    "vision_bundle-CLHVUQTO": {
+      "file": "vision_bundle-CLHVUQTO.js"
+    },
+    "chunk-EWQ3HBVX": {
+      "file": "chunk-EWQ3HBVX.js"
+    },
+    "chunk-CSRC5HA4": {
+      "file": "chunk-CSRC5HA4.js"
+    },
+    "chunk-YSSTNHJ4": {
+      "file": "chunk-YSSTNHJ4.js"
+    },
+    "chunk-TWJRYSII": {
+      "file": "chunk-TWJRYSII.js"
+    },
+    "chunk-DC5AMYBS": {
+      "file": "chunk-DC5AMYBS.js"
+    }
+  }
+}

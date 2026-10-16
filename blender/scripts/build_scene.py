@@ -9,7 +9,17 @@ from mathutils import Vector
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
 ASSETS = os.path.join(ROOT, "assets")
-DESK_WOOD = "smoked_walnut_veneer"
+DESK_VALUE = 0.13
+# Key light (Blender coordinates, metres). Mirrored in src/three/Experience.tsx for the real-time book.
+KEY = {
+    "pos": (0.07, -0.04, 1.15),  # softbox above the desk, nudged right and toward the viewer
+    "target": (0.05, -0.08, 0.0),
+    "size": (0.62, 0.3),  # its reflection is the long silvery streak in the lacquer
+    "spread": 44,  # degrees: narrows the pool so the far desk falls to black
+    "energy": 8,
+    "color": (0.82, 0.9, 1.0),
+}
+DESK_WOOD = "black_oak_veneer"  # ebony-stained open-pore oak, like the reference desk
 
 
 # ---------------------------------------------------------------- helpers
@@ -132,28 +142,45 @@ def build():
     uv = bm.loops.layers.uv.new("UVMap")
     for f in bm.faces:
         for l in f.loops:
-            l[uv].uv = (l.vert.co.y / 0.9 + 0.5, -l.vert.co.x / 0.9 + 0.5)  # grain runs left-right
+            l[uv].uv = (l.vert.co.x / 0.9 + 0.5, l.vert.co.y / 0.9 + 0.5)  # grain runs left-right
     bm.to_mesh(me)
     desk = link(bpy.data.objects.new("Desk", me))
     desk.data.materials.append(mats[0])
-    # darken the scan a touch: the reference desk is nearly black wenge
+    # near-black, slightly cool stain: the reference desk is ebonised oak with pale open pores
     nt = mats[0].node_tree
     bsdf = nt.nodes["Principled BSDF"]
     lnk = bsdf.inputs["Base Color"].links
     if lnk:
         hsv = nt.nodes.new("ShaderNodeHueSaturation")
-        hsv.inputs["Value"].default_value = 0.16
-        hsv.inputs["Saturation"].default_value = 0.9
+        hsv.inputs["Value"].default_value = DESK_VALUE
+        hsv.inputs["Saturation"].default_value = 0.35
         nt.links.new(lnk[0].from_socket, hsv.inputs["Color"])
         nt.links.new(hsv.outputs["Color"], bsdf.inputs["Base Color"])
-    # glossier finish so the spot draws a sheen across the grain, as in the reference
+    # satin lacquer: a glossy coat over the pores, so the key light pulls long streaks along the grain
     rl = bsdf.inputs["Roughness"].links
     if rl:
         mul = nt.nodes.new("ShaderNodeMath")
         mul.operation = "MULTIPLY"
-        mul.inputs[1].default_value = 0.6
+        mul.inputs[1].default_value = 1.0
         nt.links.new(rl[0].from_socket, mul.inputs[0])
         nt.links.new(mul.outputs[0], bsdf.inputs["Roughness"])
+    bsdf.inputs["Coat Weight"].default_value = 0.5
+    # crisper pores: they're what breaks the sheen into streaks
+    for n in nt.nodes:
+        if n.type == "NORMAL_MAP":
+            n.inputs["Strength"].default_value = 2.2
+    # the coat follows the pores too, otherwise the lacquer reads as a smooth mirror
+    for n in nt.nodes:
+        if n.type == "NORMAL_MAP":
+            nt.links.new(n.outputs["Normal"], bsdf.inputs["Coat Normal"])
+    bsdf.inputs["Coat Roughness"].default_value = 0.16
+    if rl:
+        # the coat dips into the pores: let the wood's own roughness break it up a little
+        cr = nt.nodes.new("ShaderNodeMapRange")
+        cr.inputs["To Min"].default_value = 0.03
+        cr.inputs["To Max"].default_value = 0.32
+        nt.links.new(mul.inputs[0].links[0].from_socket, cr.inputs["Value"])
+        nt.links.new(cr.outputs["Result"], bsdf.inputs["Coat Roughness"])
 
     # Book (closed, landscape hardcover). Kept as its own objects under "Book" empty.
     cover = mat("BookCover", (0.005, 0.005, 0.0055), rough=0.5, spec=0.35)
@@ -330,24 +357,31 @@ def build():
     card.location = (0.50, -0.22, 0)
     card.rotation_euler.z = math.radians(-58)
 
-    # Lighting: one soft spot pool, a little bounce, near-black world.
+    # Lighting: a cool studio softbox overhead, nudged right and toward the viewer. Seen from the near
+    # top-down camera its reflection lies in the lower half of the frame, so the lacquer lights up in
+    # long streaks along the grain there while the far desk falls to black (reference f0001).
     sc.world = bpy.data.worlds.new("World")
-    sc.world.color = (0.0004, 0.0004, 0.0005)
-    spot = bpy.data.lights.new("KeySpot", "SPOT")
-    spot.energy = 95
-    spot.spot_size = math.radians(42)
-    spot.spot_blend = 0.8
-    spot.shadow_soft_size = 0.12
-    spot.color = (1.0, 0.95, 0.88)
+    sc.world.color = (0.0002, 0.00025, 0.0004)
+    spot = bpy.data.lights.new("KeySpot", "AREA")
+    spot.shape = "RECTANGLE"
+    spot.size, spot.size_y = KEY["size"]
+    spot.spread = math.radians(KEY["spread"])
+    spot.energy = KEY["energy"]
+    spot.color = KEY["color"]
     key = link(bpy.data.objects.new("KeySpot", spot))
-    key.location = (-0.02, 0.32, 1.35)
-    key.rotation_euler = (math.radians(-11), math.radians(-2), 0)
+    key.location = KEY["pos"]
+    aim = link(bpy.data.objects.new("KeyTarget", None))
+    aim.location = KEY["target"]
+    tc = key.constraints.new("TRACK_TO")
+    tc.target = aim
+    tc.track_axis, tc.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
+    # faint cool overhead bounce so blacks keep a little shape
     fill = bpy.data.lights.new("Fill", "AREA")
-    fill.energy = 0.12
-    fill.size = 2.0
-    fill.color = (0.85, 0.9, 1.0)
+    fill.energy = 0.15
+    fill.size = 1.6
+    fill.color = (0.78, 0.86, 1.0)
     fl = link(bpy.data.objects.new("Fill", fill))
-    fl.location = (0, -0.4, 1.6)
+    fl.location = (0.1, -0.2, 1.6)
 
     # Camera: near top-down, slight tilt, like the reference hero shot.
     cam = bpy.data.cameras.new("Camera")

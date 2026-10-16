@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 
 /**
@@ -7,19 +7,55 @@ import * as THREE from 'three'
  * Slightly less stands in for the contrast of Blender's 'AgX - Medium High Contrast' look.
  */
 const BAKE_GAIN = 1.6
+/** The veneer tiles every 0.9 m, as in blender/scripts/build_scene.py. */
+const TILE = 0.9
 
-/** Static desk + props with Cycles lighting baked into their textures: drawn unlit. */
+/**
+ * Desk + props. Their light is baked in Cycles and drawn unlit — except the desk's lacquer: its
+ * reflections depend on where you look from, so the desk carries its baked diffuse light as
+ * emission and gets live, view-dependent reflections of the studio softbox from the oak's
+ * normal/roughness maps (the streaks that run along the grain).
+ */
 export function Desk() {
   const { scene } = useGLTF('/models/desk.glb')
+  const [oakNormal, oakRough] = useTexture(['/textures/oak_normal.jpg', '/textures/oak_rough.jpg'])
   useMemo(() => {
+    for (const t of [oakNormal, oakRough]) {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping
+      t.anisotropy = 16
+      t.channel = 1
+      t.colorSpace = THREE.NoColorSpace
+    }
     scene.traverse((o) => {
       const m = o as THREE.Mesh
       if (!m.isMesh) return
       const old = m.material as THREE.MeshStandardMaterial
-      if (old.map) old.map.anisotropy = 8
-      m.material = new THREE.MeshBasicMaterial({ map: old.map, color: new THREE.Color().setScalar(BAKE_GAIN) })
+      if (old.map) old.map.anisotropy = 16
+      if (m.name === 'Desk') {
+        // second UV set: the veneer's own tiling, from the plane's position (Blender x, y = three x, -z)
+        const pos = m.geometry.attributes.position as THREE.BufferAttribute
+        const uv1 = new Float32Array(pos.count * 2)
+        for (let i = 0; i < pos.count; i++) {
+          uv1[i * 2] = pos.getX(i) / TILE + 0.5
+          uv1[i * 2 + 1] = -pos.getZ(i) / TILE + 0.5
+        }
+        m.geometry.setAttribute('uv1', new THREE.BufferAttribute(uv1, 2))
+        m.material = new THREE.MeshPhysicalMaterial({
+          color: 0x000000, // all diffuse light comes from the bake
+          emissive: 0xffffff,
+          emissiveMap: old.map,
+          emissiveIntensity: BAKE_GAIN,
+          roughness: 0.26, // x the scan's roughness: a satin lacquer, rougher in the pores
+          roughnessMap: oakRough,
+          normalMap: oakNormal,
+          normalScale: new THREE.Vector2(1.8, 1.8),
+          metalness: 0,
+        })
+      } else {
+        m.material = new THREE.MeshBasicMaterial({ map: old.map, color: new THREE.Color().setScalar(BAKE_GAIN) })
+      }
     })
-  }, [scene])
+  }, [scene, oakNormal, oakRough])
   return (
     <>
       <primitive object={scene} />

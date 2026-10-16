@@ -12,13 +12,6 @@ const PAPER = '#efeeea'
 
 type Ctx = CanvasRenderingContext2D
 
-function rng(seed: number) {
-  return () => {
-    seed = (seed * 16807) % 2147483647
-    return (seed - 1) / 2147483646
-  }
-}
-
 function canvas(bg: string) {
   const c = document.createElement('canvas')
   c.width = PX_W
@@ -27,32 +20,6 @@ function canvas(bg: string) {
   g.fillStyle = bg
   g.fillRect(0, 0, PX_W, PX_H)
   return { c, g }
-}
-
-/** Paper grain: a small noise tile laid over the page with overlay blending (fast, no per-pixel pass). */
-const grainTiles = new Map<number, HTMLCanvasElement>()
-function grain(g: Ctx, amount: number, seed = 1) {
-  let tile = grainTiles.get(seed)
-  if (!tile) {
-    tile = document.createElement('canvas')
-    tile.width = tile.height = 256
-    const t = tile.getContext('2d')!
-    const img = t.createImageData(256, 256)
-    const r = rng(seed)
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = 128 + (r() - 0.5) * 255
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = v
-      img.data[i + 3] = 255
-    }
-    t.putImageData(img, 0, 0)
-    grainTiles.set(seed, tile)
-  }
-  g.save()
-  g.globalCompositeOperation = 'overlay'
-  g.globalAlpha = Math.min(1, amount / 40)
-  g.fillStyle = g.createPattern(tile, 'repeat')!
-  g.fillRect(0, 0, PX_W, PX_H)
-  g.restore()
 }
 
 function text(g: Ctx, s: string, x: number, y: number, size: number, color: string, opts: Partial<{ font: string; weight: number; italic: boolean; align: CanvasTextAlign; spacing: number }> = {}) {
@@ -97,7 +64,6 @@ function contentsPage(): HTMLCanvasElement {
     g.fillStyle = '#d6d4cf'
     g.fillRect(760, y + 82, PX_W - 900, 2)
   })
-  grain(g, 10, 3)
   return c
 }
 
@@ -111,7 +77,6 @@ function introPage(): HTMLCanvasElement {
   text(g, 'work,', 110, 690, 230, '#fff', { font: SERIF, italic: true, weight: 400 })
   text(g, '2025—2026', 110, 800, 40, '#ffffffaa', { weight: 400 })
   wrap(g, "ares is Lee Thompson's studio for cinematic websites and real-time 3D. Turn the page.", PX_W - 760, PX_H - 260, 620, 30, '#ffffffcc')
-  grain(g, 14, 5)
   return c
 }
 
@@ -125,7 +90,6 @@ function contactPage(): HTMLCanvasElement {
   g.fillStyle = '#8fa8ff'
   g.fillRect(110, 808, g.measureText(studio.contact).width, 3)
   wrap(g, 'Websites, product launches and interactive 3D. Click this page to write to Lee.', 110, 900, 820, 32, '#ffffffaa')
-  grain(g, 12, 77)
   return c
 }
 
@@ -133,7 +97,6 @@ function coverOutside(back = false): HTMLCanvasElement {
   const { c, g } = canvas('#0c0c0d')
   if (!back) text(g, 'ares', PX_W / 2, PX_H / 2 + 45, 150, '#cfcfcf', { weight: 600, align: 'center', spacing: 8 })
   else { g.fillStyle = '#bdbdbd'; g.beginPath(); g.arc(PX_W / 2, PX_H / 2, 16, 0, Math.PI * 2); g.fill() }
-  grain(g, 18, back ? 4 : 2)
   return c
 }
 

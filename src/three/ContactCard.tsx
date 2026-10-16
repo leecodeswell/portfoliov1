@@ -49,15 +49,6 @@ function draw(c: HTMLCanvasElement) {
   g.fillStyle = '#4a4a50'
   g.fillText('Websites · launches · interactive 3D', 115, 532)
   g.fillText('Click the card to open the contact page →', 115, 644)
-  // paper tooth
-  const img = g.getImageData(0, 0, c.width, c.height)
-  for (let i = 0; i < img.data.length; i += 4) {
-    const n = (Math.random() - 0.5) * 10
-    img.data[i] += n
-    img.data[i + 1] += n
-    img.data[i + 2] += n
-  }
-  g.putImageData(img, 0, 0)
 }
 
 /** Opens the book straight to its contact page (the inside of the back cover). */
