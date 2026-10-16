@@ -204,6 +204,7 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   )
   const playing = useRef(-1) // which face (0 front, 1 back) currently shows its clip
   const hovered = useRef(false)
+  const leftAt = useRef(0) // when the cursor last left the page
   const { yR, yL } = restHeights(i, n)
   const last = useRef(-1)
   const faceOf = (k: number) => (k === 0 ? faces.front : faces.back)
@@ -232,9 +233,17 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     if (playing.current === k) return
     showStill()
     playing.current = k
-    // swap only once a real frame is decoded and presented
+    // swap only once a real frame is decoded and presented — and, for a clip that just went back to
+    // its start, a frame from the start: the first one presented after the seek can still be the last
+    // frame of the previous play, which flashes the end of the clip before it jumps back
+    const from = v.currentTime
     const swap = () => playing.current === k && ((mats[k].map = vt), (mats[k].needsUpdate = true))
-    if (typeof v.requestVideoFrameCallback === 'function') v.requestVideoFrameCallback(() => swap())
+    const onFrame = (_: number, meta: VideoFrameCallbackMetadata) => {
+      if (playing.current !== k) return
+      if (Math.abs(meta.mediaTime - from) > 0.5) return v.requestVideoFrameCallback(onFrame)
+      swap()
+    }
+    if (typeof v.requestVideoFrameCallback === 'function') v.requestVideoFrameCallback(onFrame)
     else (v as HTMLVideoElement).addEventListener('playing', swap, { once: true })
   }
 
@@ -244,7 +253,9 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     // which face is the open, settled page (if any): front on the right, back on the left
     const k = book.phase === 'open' && s.p === 0 && book.turned === i ? 0 : book.phase === 'open' && s.p === 1 && book.turned === i + 1 ? 1 : -1
     const face = k >= 0 ? faceOf(k) : null
-    const want = face?.play === 'loop' || (face?.play === 'hover' && hovered.current)
+    // a moment's grace after the cursor leaves: a flicker of hover (crossing a page edge) mustn't restart a clip
+    const hover = hovered.current || performance.now() - leftAt.current < 250
+    const want = face?.play === 'loop' || (face?.play === 'hover' && hover)
     if (want) play(k)
     else if (playing.current >= 0) {
       // hover clips hold their frame when the cursor leaves (resume and restart clips go back to
@@ -264,7 +275,10 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
       receiveShadow
       onClick={(e) => onSheetClick(i, e)}
       onPointerOver={() => (hovered.current = true)}
-      onPointerOut={() => (hovered.current = false)}
+      onPointerOut={() => {
+        hovered.current = false
+        leftAt.current = performance.now()
+      }}
     />
   )
 }

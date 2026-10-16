@@ -104,6 +104,8 @@ for (const shot of todo) {
     const t0 = Date.now()
     let n = 0
     for (let i = 0; i < count; i++) {
+      // `perFrame(i)`: per-frame state handed to the site before the frame is taken (AUREL's capture mode)
+      if (shot.perFrame) await page.evaluate((v) => (window.__aurelCapture = v), shot.perFrame(i))
       if (method === 'scrollTo') {
         // constant speed: no slow lingering at the start or end of a clip
         const t = i / (count - 1)
@@ -116,8 +118,6 @@ for (const shot of todo) {
       await page.waitForTimeout(settle)
       await page.screenshot({ path: path.join(dir, `f${String(n++).padStart(5, '0')}.jpg`), quality: 92, type: 'jpeg', timeout: 120000 })
     }
-    // `post`: a Python pass over the frames before encoding (e.g. capture/strobe_post.py)
-    if (shot.post) execFileSync('python', [path.resolve(shot.post), dir], { stdio: 'inherit' })
     // the page's still is exactly the clip's first frame (some sites only light up on the first scroll)
     if (shot.still === 'before') fs.copyFileSync(path.join(dir, 'f00000.jpg'), `${OUT}/${shot.name}.jpg`)
     console.log(`${shot.name}: ${n} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s -> ${(n / 60).toFixed(1)}s at 60 fps`)

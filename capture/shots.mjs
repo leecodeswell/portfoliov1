@@ -3,7 +3,8 @@
  * `still: 'before'` takes the still at the start of the recording instead of the end, so the
  * page rests on the video's first frame. `boomerang: true` plays the clip forward then back;
  * `frames: { to, count, settle, method }` records frame by frame at 60 fps (see capture.mjs);
- * `speed` bakes a speed-up into the encoded clip; `full: true` keeps the clip at the still's 3840x2270.
+ * `speed` bakes a speed-up into the encoded clip; `full: true` keeps the clip at the still's 3840x2270;
+ * `perFrame(i)` hands per-frame state to the site before each frame (AUREL's capture mode).
  * Step types: { wait: ms } | { wheel: px, ms } | { scroll: targetScrollY, ms } | { mouse: [[x0, y0], [x1, y1]], ms }
  * Scroll positions were mapped with capture/map.mjs.
  */
@@ -14,6 +15,12 @@ const ARES = 'https://ares-web.com/'
 // raised to a true 2x (src/Scene.jsx dpr={[2,2]}), served at :4180 (vite preview); the live site
 // caps itself at 1.5x, which looked soft once stretched across a page.
 const AUREL = process.env.AUREL_URL ?? 'http://localhost:4180/'
+// AUREL page 2's opening, frame by frame at 60 fps: 0.6 s in the dark, then the strobe — hard flashes
+// cutting back to black, irregular like a real strobe catching — then the lights stay on
+const AUREL_STROBE = [
+  ['dark', 36], ['flash', 2], ['dark', 7], ['flash', 2], ['dark', 10], ['flash', 3], ['dark', 5],
+  ['flash', 2], ['dark', 4], ['flash', 2], ['dark', 3], ['flash', 3], ['dark', 2],
+].flatMap(([mode, n]) => Array(n).fill(mode))
 
 export const shots = [
   // Lorem Ipsum — hero still (the page itself is live in the book, for the bas-relief cursor effect)
@@ -70,18 +77,20 @@ export const shots = [
     full: true,
     frames: { to: 5800, count: 480, settle: 60 },
   },
-  // AUREL — picks up where the studio half ends: the strobe, opening on a blackout with only the tail
-  // lights glowing, then rain, foam, pressure wash, through to the wet look handed back (~15 s)
+  // AUREL — picks up as the studio goes dark: the room black, the car lit only by its tail lights;
+  // then the strobe fires and the lights come up on the rain, foam, pressure wash and the wet look
+  // handed back (~14 s). Lights-out and the flashes are rendered by the site itself (capture mode in
+  // the local build: src/capture-mode.jsx), with its clock locked to the frame.
   {
     name: 'aurel-rain',
     url: AUREL,
     ready: '.loading-screen.loaded',
     cursor: [1900, 1120],
     settle: 4000,
-    pre: [{ scroll: 7300, ms: 2500 }, { wait: 3000 }],
+    pre: [{ scroll: 7850, ms: 2500 }, { wait: 5000 }],
     still: 'before',
     full: true,
-    post: 'capture/strobe_post.py', // starts the clip on the first blackout; blooms the tail lights in the dark
-    frames: { to: 20000, count: 900, settle: 60 },
+    perFrame: (i) => ({ time: 20 + i / 60, mode: AUREL_STROBE[i] ?? 'normal' }),
+    frames: { to: 20000, count: 860, settle: 60 },
   },
 ]

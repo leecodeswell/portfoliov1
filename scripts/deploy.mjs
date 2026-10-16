@@ -1,7 +1,7 @@
 /**
  * Publish the Pages build to the gh-pages branch:  npm run deploy
- * Builds with base /portfoliov1/, then commits dist/ as the whole content of gh-pages and pushes it.
- * The site is served at https://leecodeswell.github.io/portfoliov1/
+ * Builds the site, then commits dist/ as the whole content of gh-pages and pushes it.
+ * The site is served at https://ares-web.com/ (public/CNAME holds the custom domain)
  */
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -23,4 +23,4 @@ run('git add -A', tmp)
 run(`git -c user.name="${out('git config user.name') || 'deploy'}" -c user.email="${out('git config user.email') || 'deploy@local'}" commit -q -m "Deploy ${sha}"`, tmp)
 run(`git push -f ${remote} gh-pages`, tmp)
 fs.rmSync(tmp, { recursive: true, force: true })
-console.log('\nPublished to gh-pages: https://leecodeswell.github.io/portfoliov1/')
+console.log('\nPublished to gh-pages: https://ares-web.com/')
