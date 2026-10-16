@@ -13,4 +13,9 @@ const proxy = {
   '/ares-web': { target: 'https://ares-web.com', changeOrigin: true, secure: true, rewrite: (p: string) => p.replace(/^\/ares-web/, '') },
 }
 
-export default defineConfig({ plugins: [react()], server: { proxy } })
+export default defineConfig({
+  plugins: [react()],
+  // same proxy for the dev server and for `vite preview` (npm run serve), e.g. inside a Codespace
+  server: { proxy, port: 5173 },
+  preview: { proxy, port: 5173 },
+})

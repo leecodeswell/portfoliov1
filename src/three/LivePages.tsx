@@ -12,7 +12,7 @@ const VH = 1135
 /** How long a spread must sit still before its sites go live. */
 const SETTLE_MS = 450
 /** Live pages rest just above the top sheet of each stack. */
-const LIFT = 0.0012
+const LIFT = 0.0003 // close to the paper: any gap shows the still underneath as a sliver along the edge
 
 /**
  * Real, interactive project sites placed on the open spread with CSS 3D transforms. They track
@@ -139,7 +139,8 @@ class LivePage {
       const doc = win?.document
       if (win && doc) {
         const style = doc.createElement('style')
-        style.textContent = 'html{scrollbar-width:none}::-webkit-scrollbar{display:none}'
+        style.textContent =
+          'html{scrollbar-width:none}::-webkit-scrollbar{display:none}' + (site.hide ? `${site.hide}{display:none!important}` : '')
         doc.head.append(style)
         if (site.lockScroll) {
           // swallow scrolling before the site's smooth-scroller sees it; the cursor still drives the relief

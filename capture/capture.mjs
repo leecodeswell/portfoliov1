@@ -107,7 +107,9 @@ for (const shot of todo) {
       '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(dir, 'list.txt'),
       ...(shot.boomerang
         ? ['-filter_complex', '[0]scale=1920:1134:flags=lanczos,fps=30,split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1']
-        : ['-vf', 'scale=1920:1134:flags=lanczos,fps=30']),
+        : shot.appendHead
+          ? ['-filter_complex', `[0]scale=1920:1134:flags=lanczos,fps=30,split[a][b];[b]trim=0:${shot.appendHead},setpts=PTS-STARTPTS[h];[a][h]concat=n=2:v=1`]
+          : ['-vf', 'scale=1920:1134:flags=lanczos,fps=30']),
       '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-maxrate', '7M', '-bufsize', '14M',
       '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${OUT}/${shot.name}.mp4`,
     ])

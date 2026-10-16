@@ -1,7 +1,8 @@
 /**
  * One entry per book page. `pre` runs before recording, `rec` is what the motion loop shows.
  * `still: 'before'` takes the still at the start of the recording instead of the end, so the
- * page rests on the video's first frame. `boomerang: true` plays the clip forward then back.
+ * page rests on the video's first frame. `boomerang: true` plays the clip forward then back;
+ * `appendHead: s` appends the clip's first s seconds again at the end.
  * Step types: { wait: ms } | { wheel: px, ms } | { scroll: targetScrollY, ms } | { mouse: [[x0, y0], [x1, y1]], ms }
  * Scroll positions were mapped with capture/map.mjs.
  */
@@ -36,21 +37,22 @@ export const shots = [
     still: 'before',
     rec: [{ wait: 400 }, { scroll: 2700, ms: 7000 }, { wait: 1500 }],
   },
-  // Ares — intro from the welcome to the first all-white frame, played as a boomerang
+  // Ares — welcome with swaying ivy, one quick burst to white, then the welcome again.
+  // The book plays it once and then loops only the closing idle tail (see projects.ts loopTail).
   {
     name: 'ares-intro',
     url: ARES,
     settle: 2500,
     still: 'before',
-    boomerang: true,
-    rec: [{ wait: 1000 }, { scroll: 1000, ms: 5000 }, { wait: 300 }],
+    appendHead: 6,
+    rec: [{ wait: 6000 }, { scroll: 1000, ms: 1200 }, { wait: 250 }],
   },
-  // Ares — from the end of the colonnade look-down to the bottom of the page
+  // Ares — from the title with the soldier's whole head in view, down to the footer
   {
     name: 'ares-journey',
     url: ARES,
-    pre: [{ scroll: 3650, ms: 4000 }, { wait: 3000 }],
+    pre: [{ scroll: 2300, ms: 3500 }, { wait: 3000 }],
     still: 'before',
-    rec: [{ scroll: 13400, ms: 30000 }, { wait: 1000 }],
+    rec: [{ scroll: 13400, ms: 22000 }, { wait: 800 }],
   },
 ]

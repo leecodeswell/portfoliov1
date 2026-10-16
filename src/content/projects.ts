@@ -6,12 +6,14 @@ export interface PageMedia {
   still: string // 3840x2270 jpg: shown at rest and while the page turns (the clip's first frame)
   video?: string // 1920x1134 mp4
   play?: 'hover' | 'loop' // hover: plays while the cursor is on the page; loop: plays while the page is open
+  loopTail?: number // loop: play the whole clip once, then repeat only its last N seconds
   live?: LiveSite // the real site, embedded once the spread settles
 }
 
 export interface LiveSite {
   src: string
   lockScroll?: boolean // keep the site on its first screen (cursor interaction only)
+  hide?: string // CSS selectors to hide in the embedded copy (hairlines shimmer when shrunk onto a page)
 }
 
 export interface Project {
@@ -40,9 +42,9 @@ const COLOGNE = '/cologne/'
 
 /** Book pages in reading order. Spread 1 is contents | intro; the back cover's inside is contact. */
 export const pages = {
-  cologneRelief: { ...media('cologne-relief'), live: { src: COLOGNE, lockScroll: true } },
+  cologneRelief: { ...media('cologne-relief'), live: { src: COLOGNE, lockScroll: true, hide: '.progress' } },
   cologneSequence: media('cologne-sequence', 'hover'),
-  aresIntro: media('ares-intro', 'loop'),
+  aresIntro: { ...media('ares-intro', 'loop'), loopTail: 6 }, // welcome + ivy, one quick burst, then ivy forever
   aresJourney: media('ares-journey', 'hover'),
   aeternum: media('aeternum-explode', 'hover'),
 }

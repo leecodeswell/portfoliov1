@@ -1,0 +1,10 @@
+{
+  "name": "ares portfolio",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "postCreateCommand": "npm ci",
+  "postAttachCommand": "npm run serve",
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": { "label": "ares portfolio", "onAutoForward": "openBrowser" }
+  }
+}

@@ -6,7 +6,6 @@ import * as THREE from 'three'
 import { book, W, D, PAGE_T, COVER_T, CURL } from './bookState'
 import { paintBook, contentsHit, type Face, type SheetFaces } from '../content/paint'
 import { LivePages } from './LivePages'
-import { studio } from '../content/projects'
 
 const SEG_X = 64 // along the page width (where it bends; dense near the gutter via easing)
 const SEG_Z = 8 // across the depth (corner peel twist)
@@ -69,6 +68,15 @@ function restHeights(i: number, n: number) {
 }
 
 const smooth = (t: number) => t * t * (3 - 2 * t)
+/**
+ * Where a turning sheet's hinge sits between its two stacks. It stays at the stack it is leaving
+ * until the sheet is upright, then settles onto the other: moving it any earlier drags the bound
+ * edge down through the pages it is still lying over (the glitch when the cover first opens).
+ */
+const hingeMix = (p: number, dir: number) => {
+  const t = dir >= 0 ? Math.min(1, Math.max(0, (p - 0.45) / 0.55)) : Math.min(1, Math.max(0, p / 0.55))
+  return smooth(t)
+}
 
 /**
  * Bend a paper sheet. The angle along the page grows from the hinge angle θ toward the free edge,
@@ -80,7 +88,7 @@ function deform(g: THREE.BufferGeometry, p: number, dir: number, curl: number, y
   const pos = g.attributes.position as THREE.BufferAttribute
   const theta = Math.PI * p
   const bend = Math.sin(Math.PI * p) * curl
-  const rest = yR + (yL - yR) * smooth(p) - SPINE_Y
+  const rest = yR + (yL - yR) * hingeMix(p, dir) - SPINE_Y
   for (let j = 0; j <= SEG_Z; j++) {
     const zN = (j / SEG_Z) * 2 - 1
     const twist = 1 + 0.32 * zN
@@ -126,6 +134,25 @@ function clip(url: string) {
   return v
 }
 
+/** Hover clips run a little faster than the capture: scroll sequences feel lively, not sluggish. */
+const HOVER_RATE = 1.25
+
+/** Play once, then keep repeating only the last `tail` seconds (frame-accurate, no gap). */
+function watchTail(v: HTMLVideoElement, tail: number) {
+  const check = () => {
+    if (v.duration && v.currentTime >= v.duration - 0.06) {
+      v.currentTime = Math.max(0, v.duration - tail)
+      v.play().catch(() => {})
+    }
+    if (!v.paused || v.currentTime > 0) v.requestVideoFrameCallback(check)
+  }
+  v.requestVideoFrameCallback(check)
+  v.onended = () => {
+    v.currentTime = Math.max(0, v.duration - tail)
+    v.play().catch(() => {})
+  }
+}
+
 function videoTexture(face: Face) {
   const t = new THREE.VideoTexture(clip(face.video!))
   t.colorSpace = THREE.SRGBColorSpace
@@ -158,7 +185,7 @@ function onSheetClick(i: number, e: ThreeEvent<MouseEvent>) {
   if (book.phase !== 'open' || book.busy) return
   const onLeft = i < book.turned
   // the back cover's inside is the contact page
-  if (!onLeft && i === book.sheetCount - 1) return void (window.location.href = `mailto:${studio.contact}`)
+  if (!onLeft && i === book.sheetCount - 1) return void window.dispatchEvent(new Event('ares:contact'))
   if (onLeft && i === 0 && e.uv) {
     // contents page lives on the front cover's inside (mirrored face)
     const target = contentsHit(1 - e.uv.x, e.uv.y)
@@ -186,18 +213,27 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     if (k < 0) return
     clip(faceOf(k).video!).pause()
     mats[k].map = faceOf(k).map
+    mats[k].needsUpdate = true // video and image maps compile different colour decoding
     playing.current = -1
   }
   const play = (k: number) => {
     const vt = videos[k]
     if (!vt) return
-    const v = clip(faceOf(k).video!)
+    const face = faceOf(k)
+    const v = clip(face.video!)
+    if (playing.current !== k) {
+      // each time the page comes back into view its clip starts over
+      v.currentTime = 0
+      v.loop = !face.loopTail
+      v.playbackRate = face.play === 'hover' ? HOVER_RATE : 1
+      if (face.loopTail) watchTail(v, face.loopTail)
+    }
     v.play().catch(() => {})
     if (playing.current === k) return
     showStill()
     playing.current = k
     // swap only once a real frame is decoded and presented
-    const swap = () => playing.current === k && (mats[k].map = vt)
+    const swap = () => playing.current === k && ((mats[k].map = vt), (mats[k].needsUpdate = true))
     if (typeof v.requestVideoFrameCallback === 'function') v.requestVideoFrameCallback(() => swap())
     else (v as HTMLVideoElement).addEventListener('playing', swap, { once: true })
   }
@@ -280,8 +316,9 @@ function CoverBoard({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   }, [])
   const { yR, yL } = restHeights(i, n)
   useFrame(() => {
-    const p = book.sheets[i]?.p ?? 0
-    pivot.current.position.y = yR + (yL - yR) * smooth(p)
+    const s = book.sheets[i]
+    const p = s?.p ?? 0
+    pivot.current.position.y = yR + (yL - yR) * hingeMix(p, s?.dir ?? 1)
     pivot.current.rotation.z = Math.PI * p
   })
   return (

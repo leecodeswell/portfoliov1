@@ -1,9 +1,17 @@
-import { Suspense, useEffect, useSyncExternalStore } from 'react'
+import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Experience } from './three/Experience'
 import { book } from './three/bookState'
 import { studio } from './content/projects'
+import { ContactForm } from './ContactForm'
+
+/** WebGL falling back to a CPU rasteriser (hardware acceleration off / blocklisted GPU). */
+function isSoftwareRenderer(gl: WebGLRenderingContext | WebGL2RenderingContext) {
+  const info = gl.getExtension('WEBGL_debug_renderer_info')
+  const name = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER))
+  return /swiftshader|llvmpipe|software|basic render/i.test(name)
+}
 
 function useBook() {
   return useSyncExternalStore(
@@ -15,8 +23,18 @@ function useBook() {
 export default function App() {
   const [phase, mode] = useBook().split(':')
   const inspecting = mode === 'inspect'
+  const [contact, setContact] = useState(false)
+  const [software, setSoftware] = useState(false)
+  const closeContact = useCallback(() => setContact(false), [])
 
   useEffect(() => {
+    const open = () => setContact(true)
+    window.addEventListener('ares:contact', open)
+    return () => window.removeEventListener('ares:contact', open)
+  }, [])
+
+  useEffect(() => {
+    if (contact) return // keys and wheel belong to the form while it's open
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === ' ') book.next()
       if (e.key === 'ArrowLeft') book.prev()
@@ -39,17 +57,19 @@ export default function App() {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('wheel', onWheel)
     }
-  }, [])
+  }, [contact])
 
   return (
     <>
       <Canvas
         flat
         shadows={{ type: THREE.PCFSoftShadowMap }}
-        dpr={[1, 2]}
+        // supersample even on 1x screens: pages are minified site captures, so extra pixels = crisper type
+        dpr={[1.5, 2]}
         camera={{ fov: 30, near: 0.05, far: 10, position: [0, 1.3, 0.3] }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         onPointerMissed={() => phase === 'closed' && book.open()}
+        onCreated={({ gl }) => setSoftware(isSoftwareRenderer(gl.getContext()))}
       >
         <Suspense fallback={null}>
           <Experience />
@@ -58,9 +78,9 @@ export default function App() {
 
       <header className="bar">
         <span className="logo">● {studio.name}</span>
-        <a className="pill" href={`mailto:${studio.contact}`}>
+        <button className="pill" onClick={() => setContact(true)}>
           Get in Touch
-        </a>
+        </button>
       </header>
 
       <section className={`hero ${phase === 'closed' ? 'show' : ''}`}>
@@ -83,11 +103,21 @@ export default function App() {
       </div>
 
       <section className={`end ${phase === 'end' ? 'show' : ''}`}>
-        <a className="pill big" href={`mailto:${studio.contact}`}>
+        <button className="pill big" onClick={() => setContact(true)}>
           ✉ Start a project
-        </a>
+        </button>
         <button onClick={() => book.restart()}>Read again</button>
       </section>
+
+      <ContactForm open={contact} onClose={closeContact} />
+
+      {software && (
+        <div className="gpu-warn">
+          Your browser is rendering without the graphics card, so this will look soft and stutter. Turn on hardware
+          acceleration (Chrome: Settings → System) and reload.
+          <button onClick={() => setSoftware(false)}>×</button>
+        </div>
+      )}
     </>
   )
 }
