@@ -3,6 +3,8 @@
 <head>
   <!-- Trimmed copy of leecodeswell/cologne for the portfolio book: hero (bas-relief) only. -->
   <meta charset="utf-8" />
+  <!-- scripts only from this site (libraries vendored in vendor/); the import map is allowed by its hash -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-NfHJr+xcDJiAGqHYgFEaR5vX+0YDa2Tbke39iP8L6uY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lorem Ipsum — Portfolium</title>
   <meta name="description" content="Lorem ipsum dolor sit amet — directio artis et cinematographia odorum." />
@@ -11,11 +13,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+    { "imports": { "three": "./vendor/three.module.js" } }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+  <script src="vendor/gsap.min.js" defer></script>
+  <script src="vendor/ScrollTrigger.min.js" defer></script>
+  <script src="vendor/lenis.min.js" defer></script>
   <script type="module" src="js/main.js"></script>
 </head>
 <body class="is-loading">

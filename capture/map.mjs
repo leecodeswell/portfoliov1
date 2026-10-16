@@ -1,8 +1,10 @@
 // Map a site's scroll positions: node capture/map.mjs <name> <url> <y1,y2,...>
 import { chromium } from 'playwright'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 const [name, url, ys] = process.argv.slice(2)
-const out = `C:/Users/capta/AppData/Local/Temp/pfref/map/${name}`
+const out = path.join(os.tmpdir(), 'pfref', 'map', name)
 fs.mkdirSync(out, { recursive: true })
 const b = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-gpu', '--use-angle=d3d11', '--ignore-gpu-blocklist'] })
 const p = await b.newPage({ viewport: { width: 1920, height: 1135 } })

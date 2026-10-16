@@ -227,7 +227,7 @@ def build():
     book.rotation_euler.z = math.radians(4)
 
     # Mug (left): plain off-white stoneware, coffee inside. The coffee's surface is drawn live on the
-    # web (src/three/Desk.tsx LatteTop) so it stays sharp; here a dark disc stands in for the bake.
+    # web (src/three/Desk.tsx CoffeeTop) so it stays sharp; here a dark disc stands in for the bake.
     stone = mat("Stoneware", (0.80, 0.78, 0.74), rough=0.42, spec=0.5, coat=0.25)
     mug_profile = [(0, 0.0), (0.036, 0.0), (0.040, 0.002), (0.042, 0.010), (0.042, 0.092),
                    (0.0405, 0.0955), (0.0385, 0.094), (0.0378, 0.090), (0.0378, 0.010), (0.0, 0.008)]

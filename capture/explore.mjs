@@ -1,8 +1,10 @@
 // Usage: node capture/explore.mjs <name> <url> [steps] [stepPx]
 import { chromium } from 'playwright'
 import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 const [name, url, steps = '10', stepPx = '900'] = process.argv.slice(2)
-const out = `C:/Users/capta/AppData/Local/Temp/pfref/explore/${name}`
+const out = path.join(os.tmpdir(), 'pfref', 'explore', name)
 fs.mkdirSync(out, { recursive: true })
 const b = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-gpu', '--use-angle=d3d11', '--ignore-gpu-blocklist'] })
 const p = await b.newPage({ viewport: { width: 1920, height: 1135 } })

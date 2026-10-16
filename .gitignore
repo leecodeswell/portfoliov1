@@ -6,3 +6,12 @@ dist/
 blender/desk_scene.blend
 *.tsbuildinfo
 .vite/
+__pycache__/
+*.pyc
+capture/.frames/
+.claude/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
