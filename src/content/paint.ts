@@ -141,6 +141,7 @@ export interface Face {
   video?: string
   play?: PageMedia['play']
   loopTail?: number
+  resume?: boolean
   live?: LiveSite // real site embedded once the spread settles
 }
 
@@ -155,7 +156,7 @@ async function face(src: Source, mirrored: boolean): Promise<Face> {
   if (src instanceof HTMLCanvasElement) return { map: tex(src, mirrored) }
   const t = await photo(src.still)
   if (!t) return { map: tex(canvas('#111').c, mirrored) }
-  return { map: mirrored ? mirror(t) : t, video: src.video, play: src.play, loopTail: src.loopTail, live: src.live }
+  return { map: mirrored ? mirror(t) : t, video: src.video, play: src.play, loopTail: src.loopTail, resume: src.resume, live: src.live }
 }
 
 /** Sheets: [front cover, page sheets…, back cover]. Spread k: left = sheet[k-1].back, right = sheet[k].front. */

@@ -146,6 +146,20 @@ class BookController {
     })
   }
 
+  /** Closed book under the cursor: it rises and tips toward you, as if picked up. */
+  hover(on: boolean) {
+    if (!this.ready || this.phase !== 'closed' || this.busy) return
+    document.body.style.cursor = on ? 'pointer' : ''
+    gsap.to(this.pose, {
+      lift: on ? 0.03 : 0,
+      tilt: on ? -0.09 : 0,
+      roll: on ? 0.025 : 0,
+      duration: on ? 0.55 : 0.7,
+      ease: on ? 'power3.out' : 'power2.inOut',
+      overwrite: 'auto',
+    })
+  }
+
   /** Open (from any state) straight to spread k — used by the contact card on the desk. */
   openTo(k: number) {
     if (!this.ready) return

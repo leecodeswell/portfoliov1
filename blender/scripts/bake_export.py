@@ -24,7 +24,7 @@ REUSE = set(args[1].split(",")) if len(args) > 1 else set()
 # softbox's reflection over the whole desk.
 BAKE_TYPE = {"Desk": "DIFFUSE"}
 # group root -> lightmap resolution (w, h)
-GROUPS = {"Desk": (8192, 5461), "Latte": (2048, 2048), "Succulent": (2048, 2048),
+GROUPS = {"Desk": (8192, 5461), "Latte": (4096, 4096), "Succulent": (4096, 4096),
           "Pencil": (512, 512), "Card": (512, 512)}
 
 sc = bpy.context.scene

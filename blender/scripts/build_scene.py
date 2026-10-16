@@ -245,7 +245,7 @@ def build():
     coffee = mat("Coffee", (1, 1, 1), rough=0.35, spec=0.5)
     cn = coffee.node_tree
     it = cn.nodes.new("ShaderNodeTexImage")
-    it.image = bpy.data.images.load(os.path.join(ROOT, "textures", "latte.png"))
+    it.image = bpy.data.images.load(os.path.join(ROOT, "..", "public", "textures", "latte.png"))
     cn.links.new(it.outputs["Color"], cn.nodes["Principled BSDF"].inputs["Base Color"])
     bpy.ops.mesh.primitive_circle_add(vertices=96, radius=0.0442, fill_type="NGON", location=(0, 0, 0.0625))
     disc = bpy.context.active_object

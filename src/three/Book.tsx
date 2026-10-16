@@ -134,8 +134,7 @@ function clip(url: string) {
   return v
 }
 
-/** Hover clips run a little faster than the capture: scroll sequences feel lively, not sluggish. */
-const HOVER_RATE = 1.25
+const HOVER_RATE = 1 // speed is baked into the captures (capture/shots.mjs `speed`)
 
 /** Play once, then keep repeating only the last `tail` seconds (frame-accurate, no gap). */
 function watchTail(v: HTMLVideoElement, tail: number) {
@@ -223,7 +222,7 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     const v = clip(face.video!)
     if (playing.current !== k) {
       // each time the page comes back into view its clip starts over
-      v.currentTime = 0
+      if (!face.resume) v.currentTime = 0 // resume clips continue where the visitor left off
       v.loop = !face.loopTail
       v.playbackRate = face.play === 'hover' ? HOVER_RATE : 1
       if (face.loopTail) watchTail(v, face.loopTail)
@@ -247,8 +246,9 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     const want = face?.play === 'loop' || (face?.play === 'hover' && hovered.current)
     if (want) play(k)
     else if (playing.current >= 0) {
-      // hover clips hold their frame when the cursor leaves; anything else returns to its still
-      if (k === playing.current && face?.play === 'hover') clip(face.video!).pause()
+      // hover clips hold their frame when the cursor leaves (resume clips go back to their still);
+      // anything else returns to its still
+      if (k === playing.current && face?.play === 'hover' && !face.resume) clip(face.video!).pause()
       else showStill()
     }
     if (s.p === last.current) return
@@ -413,6 +413,25 @@ function Body({ n }: { n: number }) {
   )
 }
 
+const _corner = new THREE.Vector3()
+/**
+ * How far the book must rise so no corner of its footprint dips below the desk at the current tilt
+ * and roll. Animations (lift, tip, the heavy settle's overshoot) can never push it into the table.
+ */
+function floorClearance(n: number, rot: THREE.Euler) {
+  const ov = BOARD_OVERHANG
+  const open = smooth(Math.min(1, (book.sheets[0]?.p ?? 0) * 2)) // left half exists once the cover lifts
+  const shut = smooth(Math.min(1, (book.sheets[n - 1]?.p ?? 0) * 2)) // right half gone once the back closes
+  const xs = [-(W + ov) * open, (W + ov) * (1 - shut)]
+  let low = 0
+  for (const x of xs)
+    for (const z of [-(D / 2 + ov), D / 2 + ov]) {
+      _corner.set(x, 0, z).applyEuler(rot)
+      low = Math.min(low, _corner.y)
+    }
+  return -low + (low < 0 ? 0.0005 : 0)
+}
+
 export function Book() {
   const [faces, setFaces] = useState<SheetFaces[] | null>(null)
   const yaw = useRef<THREE.Group>(null!)
@@ -440,14 +459,18 @@ export function Book() {
   useFrame(() => {
     if (!pose.current) return
     yaw.current.rotation.y = book.pose.yaw
-    pose.current.position.set(book.pose.x, book.pose.lift, 0)
     pose.current.rotation.set(book.pose.tilt, 0, book.pose.roll)
+    pose.current.position.set(book.pose.x, book.pose.lift + floorClearance(n, pose.current.rotation), 0)
   })
   if (!faces) return null
   const n = faces.length
   return (
     // world placement matches the Blender scene: (0, -0.03) in Blender = z 0.03 here
-    <group position={[0, 0, 0.03]}>
+    <group
+      position={[0, 0, 0.03]}
+      onPointerOver={() => book.hover(true)}
+      onPointerOut={() => book.hover(false)}
+    >
       <group ref={yaw}>
         <group ref={pose}>
           <Body n={n} />

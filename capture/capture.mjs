@@ -5,8 +5,10 @@
  *
  * Writes public/pages/<name>.jpg (3840x2270) and public/pages/<name>.mp4 (1920x1134, H.264).
  * The viewport matches the book's page aspect (0.44 : 0.26), so captures fill a page exactly.
- * Rendering runs in headless Chrome on the GPU; video comes from the DevTools screencast,
- * re-timed to a constant 30 fps by ffmpeg.
+ * Rendering runs in headless Chrome on the GPU. Two recording modes:
+ *  - `rec`: real-time DevTools screencast (for idle motion like swaying ivy), re-timed by ffmpeg.
+ *  - `frames`: deterministic frame-by-frame — set the scroll, let the page settle, screenshot, repeat.
+ *    Nothing can stutter, drop or overshoot, whatever the page costs to render; output is 60 fps.
  */
 import { chromium } from 'playwright'
 import ffmpeg from 'ffmpeg-static'
@@ -67,6 +69,19 @@ async function act(page, steps = []) {
   }
 }
 
+/** Frames -> H.264. `speed` bakes a playback speed-up into the file; `boomerang` plays forward then back. */
+function encode(shot, input, fps) {
+  const base = `scale=1920:1134:flags=lanczos,setpts=PTS/${shot.speed ?? 1},fps=${fps}`
+  const filter = shot.boomerang
+    ? ['-filter_complex', `[0]${base},split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1`]
+    : ['-vf', base]
+  execFileSync(ffmpeg, [
+    '-y', '-loglevel', 'error', ...input, ...filter,
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxrate', '12M', '-bufsize', '24M',
+    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${OUT}/${shot.name}.mp4`,
+  ])
+}
+
 for (const shot of todo) {
   const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: 2 })
   const page = await ctx.newPage()
@@ -76,6 +91,31 @@ for (const shot of todo) {
   await act(page, shot.pre)
 
   if (shot.still === 'before') await page.screenshot({ path: `${OUT}/${shot.name}.jpg`, quality: 90, type: 'jpeg' })
+
+  if (shot.frames) {
+    const { to, count, settle = 60, method = 'scrollTo', step = 24 } = shot.frames
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), `cap-${shot.name}-`))
+    const y0 = await page.evaluate(() => scrollY)
+    const t0 = Date.now()
+    let n = 0
+    for (let i = 0; i < count; i++) {
+      if (method === 'scrollTo') {
+        // ease in and out like a hand on a wheel, but exactly on rails
+        const t = i / (count - 1)
+        const e = t * t * (3 - 2 * t)
+        await page.evaluate((y) => window.scrollTo(0, y), y0 + (to - y0) * e)
+      } else {
+        // sites that animate scroll themselves: small, even, forward-only wheel steps
+        if ((await page.evaluate(() => scrollY)) >= to) break
+        await page.mouse.wheel(0, step)
+      }
+      await page.waitForTimeout(settle)
+      await page.screenshot({ path: path.join(dir, `f${String(n++).padStart(5, '0')}.jpg`), quality: 92, type: 'jpeg' })
+    }
+    console.log(`${shot.name}: ${n} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s -> ${(n / 60).toFixed(1)}s at 60 fps`)
+    encode(shot, ['-framerate', '60', '-i', path.join(dir, 'f%05d.jpg')], 60)
+    fs.rmSync(dir, { recursive: true, force: true })
+  }
 
   if (shot.rec?.length) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), `cap-${shot.name}-`))
@@ -103,16 +143,7 @@ for (const shot of todo) {
     fs.writeFileSync(path.join(dir, 'list.txt'), lines.join('\n'))
     const span = frames.at(-1).t - frames[0].t
     console.log(`${shot.name}: ${frames.length} frames over ${span.toFixed(1)}s (${(frames.length / span).toFixed(1)} fps captured)`)
-    execFileSync(ffmpeg, [
-      '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(dir, 'list.txt'),
-      ...(shot.boomerang
-        ? ['-filter_complex', '[0]scale=1920:1134:flags=lanczos,fps=30,split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1']
-        : shot.appendHead
-          ? ['-filter_complex', `[0]scale=1920:1134:flags=lanczos,fps=30,split[a][b];[b]trim=0:${shot.appendHead},setpts=PTS-STARTPTS[h];[a][h]concat=n=2:v=1`]
-          : ['-vf', 'scale=1920:1134:flags=lanczos,fps=30']),
-      '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-maxrate', '7M', '-bufsize', '14M',
-      '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${OUT}/${shot.name}.mp4`,
-    ])
+    encode(shot, ['-f', 'concat', '-safe', '0', '-i', path.join(dir, 'list.txt')], 60)
     fs.rmSync(dir, { recursive: true, force: true })
   }
 

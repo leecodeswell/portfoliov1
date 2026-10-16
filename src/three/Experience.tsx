@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { useThree } from '@react-three/fiber'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { Desk } from './Desk'
 import { Book } from './Book'
@@ -80,6 +81,8 @@ function KeyLight() {
 }
 
 export function Experience() {
+  const scene = useThree((st) => st.scene)
+  if (import.meta.env.DEV) Object.assign(window, { __scene: scene })
   return (
     <>
       <color attach="background" args={['#000000']} />

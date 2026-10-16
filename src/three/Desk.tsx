@@ -16,6 +16,34 @@ const TILE = 0.9
  * emission and gets live, view-dependent reflections of the studio softbox from the oak's
  * normal/roughness maps (the streaks that run along the grain).
  */
+/**
+ * The coffee's surface, drawn live over the baked cup: a 2K latte texture (blender/scripts/make_latte.py)
+ * and a real liquid sheen from the softbox. Placement mirrors build_scene.py: the Latte group at
+ * Blender (0.50, 0.15) turned -35°, the liquid disc 62.5 mm up, r 44.2 mm, turned a further +15°.
+ */
+function LatteTop() {
+  const latte = useTexture('/textures/latte.png')
+  const mat = useMemo(() => {
+    latte.colorSpace = THREE.SRGBColorSpace
+    latte.anisotropy = 16
+    return new THREE.MeshPhysicalMaterial({
+      color: 0x000000,
+      emissive: 0xffffff,
+      emissiveMap: latte,
+      emissiveIntensity: 0.62, // matches the cup's baked light
+      roughness: 0.14, // wet crema: a soft gloss
+      metalness: 0,
+    })
+  }, [latte])
+  return (
+    <group position={[0.5, 0.0627, -0.15]} rotation-y={THREE.MathUtils.degToRad(-20)}>
+      <mesh rotation-x={-Math.PI / 2} material={mat}>
+        <circleGeometry args={[0.0443, 96]} />
+      </mesh>
+    </group>
+  )
+}
+
 export function Desk() {
   const { scene } = useGLTF('/models/desk.glb')
   const [oakNormal, oakRough] = useTexture(['/textures/oak_normal.jpg', '/textures/oak_rough.jpg'])
@@ -28,7 +56,9 @@ export function Desk() {
     }
     scene.traverse((o) => {
       const m = o as THREE.Mesh
-      if (!m.isMesh) return
+      // once per mesh: React may run this setup twice, and the glTF's own material holds the lightmap
+      if (!m.isMesh || m.userData.baked) return
+      m.userData.baked = true
       const old = m.material as THREE.MeshStandardMaterial
       if (old.map) old.map.anisotropy = 16
       if (m.name === 'Desk') {
@@ -59,6 +89,7 @@ export function Desk() {
   return (
     <>
       <primitive object={scene} />
+      <LatteTop />
       {/* catches the real-time book's shadow on top of the baked desk */}
       <mesh rotation-x={-Math.PI / 2} position-y={0.0004} receiveShadow>
         <planeGeometry args={[1.8, 1.2]} />

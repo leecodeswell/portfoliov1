@@ -7,6 +7,7 @@ export interface PageMedia {
   video?: string // 1920x1134 mp4
   play?: 'hover' | 'loop' // hover: plays while the cursor is on the page; loop: plays while the page is open
   loopTail?: number // loop: play the whole clip once, then repeat only its last N seconds
+  resume?: boolean // hover: off the page it shows its still; back on, the clip continues where it left off
   live?: LiveSite // the real site, embedded once the spread settles
 }
 
@@ -44,8 +45,8 @@ const COLOGNE = '/cologne/'
 export const pages = {
   cologneRelief: { ...media('cologne-relief'), live: { src: COLOGNE, lockScroll: true, hide: '.progress' } },
   cologneSequence: media('cologne-sequence', 'hover'),
-  aresIntro: { ...media('ares-intro', 'loop'), loopTail: 6 }, // welcome + ivy, one quick burst, then ivy forever
-  aresJourney: media('ares-journey', 'hover'),
+  aresIntro: media('ares-intro', 'loop'), // the welcome with its ivy swaying, looped seamlessly
+  aresJourney: { ...media('ares-journey', 'hover'), resume: true },
   aeternum: media('aeternum-explode', 'hover'),
 }
 
