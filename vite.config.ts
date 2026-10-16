@@ -13,9 +13,11 @@ const proxy = {
   '/ares-web': { target: 'https://ares-web.com', changeOrigin: true, secure: true, rewrite: (p: string) => p.replace(/^\/ares-web/, '') },
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // GitHub Pages serves the repo at /portfoliov1/ (npm run build:pages); dev and preview stay at /
+  base: mode === 'pages' ? '/portfoliov1/' : '/',
   plugins: [react()],
   // same proxy for the dev server and for `vite preview` (npm run serve), e.g. inside a Codespace
   server: { proxy, port: 5173 },
   preview: { proxy, port: 5173 },
-})
+}))

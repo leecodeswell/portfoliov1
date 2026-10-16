@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useGLTF, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
+import { asset } from '../asset'
 
 /**
  * Lightmaps were written at -1 EV (see blender/scripts/bake_export.py), so 2.0 restores them exactly.
@@ -22,7 +23,7 @@ const TILE = 0.9
  * Blender (0.50, 0.15) turned -35°, the liquid disc 62.5 mm up, r 44.2 mm, turned a further +15°.
  */
 function LatteTop() {
-  const latte = useTexture('/textures/latte.png')
+  const latte = useTexture(asset('textures/latte.png'))
   const mat = useMemo(() => {
     latte.colorSpace = THREE.SRGBColorSpace
     latte.anisotropy = 16
@@ -45,8 +46,8 @@ function LatteTop() {
 }
 
 export function Desk() {
-  const { scene } = useGLTF('/models/desk.glb')
-  const [oakNormal, oakRough] = useTexture(['/textures/oak_normal.jpg', '/textures/oak_rough.jpg'])
+  const { scene } = useGLTF(asset('models/desk.glb'))
+  const [oakNormal, oakRough] = useTexture([asset('textures/oak_normal.jpg'), asset('textures/oak_rough.jpg')])
   useMemo(() => {
     for (const t of [oakNormal, oakRough]) {
       t.wrapS = t.wrapT = THREE.RepeatWrapping
@@ -99,4 +100,4 @@ export function Desk() {
   )
 }
 
-useGLTF.preload('/models/desk.glb')
+useGLTF.preload(asset('models/desk.glb'))

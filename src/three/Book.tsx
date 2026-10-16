@@ -3,6 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import * as THREE from 'three'
+import { asset } from '../asset'
 import { book, W, D, PAGE_T, COVER_T, CURL } from './bookState'
 import { paintBook, contentsHit, type Face, type SheetFaces } from '../content/paint'
 import { LivePages } from './LivePages'
@@ -268,7 +269,7 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   )
 }
 
-const COVER_MAPS = ['/textures/cover_albedo.jpg', '/textures/cover_normal.jpg', '/textures/cover_orm.png']
+const COVER_MAPS = ['textures/cover_albedo.jpg', 'textures/cover_normal.jpg', 'textures/cover_orm.png'].map(asset)
 
 /** Rigid board: rotates about the spine, with real thickness and a shell for the edges. */
 function CoverBoard({ i, n, faces }: { i: number; n: number; faces: SheetFaces }) {

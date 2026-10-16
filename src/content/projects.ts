@@ -2,6 +2,8 @@
  * Portfolio content. Pages are captured from the live sites by capture/capture.mjs
  * (2x still + motion clip); re-run the capture after a site changes.
  */
+import { asset } from '../asset'
+
 export interface PageMedia {
   still: string // 3840x2270 jpg: shown at rest and while the page turns (the clip's first frame)
   video?: string // 1920x1134 mp4
@@ -33,8 +35,8 @@ export const studio = {
 }
 
 const media = (name: string, play?: PageMedia['play']): PageMedia => ({
-  still: `/pages/${name}.jpg`,
-  video: play ? `/pages/${name}.mp4` : undefined,
+  still: asset(`pages/${name}.jpg`),
+  video: play ? asset(`pages/${name}.mp4`) : undefined,
   play,
 })
 
