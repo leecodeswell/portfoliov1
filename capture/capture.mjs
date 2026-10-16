@@ -78,7 +78,7 @@ function encode(shot, input, fps) {
     : ['-vf', base]
   execFileSync(ffmpeg, [
     '-y', '-loglevel', 'error', ...input, ...filter,
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', shot.full ? '21' : '18', '-maxrate', shot.full ? '40M' : '12M', '-bufsize', shot.full ? '80M' : '24M',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', shot.full ? '21' : '18', '-maxrate', shot.full ? '18M' : '12M', '-bufsize', shot.full ? '36M' : '24M',
     '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${OUT}/${shot.name}.mp4`,
   ])
 }

@@ -78,7 +78,7 @@ export default function App() {
       </Canvas>
 
       <header className="bar">
-        <span className="logo">● {studio.name}</span>
+        <span className="logo">{studio.name}</span>
         <button className="pill" onClick={() => setContact(true)}>
           Get in Touch
         </button>
@@ -90,7 +90,6 @@ export default function App() {
             <span key={l}>{l}</span>
           ))}
         </h1>
-        <p>{studio.hint}</p>
       </section>
 
       <nav className={`dock ${phase === 'open' ? 'show' : ''}`}>

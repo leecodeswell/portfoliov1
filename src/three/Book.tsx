@@ -207,12 +207,32 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   const leftAt = useRef(0) // when the cursor last left the page
   const { yR, yL } = restHeights(i, n)
   const last = useRef(-1)
+  // the cursor can leave the canvas without the page ever hearing it: onto the live site on the
+  // facing page (an iframe over the canvas), or out of the window. That counts as leaving the page.
+  const canvas = useThree((st) => st.gl.domElement)
+  useEffect(() => {
+    const leave = () => {
+      if (!hovered.current) return
+      hovered.current = false
+      leftAt.current = 0 // no grace: the cursor is somewhere else entirely
+    }
+    canvas.addEventListener('pointerleave', leave)
+    window.addEventListener('blur', leave) // focus went into an iframe
+    return () => {
+      canvas.removeEventListener('pointerleave', leave)
+      window.removeEventListener('blur', leave)
+    }
+  }, [canvas])
   const faceOf = (k: number) => (k === 0 ? faces.front : faces.back)
 
   const showStill = () => {
     const k = playing.current
     if (k < 0) return
-    clip(faceOf(k).video!).pause()
+    const v = clip(faceOf(k).video!)
+    v.pause()
+    // rewind now, while nobody's watching: the next play then starts from a clip already sitting
+    // on its first frame, exactly like the first play (no seek racing the start of playback)
+    if (!faceOf(k).resume) v.currentTime = 0
     mats[k].map = faceOf(k).map
     mats[k].needsUpdate = true // video and image maps compile different colour decoding
     playing.current = -1
@@ -224,7 +244,7 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     const v = clip(face.video!)
     if (playing.current !== k) {
       // each time the page comes back into view its clip starts over
-      if (!face.resume) v.currentTime = 0 // resume clips continue where the visitor left off
+      if (!face.resume && v.currentTime > 0.02) v.currentTime = 0 // resume clips continue where the visitor left off
       v.loop = !face.loopTail
       v.playbackRate = face.play === 'hover' ? HOVER_RATE : 1
       if (face.loopTail) watchTail(v, face.loopTail)

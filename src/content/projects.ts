@@ -30,8 +30,7 @@ export interface Project {
 
 export const studio = {
   name: 'ares',
-  tagline: 'Interactive Portfolio\nthat you can explore',
-  hint: 'Click on pages to turn, hover to see them in motion',
+  tagline: 'Interactive\nPortfolio Desk',
   contact: 'thompsontechnologiesleet@gmail.com',
 }
 
