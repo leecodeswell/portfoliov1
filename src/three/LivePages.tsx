@@ -43,6 +43,7 @@ export function LivePages({ faces, restHeight }: { faces: SheetFaces[]; restHeig
     const s = state.current
     const k = book.turned
     const resting =
+      !book.shelved &&
       book.phase === 'open' &&
       !book.busy &&
       book.cam.t > 0.999 &&

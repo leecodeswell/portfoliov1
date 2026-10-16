@@ -71,13 +71,14 @@ async function act(page, steps = []) {
 
 /** Frames -> H.264. `speed` bakes a playback speed-up into the file; `boomerang` plays forward then back. */
 function encode(shot, input, fps) {
-  const base = `scale=1920:1134:flags=lanczos,setpts=PTS/${shot.speed ?? 1},fps=${fps}`
+  const size = shot.full ? '3840:2270' : '1920:1134'
+  const base = `scale=${size}:flags=lanczos,setpts=PTS/${shot.speed ?? 1},fps=${fps}`
   const filter = shot.boomerang
     ? ['-filter_complex', `[0]${base},split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1`]
     : ['-vf', base]
   execFileSync(ffmpeg, [
     '-y', '-loglevel', 'error', ...input, ...filter,
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-maxrate', '12M', '-bufsize', '24M',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', shot.full ? '21' : '18', '-maxrate', shot.full ? '40M' : '12M', '-bufsize', shot.full ? '80M' : '24M',
     '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${OUT}/${shot.name}.mp4`,
   ])
 }
@@ -115,6 +116,8 @@ for (const shot of todo) {
       await page.waitForTimeout(settle)
       await page.screenshot({ path: path.join(dir, `f${String(n++).padStart(5, '0')}.jpg`), quality: 92, type: 'jpeg', timeout: 120000 })
     }
+    // `post`: a Python pass over the frames before encoding (e.g. capture/strobe_post.py)
+    if (shot.post) execFileSync('python', [path.resolve(shot.post), dir], { stdio: 'inherit' })
     // the page's still is exactly the clip's first frame (some sites only light up on the first scroll)
     if (shot.still === 'before') fs.copyFileSync(path.join(dir, 'f00000.jpg'), `${OUT}/${shot.name}.jpg`)
     console.log(`${shot.name}: ${n} frames in ${((Date.now() - t0) / 1000).toFixed(0)}s -> ${(n / 60).toFixed(1)}s at 60 fps`)

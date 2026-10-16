@@ -247,9 +247,9 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     const want = face?.play === 'loop' || (face?.play === 'hover' && hovered.current)
     if (want) play(k)
     else if (playing.current >= 0) {
-      // hover clips hold their frame when the cursor leaves (resume clips go back to their still);
-      // anything else returns to its still
-      if (k === playing.current && face?.play === 'hover' && !face.resume) clip(face.video!).pause()
+      // hover clips hold their frame when the cursor leaves (resume and restart clips go back to
+      // their still); anything else returns to its still
+      if (k === playing.current && face?.play === 'hover' && !face.resume && !face.restart) clip(face.video!).pause()
       else showStill()
     }
     if (s.p === last.current) return

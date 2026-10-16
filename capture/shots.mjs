@@ -3,7 +3,7 @@
  * `still: 'before'` takes the still at the start of the recording instead of the end, so the
  * page rests on the video's first frame. `boomerang: true` plays the clip forward then back;
  * `frames: { to, count, settle, method }` records frame by frame at 60 fps (see capture.mjs);
- * `speed` bakes a speed-up into the encoded clip.
+ * `speed` bakes a speed-up into the encoded clip; `full: true` keeps the clip at the still's 3840x2270.
  * Step types: { wait: ms } | { wheel: px, ms } | { scroll: targetScrollY, ms } | { mouse: [[x0, y0], [x1, y1]], ms }
  * Scroll positions were mapped with capture/map.mjs.
  */
@@ -67,17 +67,21 @@ export const shots = [
     settle: 4000,
     cursor: [1900, 1120],
     still: 'before',
+    full: true,
     frames: { to: 5800, count: 480, settle: 60 },
   },
-  // AUREL — lights out: rain, foam, pressure wash, through to the wet look handed back (~14 s)
+  // AUREL — picks up where the studio half ends: the strobe, opening on a blackout with only the tail
+  // lights glowing, then rain, foam, pressure wash, through to the wet look handed back (~15 s)
   {
     name: 'aurel-rain',
     url: AUREL,
     ready: '.loading-screen.loaded',
     cursor: [1900, 1120],
     settle: 4000,
-    pre: [{ scroll: 7700, ms: 2500 }, { wait: 5000 }],
+    pre: [{ scroll: 7300, ms: 2500 }, { wait: 3000 }],
     still: 'before',
-    frames: { to: 20000, count: 740, settle: 60 },
+    full: true,
+    post: 'capture/strobe_post.py', // starts the clip on the first blackout; blooms the tail lights in the dark
+    frames: { to: 20000, count: 900, settle: 60 },
   },
 ]

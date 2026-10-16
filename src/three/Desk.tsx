@@ -20,7 +20,7 @@ const TILE = 0.9
  */
 /**
  * The coffee's surface, drawn live over the baked mug so it catches a real wet sheen from the softbox.
- * Placement mirrors build_scene.py: the Mug group at Blender (-0.48, 0.15), coffee disc 83 mm up, r 37.8 mm.
+ * Placement mirrors build_scene.py: the Mug group at Blender (-0.53, 0.20), coffee disc 83 mm up, r 37.8 mm.
  */
 function CoffeeTop() {
   const mat = useMemo(
@@ -28,7 +28,7 @@ function CoffeeTop() {
     [],
   )
   return (
-    <mesh position={[-0.48, 0.0832, -0.15]} rotation-x={-Math.PI / 2} material={mat}>
+    <mesh position={[-0.53, 0.0832, -0.2]} rotation-x={-Math.PI / 2} material={mat}>
       <circleGeometry args={[0.0378, 96]} />
     </mesh>
   )

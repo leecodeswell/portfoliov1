@@ -25,6 +25,8 @@ class BookController {
   sheets: { p: number; dir: number }[] = []
   turned = 0
   phase: Phase = 'closed'
+  /** The desk's book pile is up in front of the camera: the book stays shut and takes no input. */
+  shelved = false
   /** Whole-book pose: x slides so the closed book / open spread stays centred. */
   pose = { x: -W / 2, lift: 0, tilt: 0, roll: 0, yaw: (4 * Math.PI) / 180 }
   /**
@@ -102,7 +104,7 @@ class BookController {
   }
 
   open() {
-    if (!this.ready) return
+    if (!this.ready || this.shelved) return
     this.run(() => {
       if (this.phase !== 'closed') return null
       this.setPhase('opening')
@@ -148,7 +150,7 @@ class BookController {
 
   /** Closed book under the cursor: it rises and tips toward you, as if picked up. */
   hover(on: boolean) {
-    if (!this.ready || this.phase !== 'closed' || this.busy) return
+    if (!this.ready || this.shelved || this.phase !== 'closed' || this.busy) return
     document.body.style.cursor = on ? 'pointer' : ''
     gsap.to(this.pose, {
       lift: on ? 0.03 : 0,
@@ -162,19 +164,27 @@ class BookController {
 
   /** Open (from any state) straight to spread k — used by the contact card on the desk. */
   openTo(k: number) {
-    if (!this.ready) return
+    if (!this.ready || this.shelved) return
     if (this.phase === 'end') this.restart()
     this.open()
     this.goTo(k)
   }
 
+  /** The pile's books fly up (BookPile): shut the book first so nothing of it shows in front of them. */
+  setShelved(on: boolean) {
+    this.shelved = on
+    if (on && this.phase !== 'closed') this.closeBook()
+  }
+
   next() {
+    if (this.shelved) return
     if (this.phase === 'closed') return this.open()
     if (this.phase !== 'open') return
     if (this.turned >= this.lastSpread) return this.close()
     this.goTo(this.turned + 1)
   }
   prev() {
+    if (this.shelved) return
     if (this.phase === 'open' && this.turned > 1) this.goTo(this.turned - 1)
   }
 

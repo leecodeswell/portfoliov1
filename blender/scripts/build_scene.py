@@ -231,7 +231,7 @@ def build():
     stone = mat("Stoneware", (0.80, 0.78, 0.74), rough=0.42, spec=0.5, coat=0.25)
     mug_profile = [(0, 0.0), (0.036, 0.0), (0.040, 0.002), (0.042, 0.010), (0.042, 0.092),
                    (0.0405, 0.0955), (0.0385, 0.094), (0.0378, 0.090), (0.0378, 0.010), (0.0, 0.008)]
-    mug = lathe("Mug", mug_profile, stone)
+    mug = lathe("MugBody", mug_profile, stone)
     bpy.ops.mesh.primitive_torus_add(major_radius=0.024, minor_radius=0.0055, major_segments=48,
                                      minor_segments=16, location=(0.052, 0, 0.050), rotation=(math.radians(90), 0, 0))
     mug_handle = bpy.context.active_object
@@ -247,7 +247,7 @@ def build():
     mug_grp = link(bpy.data.objects.new("Mug", None))
     for o in (mug, mug_handle, brew):
         o.parent = mug_grp
-    mug_grp.location = (-0.48, 0.15, 0)
+    mug_grp.location = (-0.53, 0.20, 0)
     mug_grp.rotation_euler.z = math.radians(-30)  # handle toward the viewer's right
 
     # Notepad (bottom right): a small top-bound pad, the pencil lying across it.
@@ -272,7 +272,7 @@ def build():
     notepad = link(bpy.data.objects.new("Notepad", None))
     for o in (p_back, p_block, p_bind):
         o.parent = notepad
-    notepad.location = (0.47, -0.21, 0)
+    notepad.location = (0.50, -0.27, 0)
     notepad.rotation_euler.z = math.radians(-12)
 
     # Pencil: hex body, sharpened wood cone, graphite tip — lying across the notepad.
@@ -294,7 +294,7 @@ def build():
         smooth(o)
         o.parent = pencil
     pencil.rotation_euler = (math.radians(90), 0, math.radians(-150))
-    pencil.location = (0.475, -0.215, 0.0122)
+    pencil.location = (0.505, -0.275, 0.0122)
 
     # Lighting: a cool studio softbox overhead, nudged right and toward the viewer. Seen from the near
     # top-down camera its reflection lies in the lower half of the frame, so the lacquer lights up in
@@ -333,9 +333,9 @@ def build():
 
     # Close-up cameras for checking detail (render with: render_preview.py -- name samples pct CamName).
     for name, loc, look, lens in [
-        ("CamCloseMug", (-0.32, -0.06, 0.30), (-0.48, 0.15, 0.05), 70),
+        ("CamCloseMug", (-0.37, -0.01, 0.30), (-0.53, 0.20, 0.05), 70),
         ("CamCloseBook", (-0.10, -0.42, 0.22), (0.02, -0.03, 0.01), 50),
-        ("CamCloseNotepad", (0.33, -0.42, 0.25), (0.47, -0.21, 0.01), 60),
+        ("CamCloseNotepad", (0.36, -0.48, 0.25), (0.50, -0.27, 0.01), 60),
     ]:
         cd = bpy.data.cameras.new(name)
         cd.lens = lens

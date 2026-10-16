@@ -5,6 +5,7 @@ import { Experience } from './three/Experience'
 import { book } from './three/bookState'
 import { studio } from './content/projects'
 import { ContactForm } from './ContactForm'
+import { ShelfPanel } from './ShelfPanel'
 
 /** WebGL falling back to a CPU rasteriser (hardware acceleration off / blocklisted GPU). */
 function isSoftwareRenderer(gl: WebGLRenderingContext | WebGL2RenderingContext) {
@@ -110,6 +111,7 @@ export default function App() {
       </section>
 
       <ContactForm open={contact} onClose={closeContact} />
+      <ShelfPanel />
 
       {software && (
         <div className="gpu-warn">

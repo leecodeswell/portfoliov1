@@ -10,6 +10,7 @@ export interface PageMedia {
   play?: 'hover' | 'loop' // hover: plays while the cursor is on the page; loop: plays while the page is open
   loopTail?: number // loop: play the whole clip once, then repeat only its last N seconds
   resume?: boolean // hover: off the page it shows its still; back on, the clip continues where it left off
+  restart?: boolean // hover: off the page it shows its still; back on, the clip starts over
   live?: LiveSite // the real site, embedded once the spread settles
 }
 
@@ -49,9 +50,9 @@ export const pages = {
   cologneRelief: { ...media('cologne-relief'), live: { src: COLOGNE, lockScroll: true, hide: '.progress' } },
   cologneSequence: media('cologne-sequence', 'hover'),
   aresIntro: media('ares-intro', 'loop'), // the welcome with its ivy swaying, looped seamlessly
-  aresJourney: { ...media('ares-journey', 'hover'), resume: true },
-  aurelStudio: media('aurel-studio', 'hover'),
-  aurelRain: media('aurel-rain', 'hover'),
+  aresJourney: { ...media('ares-journey', 'hover'), restart: true },
+  aurelStudio: { ...media('aurel-studio', 'hover'), restart: true },
+  aurelRain: { ...media('aurel-rain', 'hover'), restart: true },
   aeternum: media('aeternum-explode', 'hover'),
 }
 
@@ -67,7 +68,7 @@ export const projects: Project[] = [
     name: 'Ares',
     subtitle: 'by Lee Thompson',
     discipline: 'Studio · Intro & journey',
-    url: 'https://ares-web.com/',
+    url: 'https://leecodeswell.github.io/Ares/',
     spread: 3,
   },
   {
