@@ -128,11 +128,20 @@ function clip(url: string) {
     v.loop = true
     v.playsInline = true
     v.crossOrigin = 'anonymous'
-    v.preload = 'auto'
-    v.load()
+    // nothing downloads until the clip's spread is near (warm): ~100 MB of clips fetched at once
+    // would starve the desk and the book of bandwidth on the first visit
+    v.preload = 'none'
     clips.set(url, v)
   }
   return v
+}
+
+/** Start downloading a clip (once): called as its spread comes up. */
+function warm(url: string) {
+  const v = clip(url)
+  if (v.preload === 'auto') return
+  v.preload = 'auto'
+  v.load()
 }
 
 const HOVER_RATE = 1 // speed is baked into the captures (capture/shots.mjs `speed`)
@@ -270,6 +279,12 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   useFrame(() => {
     const s = book.sheets[i]
     if (!s) return
+    // fetch this sheet's clips once the book is open and their spread is the current one or next to
+    // it, so a clip is ready by the time its page is hovered
+    if (book.phase !== 'closed') {
+      if (faces.front.video && Math.abs(book.turned - i) <= 1) warm(faces.front.video)
+      if (faces.back.video && Math.abs(book.turned - (i + 1)) <= 1) warm(faces.back.video)
+    }
     // which face is the open, settled page (if any): front on the right, back on the left
     const k = book.phase === 'open' && s.p === 0 && book.turned === i ? 0 : book.phase === 'open' && s.p === 1 && book.turned === i + 1 ? 1 : -1
     const face = k >= 0 ? faceOf(k) : null
@@ -304,6 +319,8 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
 }
 
 const COVER_MAPS = ['textures/cover_albedo.jpg', 'textures/cover_normal.jpg', 'textures/cover_orm.png'].map(asset)
+// start the cover loading with everything else at startup, not after the pages are painted
+useTexture.preload(COVER_MAPS)
 
 /** Rigid board: rotates about the spine, with real thickness and a shell for the edges. */
 function CoverBoard({ i, n, faces }: { i: number; n: number; faces: SheetFaces }) {
@@ -476,13 +493,11 @@ export function Book() {
     let live = true
     paintBook().then((f) => {
       if (!live) return
-      // upload every page to the GPU behind the loading veil; an 8K texture would otherwise
-      // stall the first frame it appears in (mid-animation)
+      // upload every page to the GPU behind the loading screen; an 8K texture would otherwise
+      // stall the first frame it appears in (mid-animation). Clips load later, spread by spread.
       for (const s of f) {
         gl.initTexture(s.front.map)
         gl.initTexture(s.back.map)
-        if (s.front.video) clip(s.front.video)
-        if (s.back.video) clip(s.back.video)
       }
       book.init(f.length - 2)
       setFaces(f)

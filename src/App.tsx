@@ -6,6 +6,7 @@ import { book } from './three/bookState'
 import { studio } from './content/projects'
 import { ContactForm } from './ContactForm'
 import { ShelfPanel } from './ShelfPanel'
+import { Loader } from './Loader'
 
 /** WebGL falling back to a CPU rasteriser (hardware acceleration off / blocklisted GPU). */
 function isSoftwareRenderer(gl: WebGLRenderingContext | WebGL2RenderingContext) {
@@ -17,7 +18,7 @@ function isSoftwareRenderer(gl: WebGLRenderingContext | WebGL2RenderingContext) 
 function useBook() {
   return useSyncExternalStore(
     (cb) => book.subscribe(cb),
-    () => (book.ready ? book.phase : 'loading') + (book.inspecting ? ':inspect' : ''),
+    () => (book.ready && book.shown ? book.phase : 'loading') + (book.inspecting ? ':inspect' : ''),
   )
 }
 
@@ -98,9 +99,7 @@ export default function App() {
         <button onClick={() => book.closeBook()}>Close book</button>
       </nav>
 
-      <div className={`veil ${phase === 'loading' ? 'show' : ''}`}>
-        <span>Setting the desk…</span>
-      </div>
+      <Loader show={phase === 'loading'} />
 
       <section className={`end ${phase === 'end' ? 'show' : ''}`}>
         <button className="pill big" onClick={() => setContact(true)}>

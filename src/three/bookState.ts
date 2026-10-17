@@ -22,6 +22,8 @@ export type Phase = 'closed' | 'opening' | 'open' | 'closing' | 'end'
 class BookController {
   pages = 0
   ready = false
+  /** The scene has drawn its first full frame (desk, book and cover all in): the loader can go. */
+  shown = false
   sheets: { p: number; dir: number }[] = []
   turned = 0
   phase: Phase = 'closed'
@@ -38,6 +40,12 @@ class BookController {
   private queue = Promise.resolve()
   private listeners = new Set<() => void>()
   private animating = 0
+
+  sceneShown() {
+    if (this.shown) return
+    this.shown = true
+    this.emit()
+  }
 
   init(pageSheets: number) {
     this.pages = pageSheets

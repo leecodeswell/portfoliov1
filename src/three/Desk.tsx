@@ -91,3 +91,4 @@ export function Desk() {
 }
 
 useGLTF.preload(asset('models/desk.glb'))
+useTexture.preload([asset('textures/oak_normal.jpg'), asset('textures/oak_rough.jpg')])

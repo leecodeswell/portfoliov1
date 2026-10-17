@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { Desk } from './Desk'
 import { Book } from './Book'
 import { CameraRig } from './CameraRig'
 import { ContactCard } from './ContactCard'
+import { book } from './bookState'
 
 /**
  * No full-frame post-processing: the cinematic look (AgX and a touch of saturation) is
@@ -80,6 +81,16 @@ function KeyLight() {
   )
 }
 
+/** Lifts the loader once the book is built and a few full frames have been drawn (textures on the GPU). */
+function FirstFrames() {
+  const frames = useRef(0)
+  useFrame(() => {
+    if (book.shown || !book.ready) return
+    if (++frames.current >= 3) book.sceneShown()
+  })
+  return null
+}
+
 export function Experience() {
   const scene = useThree((st) => st.scene)
   if (import.meta.env.DEV) Object.assign(window, { __scene: scene })
@@ -91,6 +102,7 @@ export function Experience() {
       <Desk />
       <Book />
       <ContactCard />
+      <FirstFrames />
     </>
   )
 }
