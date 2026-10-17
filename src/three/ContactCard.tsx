@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { book } from './bookState'
 import { studio } from '../content/projects'
 
 /** A 5x3" index card (127 x 76 mm) resting on the desk above the book. */
@@ -51,7 +50,7 @@ function draw(c: HTMLCanvasElement) {
   g.fillText('Click the card to open the contact page →', 115, 644)
 }
 
-/** Opens the book straight to its contact page (the inside of the back cover). */
+/** Opens the contact form (the same one as the header's Get in Touch). */
 export function ContactCard() {
   const lift = useRef<THREE.Group>(null!)
   const [hover, setHover] = useState(false)
@@ -77,7 +76,7 @@ export function ContactCard() {
           receiveShadow
           onPointerOver={(e) => (e.stopPropagation(), setHover(true), (document.body.style.cursor = 'pointer'))}
           onPointerOut={() => (setHover(false), (document.body.style.cursor = ''))}
-          onClick={(e) => (e.stopPropagation(), book.openTo(book.lastSpread))}
+          onClick={(e) => (e.stopPropagation(), window.dispatchEvent(new Event('ares:contact')))}
         >
           <boxGeometry args={[CW, CT, CD]} />
         </mesh>
