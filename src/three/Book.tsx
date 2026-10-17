@@ -128,7 +128,7 @@ function clip(url: string) {
     v.loop = true
     v.playsInline = true
     v.crossOrigin = 'anonymous'
-    // nothing downloads until the clip's spread is near (warm): ~100 MB of clips fetched at once
+    // nothing downloads until the scene is up (preloadClips): ~100 MB of clips fetched at once
     // would starve the desk and the book of bandwidth on the first visit
     v.preload = 'none'
     clips.set(url, v)
@@ -136,12 +136,31 @@ function clip(url: string) {
   return v
 }
 
-/** Start downloading a clip (once): called as its spread comes up. */
+/** Start downloading a clip (once). */
 function warm(url: string) {
   const v = clip(url)
   if (v.preload === 'auto') return
   v.preload = 'auto'
   v.load()
+}
+
+/**
+ * Once the scene is showing, download every clip one after another in book order, each starting
+ * when the one before is fully buffered: they never compete with the first view, and are usually
+ * all in before the visitor reaches them. A clip whose spread is open jumps the queue (warm).
+ */
+async function preloadClips(urls: string[]) {
+  for (const url of urls) {
+    const v = clip(url)
+    warm(url)
+    await new Promise<void>((done) => {
+      const full = () => v.buffered.length > 0 && v.buffered.end(v.buffered.length - 1) >= v.duration - 0.1
+      const check = () => (full() || v.error ? done() : setTimeout(check, 400))
+      v.addEventListener('error', () => done(), { once: true })
+      setTimeout(done, 20000) // a browser may stop buffering partway: don't hold up the rest
+      check()
+    })
+  }
 }
 
 const HOVER_RATE = 1 // speed is baked into the captures (capture/shots.mjs `speed`)
@@ -491,13 +510,7 @@ export function Book() {
   const gl = useThree((s) => s.gl)
   useEffect(() => {
     let live = true
-    // page stills stream in after the desk is up; each goes to the GPU as it lands, so it never
-    // stalls a frame later (mid page turn)
-    const shown = new Promise<void>((resolve) => {
-      if (book.shown) return resolve()
-      const off = book.subscribe(() => book.shown && (off(), resolve()))
-    })
-    paintBook((t) => live && gl.initTexture(t), shown).then((f) => {
+    paintBook().then((f) => {
       if (!live) return
       // upload every page to the GPU behind the loading screen; an 8K texture would otherwise
       // stall the first frame it appears in (mid-animation). Clips load later, spread by spread.
@@ -507,6 +520,10 @@ export function Book() {
       }
       book.init(f.length - 2)
       setFaces(f)
+      const urls = f.flatMap((s) => [s.front.video, s.back.video]).filter((u): u is string => !!u)
+      const start = () => book.shown && (off(), preloadClips(urls))
+      const off = book.subscribe(start)
+      start()
     })
     return () => {
       live = false

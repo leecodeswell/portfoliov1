@@ -117,37 +117,23 @@ function tex(c: HTMLCanvasElement, flipU = false) {
   return flipU ? mirror(t) : t
 }
 
-/**
- * A page's still (2x site capture), streamed in after the scene is up: the page starts as a dark
- * placeholder in this very texture, and the full image is decoded off the main thread and swapped
- * into it when it arrives. `ready` hears about each one (the book uploads it to the GPU right away).
- */
-function photo(url: string, ready?: (t: THREE.Texture) => void, gate?: Promise<void>): THREE.Texture {
-  const ph = document.createElement('canvas')
-  ph.width = ph.height = 4
-  const g = ph.getContext('2d')!
-  g.fillStyle = '#0d0d0f'
-  g.fillRect(0, 0, 4, 4)
-  const t = new THREE.Texture(ph)
-  t.flipY = false
-  t.colorSpace = THREE.SRGBColorSpace
-  t.anisotropy = 16
-  t.needsUpdate = true
-  ;(async () => {
-    try {
-      await gate // wait until the desk is showing: the first view gets all the bandwidth
-      // dev servers answer missing files with index.html, so check we really have an image
-      const head = await fetch(url, { method: 'HEAD' })
-      if (!head.ok || !head.headers.get('content-type')?.startsWith('image/')) return
-      const bitmap = await new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'flipY' }).loadAsync(url)
-      t.image = bitmap
-      t.needsUpdate = true
-      ready?.(t)
-    } catch {
-      // keep the placeholder
-    }
-  })()
-  return t
+/** Full-resolution still (2x site capture), decoded off the main thread. */
+async function photo(url: string): Promise<THREE.Texture | null> {
+  try {
+    // dev servers answer missing files with index.html, so check we really have an image
+    const head = await fetch(url, { method: 'HEAD' })
+    if (!head.ok || !head.headers.get('content-type')?.startsWith('image/')) return null
+    const loader = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'flipY' })
+    const bitmap = await loader.loadAsync(url)
+    const t = new THREE.Texture(bitmap as unknown as HTMLImageElement)
+    t.flipY = false
+    t.colorSpace = THREE.SRGBColorSpace
+    t.anisotropy = 16
+    t.needsUpdate = true
+    return t
+  } catch {
+    return null
+  }
 }
 
 export interface Face {
@@ -167,18 +153,15 @@ export interface SheetFaces {
 
 type Source = HTMLCanvasElement | PageMedia
 
-function face(src: Source, mirrored: boolean, ready?: (t: THREE.Texture) => void, gate?: Promise<void>): Face {
+async function face(src: Source, mirrored: boolean): Promise<Face> {
   if (src instanceof HTMLCanvasElement) return { map: tex(src, mirrored) }
-  const t = photo(src.still, ready, gate)
+  const t = await photo(src.still)
+  if (!t) return { map: tex(canvas('#111').c, mirrored) }
   return { map: mirrored ? mirror(t) : t, video: src.video, play: src.play, loopTail: src.loopTail, resume: src.resume, restart: src.restart, live: src.live }
 }
 
 /** Sheets: [front cover, page sheets…, back cover]. Spread k: left = sheet[k-1].back, right = sheet[k].front. */
-/**
- * `onPhoto` is told as each page still finishes streaming in (after this has already resolved);
- * the stills only start downloading once `gate` resolves.
- */
-export async function paintBook(onPhoto?: (t: THREE.Texture) => void, gate?: Promise<void>): Promise<SheetFaces[]> {
+export async function paintBook(): Promise<SheetFaces[]> {
   await Promise.all([
     document.fonts.load(`600 100px "Inter Tight"`),
     document.fonts.load(`400 100px "Inter Tight"`),
@@ -191,10 +174,12 @@ export async function paintBook(onPhoto?: (t: THREE.Texture) => void, gate?: Pro
   const rights: Source[] = [introPage(), pages.cologneSequence, pages.aresJourney, pages.aurelRain, contactPage()]
 
   const n = rights.length + 1 // sheets incl. both covers
-  return Array.from({ length: n }, (_, i) => ({
-    front: face(i === 0 ? coverOutside() : rights[i - 1], false, onPhoto, gate),
-    back: face(i === n - 1 ? coverOutside(true) : lefts[i], true, onPhoto, gate),
-  }))
+  return Promise.all(
+    Array.from({ length: n }, async (_, i) => ({
+      front: await face(i === 0 ? coverOutside() : rights[i - 1], false),
+      back: await face(i === n - 1 ? coverOutside(true) : lefts[i], true),
+    })),
+  )
 }
 
 const CONTENTS_TOP = 520
