@@ -163,6 +163,9 @@ async function preloadClips(urls: string[]) {
   }
 }
 
+/** Sheets whose hover clip is playing: the facing page's looping clip rests meanwhile (one decode at a time). */
+const hoverPlaying = new Set<number>()
+
 const HOVER_RATE = 1 // speed is baked into the captures (capture/shots.mjs `speed`)
 
 /** Play once, then keep repeating only the last `tail` seconds (frame-accurate, no gap). */
@@ -233,6 +236,7 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
   const playing = useRef(-1) // which face (0 front, 1 back) currently shows its clip
   const hovered = useRef(false)
   const leftAt = useRef(0) // when the cursor last left the page
+  const enteredAt = useRef(0) // when it arrived (a clip waits for the cursor to settle)
   const { yR, yL } = restHeights(i, n)
   const last = useRef(-1)
   // the cursor can leave the canvas without the page ever hearing it: onto the live site on the
@@ -252,6 +256,11 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     }
   }, [canvas])
   const faceOf = (k: number) => (k === 0 ? faces.front : faces.back)
+  const enter = () => {
+    if (hovered.current) return
+    hovered.current = true
+    enteredAt.current = performance.now()
+  }
 
   const showStill = () => {
     const k = playing.current
@@ -308,13 +317,22 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
     const k = book.phase === 'open' && s.p === 0 && book.turned === i ? 0 : book.phase === 'open' && s.p === 1 && book.turned === i + 1 ? 1 : -1
     const face = k >= 0 ? faceOf(k) : null
     // a moment's grace after the cursor leaves: a flicker of hover (crossing a page edge) mustn't restart a clip
-    const hover = hovered.current || performance.now() - leftAt.current < 250
-    const want = face?.play === 'loop' || (face?.play === 'hover' && hover)
+    // a clip starts once the cursor has rested on the page a moment, and carries on through brief
+    // exits (crossing a page edge, a flick of the hand): no start-stop churn from a restless cursor
+    const now = performance.now()
+    const hover = (hovered.current && now - enteredAt.current > 80) || now - leftAt.current < 300
+    const wantHover = face?.play === 'hover' && hover
+    if (wantHover) hoverPlaying.add(i)
+    else hoverPlaying.delete(i)
+    const otherHover = hoverPlaying.size > (hoverPlaying.has(i) ? 1 : 0)
+    const want = (face?.play === 'loop' && !otherHover) || wantHover
     if (want) play(k)
     else if (playing.current >= 0) {
       // hover clips hold their frame when the cursor leaves (resume and restart clips go back to
       // their still); anything else returns to its still
+      // (a looping page resting while the facing page plays holds its frame too, and carries on after)
       if (k === playing.current && face?.play === 'hover' && !face.resume && !face.restart) clip(face.video!).pause()
+      else if (k === playing.current && face?.play === 'loop') clip(face.video!).pause()
       else showStill()
     }
     if (s.p === last.current) return
@@ -328,7 +346,10 @@ function PaperSheet({ i, n, faces }: { i: number; n: number; faces: SheetFaces }
       castShadow
       receiveShadow
       onClick={(e) => onSheetClick(i, e)}
-      onPointerOver={() => (hovered.current = true)}
+      // any movement over the page counts as being on it: after the cursor has been over the live
+      // page (an iframe), the page may never get another pointer-over event
+      onPointerOver={enter}
+      onPointerMove={enter}
       onPointerOut={() => {
         hovered.current = false
         leftAt.current = performance.now()
