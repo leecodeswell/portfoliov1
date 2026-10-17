@@ -117,23 +117,36 @@ function tex(c: HTMLCanvasElement, flipU = false) {
   return flipU ? mirror(t) : t
 }
 
-/** Full-resolution still (2x site capture), decoded off the main thread. */
-async function photo(url: string): Promise<THREE.Texture | null> {
-  try {
-    // dev servers answer missing files with index.html, so check we really have an image
-    const head = await fetch(url, { method: 'HEAD' })
-    if (!head.ok || !head.headers.get('content-type')?.startsWith('image/')) return null
-    const loader = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'flipY' })
-    const bitmap = await loader.loadAsync(url)
-    const t = new THREE.Texture(bitmap as unknown as HTMLImageElement)
-    t.flipY = false
-    t.colorSpace = THREE.SRGBColorSpace
-    t.anisotropy = 16
-    t.needsUpdate = true
-    return t
-  } catch {
-    return null
-  }
+/**
+ * A page's still (2x site capture), streamed in after the scene is up: the page starts as a dark
+ * placeholder in this very texture, and the full image is decoded off the main thread and swapped
+ * into it when it arrives. `ready` hears about each one (the book uploads it to the GPU right away).
+ */
+function photo(url: string, ready?: (t: THREE.Texture) => void): THREE.Texture {
+  const ph = document.createElement('canvas')
+  ph.width = ph.height = 4
+  const g = ph.getContext('2d')!
+  g.fillStyle = '#0d0d0f'
+  g.fillRect(0, 0, 4, 4)
+  const t = new THREE.Texture(ph)
+  t.flipY = false
+  t.colorSpace = THREE.SRGBColorSpace
+  t.anisotropy = 16
+  t.needsUpdate = true
+  ;(async () => {
+    try {
+      // dev servers answer missing files with index.html, so check we really have an image
+      const head = await fetch(url, { method: 'HEAD' })
+      if (!head.ok || !head.headers.get('content-type')?.startsWith('image/')) return
+      const bitmap = await new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'flipY' }).loadAsync(url)
+      t.image = bitmap
+      t.needsUpdate = true
+      ready?.(t)
+    } catch {
+      // keep the placeholder
+    }
+  })()
+  return t
 }
 
 export interface Face {
@@ -153,15 +166,15 @@ export interface SheetFaces {
 
 type Source = HTMLCanvasElement | PageMedia
 
-async function face(src: Source, mirrored: boolean): Promise<Face> {
+function face(src: Source, mirrored: boolean, ready?: (t: THREE.Texture) => void): Face {
   if (src instanceof HTMLCanvasElement) return { map: tex(src, mirrored) }
-  const t = await photo(src.still)
-  if (!t) return { map: tex(canvas('#111').c, mirrored) }
+  const t = photo(src.still, ready)
   return { map: mirrored ? mirror(t) : t, video: src.video, play: src.play, loopTail: src.loopTail, resume: src.resume, restart: src.restart, live: src.live }
 }
 
 /** Sheets: [front cover, page sheets…, back cover]. Spread k: left = sheet[k-1].back, right = sheet[k].front. */
-export async function paintBook(): Promise<SheetFaces[]> {
+/** `onPhoto` is told as each page still finishes streaming in (after this has already resolved). */
+export async function paintBook(onPhoto?: (t: THREE.Texture) => void): Promise<SheetFaces[]> {
   await Promise.all([
     document.fonts.load(`600 100px "Inter Tight"`),
     document.fonts.load(`400 100px "Inter Tight"`),
@@ -174,12 +187,10 @@ export async function paintBook(): Promise<SheetFaces[]> {
   const rights: Source[] = [introPage(), pages.cologneSequence, pages.aresJourney, pages.aurelRain, contactPage()]
 
   const n = rights.length + 1 // sheets incl. both covers
-  return Promise.all(
-    Array.from({ length: n }, async (_, i) => ({
-      front: await face(i === 0 ? coverOutside() : rights[i - 1], false),
-      back: await face(i === n - 1 ? coverOutside(true) : lefts[i], true),
-    })),
-  )
+  return Array.from({ length: n }, (_, i) => ({
+    front: face(i === 0 ? coverOutside() : rights[i - 1], false, onPhoto),
+    back: face(i === n - 1 ? coverOutside(true) : lefts[i], true, onPhoto),
+  }))
 }
 
 const CONTENTS_TOP = 520

@@ -491,7 +491,9 @@ export function Book() {
   const gl = useThree((s) => s.gl)
   useEffect(() => {
     let live = true
-    paintBook().then((f) => {
+    // page stills stream in after the desk is up; each goes to the GPU as it lands, so it never
+    // stalls a frame later (mid page turn)
+    paintBook((t) => live && gl.initTexture(t)).then((f) => {
       if (!live) return
       // upload every page to the GPU behind the loading screen; an 8K texture would otherwise
       // stall the first frame it appears in (mid-animation). Clips load later, spread by spread.

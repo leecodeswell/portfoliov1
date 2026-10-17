@@ -1,8 +1,9 @@
-// Load-and-frame-rate check for a build: node capture/perf.mjs [url]
+// Load-and-frame-rate check for a build: node capture/perf.mjs [url] [screenshot.png]
 // Reports when the loader lifts, what downloaded by then, and the frame rate on the desk and with the book open.
 import { chromium } from 'playwright'
 
 const url = process.argv[2] ?? 'http://localhost:4174/'
+const shot = process.argv[3]
 const browser = await chromium.launch({
   channel: 'chrome',
   headless: true,
@@ -30,6 +31,7 @@ await page.waitForTimeout(2500)
 await page.mouse.click(1150, 450) // to the cologne spread
 await page.waitForTimeout(3000)
 const openFps = await fps()
+if (shot) await page.screenshot({ path: shot })
 const clips = await page.evaluate(() => performance.getEntriesByType('resource').filter((e) => e.name.endsWith('.mp4')).map((e) => e.name.split('/').pop()))
 console.log(JSON.stringify({ loaderLiftedS: lifted, downloadedMB: mb, deskFps, openFps, clipsFetched: clips }))
 await browser.close()
