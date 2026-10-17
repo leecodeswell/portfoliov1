@@ -122,7 +122,7 @@ function tex(c: HTMLCanvasElement, flipU = false) {
  * placeholder in this very texture, and the full image is decoded off the main thread and swapped
  * into it when it arrives. `ready` hears about each one (the book uploads it to the GPU right away).
  */
-function photo(url: string, ready?: (t: THREE.Texture) => void): THREE.Texture {
+function photo(url: string, ready?: (t: THREE.Texture) => void, gate?: Promise<void>): THREE.Texture {
   const ph = document.createElement('canvas')
   ph.width = ph.height = 4
   const g = ph.getContext('2d')!
@@ -135,6 +135,7 @@ function photo(url: string, ready?: (t: THREE.Texture) => void): THREE.Texture {
   t.needsUpdate = true
   ;(async () => {
     try {
+      await gate // wait until the desk is showing: the first view gets all the bandwidth
       // dev servers answer missing files with index.html, so check we really have an image
       const head = await fetch(url, { method: 'HEAD' })
       if (!head.ok || !head.headers.get('content-type')?.startsWith('image/')) return
@@ -166,15 +167,18 @@ export interface SheetFaces {
 
 type Source = HTMLCanvasElement | PageMedia
 
-function face(src: Source, mirrored: boolean, ready?: (t: THREE.Texture) => void): Face {
+function face(src: Source, mirrored: boolean, ready?: (t: THREE.Texture) => void, gate?: Promise<void>): Face {
   if (src instanceof HTMLCanvasElement) return { map: tex(src, mirrored) }
-  const t = photo(src.still, ready)
+  const t = photo(src.still, ready, gate)
   return { map: mirrored ? mirror(t) : t, video: src.video, play: src.play, loopTail: src.loopTail, resume: src.resume, restart: src.restart, live: src.live }
 }
 
 /** Sheets: [front cover, page sheets…, back cover]. Spread k: left = sheet[k-1].back, right = sheet[k].front. */
-/** `onPhoto` is told as each page still finishes streaming in (after this has already resolved). */
-export async function paintBook(onPhoto?: (t: THREE.Texture) => void): Promise<SheetFaces[]> {
+/**
+ * `onPhoto` is told as each page still finishes streaming in (after this has already resolved);
+ * the stills only start downloading once `gate` resolves.
+ */
+export async function paintBook(onPhoto?: (t: THREE.Texture) => void, gate?: Promise<void>): Promise<SheetFaces[]> {
   await Promise.all([
     document.fonts.load(`600 100px "Inter Tight"`),
     document.fonts.load(`400 100px "Inter Tight"`),
@@ -188,8 +192,8 @@ export async function paintBook(onPhoto?: (t: THREE.Texture) => void): Promise<S
 
   const n = rights.length + 1 // sheets incl. both covers
   return Array.from({ length: n }, (_, i) => ({
-    front: face(i === 0 ? coverOutside() : rights[i - 1], false, onPhoto),
-    back: face(i === n - 1 ? coverOutside(true) : lefts[i], true, onPhoto),
+    front: face(i === 0 ? coverOutside() : rights[i - 1], false, onPhoto, gate),
+    back: face(i === n - 1 ? coverOutside(true) : lefts[i], true, onPhoto, gate),
   }))
 }
 
