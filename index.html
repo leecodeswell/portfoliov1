@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500;62..125,900&family=JetBrains+Mono:wght@400;500&display=swap">
 <meta name="theme-color" content="#050506">
-<link rel="icon" href="/favicon.ico" sizes="48x48">
-<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/book.svg" type="image/svg+xml">
+<link rel="icon" href="/book-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/book-180.png">
 <style>
 /* Layout: one fixed screen. Layers: lighting < grid canvas < particle canvas < headline < grain < nav/footer */
 :root{
@@ -158,8 +158,9 @@ let box={x:0,y:0,w:1,h:1},img=null,swarmT0=-1,buf=null,imgData=null,step=3;
 const PA=960/540;
 function layout(){
   const tall=H>W*1.02;
-  if(tall){const w=Math.max(W*2.5,(H*.66)*PA);box={w,h:w/PA,x:(W-w)/2,y:0};box.y=H-box.h;}
-  else{let h=H*.9,w=h*PA;if(w<W){w=W;h=w/PA;}box={w,h,x:(W-w)/2,y:H-h};}
+  // the photo's bottom edge sits on the screen's bottom edge; sized from the height so the head always fits under the nav
+  if(tall){const w=Math.min(W*2.2,H*.68*PA);box={w,h:w/PA,x:(W-w)/2,y:0};box.y=H-box.h;}
+  else{const h=Math.min(H*.82,W*.9/PA*1.25),w=h*PA;box={w,h,x:(W-w)/2,y:H-h};}
   document.documentElement.style.setProperty("--spot-y",((box.y+box.h*.26)/H*100).toFixed(1)+"%");
 }
 function buildParticles(arrived){
@@ -298,7 +299,7 @@ async function intro(){
 }
 let finalY=0;
 const lightY=()=>((box.y+box.h*.28)/H*100);
-function placeHeadline(){finalY=Math.round(Math.min(box.y+box.h*.72,H*.84));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;if(ready)head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
+function placeHeadline(){finalY=Math.round(Math.min(box.y+box.h*(H>W*1.02?.77:.72),H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;if(ready)head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
 function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="none";rowServ.style.clipPath="none";slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
   swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
