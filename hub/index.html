@@ -157,11 +157,12 @@ let N=0,HX,HY,SX,SY,CX,CY,X,Y,VX,VY,COL,DEL,DUR,RND,ARR,SZ=2;
 let box={x:0,y:0,w:1,h:1},img=null,swarmT0=-1,buf=null,imgData=null,step=3;
 const PA=960/540;
 function layout(){
-  // as large as possible while the whole head stays on screen: hair top just under the nav, head inside the width.
-  // measured from the photo: hair starts 3.7% down, head spans 32.4%-65.3% across (centre 48.9%)
-  const top=Math.max(70,H*.08),hv=(H-top)/(1-.037),hw=W*.92/.33/PA;
-  const h=Math.min(hv,hw),w=h*PA;
-  box={w,h,x:W/2-.489*w,y:H-h};
+  // largest size that keeps the hair (3.7% down the photo) under the nav; head centre is 48.9% across
+  // the whole photo, shoulders included (it spans the full frame width). Phones are too narrow for that
+  // without shrinking the face to a thumbnail, so portrait screens keep the head large and crop the shoulder tips.
+  const top=Math.max(70,H*.08),hv=(H-top)/(1-.037),tall=H>W*1.02;
+  const h=Math.min(hv,(tall?W*1.75:W)/PA),w=h*PA;
+  box={w,h,x:tall?W/2-.489*w:(W-w)/2,y:H-h};
   document.documentElement.style.setProperty("--spot-y",((box.y+box.h*.26)/H*100).toFixed(1)+"%");
 }
 function buildParticles(arrived){
