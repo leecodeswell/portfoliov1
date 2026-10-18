@@ -1,6 +1,6 @@
 # ares — interactive portfolio
 
-A book on a desk that you open and page through, live at **https://ares-web.com**. The desk, mug,
+A book on a desk that you open and page through, live at **https://ares-web.com/desk/**. The desk, mug,
 notepad and pencil are rendered in Blender (Cycles) and baked into textures; the book and the pile of
 books beside it are live WebGL (React Three Fiber), and the pages show the projects exactly as their
 sites render — unlit, ungraded.
@@ -41,5 +41,9 @@ than from a CDN. Every other page is a capture (`capture/`). The AUREL pages are
 
 ## Publish
 
-`npm run deploy` builds the site and force-pushes it to the `gh-pages` branch, which GitHub Pages
-serves at ares-web.com (`public/CNAME`).
+`npm run deploy` builds the desk and force-pushes the whole site to the `gh-pages` branch, which
+GitHub Pages serves at ares-web.com (`hub/CNAME`):
+
+- `/` is the hub page, Lee Thompson's landing page linking to the other sites (`hub/index.html` and
+  `hub/portrait.png`, plain HTML with no build step).
+- `/desk/` is this desk portfolio (production builds use the `/desk/` base; the dev server stays at `/`).

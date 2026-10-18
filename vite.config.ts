@@ -30,9 +30,10 @@ const securityMeta = (): Plugin => ({
   ],
 })
 
-export default defineConfig(() => ({
-  // GitHub Pages serves the site at the root of its custom domain, ares-web.com (public/CNAME)
-  base: '/',
+export default defineConfig(({ command }) => ({
+  // Builds are served at ares-web.com/desk/ (the domain's root is the hub page in hub/, see scripts/deploy.mjs).
+  // The dev server stays at the root.
+  base: command === 'build' ? '/desk/' : '/',
   plugins: [react(), securityMeta()],
   server: { port: 5173 },
   preview: { port: 5173 },
