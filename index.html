@@ -385,7 +385,11 @@ async function intro(){
 }
 let finalY=0;
 const lightY=()=>((box.y+box.h*.28)/H*100);
-function placeHeadline(){finalY=Math.round(Math.min(box.y+box.h*(H>W*1.02?.77:.72),H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;if(ready)head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
+function placeHeadline(){
+  // phones/tall screens: centre the headline (+ tagline) in the open space between the nav and the top of the hair
+  if(H>W*1.02){const navB=Math.max(64,H*.075),hair=box.y+box.h*.037,blockH=servSize*.85+servSize*.85+16;
+    finalY=Math.round(navB+(hair-navB)/2-(blockH/2-servSize*.5));}
+  else finalY=Math.round(Math.min(box.y+box.h*.72,H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;if(ready)head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
 function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="none";rowServ.style.clipPath="none";slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
   swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
