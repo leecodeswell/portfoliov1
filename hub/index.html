@@ -53,16 +53,16 @@ nav a.link::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1p
 nav a.link:hover,nav a.link:focus-visible{color:var(--fg)}
 nav a.link:hover::after,nav a.link:focus-visible::after{transform:scaleX(1)}
 .has-peek{position:relative}
-.peek{position:absolute;top:calc(100% + 14px);left:50%;width:168px;margin-left:-84px;display:grid;justify-items:center;gap:8px;padding:16px 14px 14px;
+.peek{position:absolute;top:calc(100% + 14px);left:50%;width:140px;margin-left:-70px;display:grid;justify-items:center;gap:8px;padding:16px 14px 14px;
   background:rgba(8,8,10,.88);border:1px solid rgba(244,244,242,.12);border-radius:3px;box-shadow:0 18px 40px rgba(0,0,0,.6);
   opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
 .peek::before{content:"";position:absolute;top:-5px;left:50%;width:8px;height:8px;margin-left:-4px;background:rgba(8,8,10,.88);border-left:1px solid rgba(244,244,242,.12);border-top:1px solid rgba(244,244,242,.12);transform:rotate(45deg)}
-.has-peek:hover .peek,.has-peek:focus-within .peek,.has-peek.open .peek{opacity:1;transform:none}
+@media (hover:hover){.has-peek:hover .peek,.has-peek:focus-within .peek{opacity:1;transform:none}}
 .peek-book{width:64px;height:auto;overflow:visible}
 .peek-book .cover{fill:none;stroke:rgba(244,244,242,.55);stroke-width:1.4;stroke-linejoin:round}
 .peek-book .spine{stroke:rgba(244,244,242,.3);stroke-width:1.2}
 .peek-book .leaf{transform-origin:60px 33px;transform-box:view-box;animation:leaf 3.6s cubic-bezier(.55,.1,.35,1) infinite paused;opacity:0}
-.has-peek:hover .leaf,.has-peek:focus-within .leaf,.has-peek.open .leaf{animation-play-state:running}
+.has-peek:hover .leaf,.has-peek:focus-within .leaf{animation-play-state:running}
 .peek-book .leaf path{fill:rgba(244,244,242,.06);stroke:rgba(244,244,242,.75);stroke-width:1.1;stroke-linejoin:round}
 .peek-book .l2{animation-delay:1.2s}.peek-book .l3{animation-delay:2.4s}
 @keyframes leaf{0%{transform:scaleX(1);opacity:0}10%{opacity:1}50%{transform:scaleX(.02)}90%{opacity:1}100%{transform:scaleX(-1);opacity:0}}
@@ -116,8 +116,7 @@ body.ready .skip{opacity:0;pointer-events:none}
           <g class="leaf l2"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
           <g class="leaf l3"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
         </svg>
-        <span class="peek-title">Open the desk</span>
-        <span class="peek-note">*Won't work on mobile yet</span>
+        <span class="peek-title">See my desk</span>
       </div>
     </li>
     <li><a class="link" href="#about">About</a></li>
@@ -312,10 +311,7 @@ async function settle(){
   await tg;ready=true;document.body.classList.add("ready");
 }
 $("skip").addEventListener("click",()=>{speed=.08;});
-{const d=$("designs"),li=d.parentElement;let lastType="mouse";
-  d.addEventListener("pointerdown",e=>{lastType=e.pointerType;});
-  d.addEventListener("click",e=>{if(lastType!=="mouse"&&!li.classList.contains("open")){e.preventDefault();li.classList.add("open");}});
-  document.addEventListener("pointerdown",e=>{if(!li.contains(e.target))li.classList.remove("open");});}
+
 
 /* ================= boot ================= */
 function makeGrain(){const c=document.createElement("canvas");c.width=c.height=160;const g=c.getContext("2d"),im=g.createImageData(160,160);
