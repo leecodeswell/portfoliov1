@@ -30,7 +30,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #dots{image-rendering:pixelated;touch-action:none}
 .headline{position:fixed;inset:0;pointer-events:none}
 .row{position:absolute;inset:0;text-rendering:geometricPrecision;display:flex;align-items:center;justify-content:center;font-weight:900;font-variation-settings:"wdth" var(--wdth);letter-spacing:.02em;white-space:nowrap;line-height:1;
-  filter:drop-shadow(0 .035em 0 #3a3b41) drop-shadow(0 .07em 0 #17181b) drop-shadow(0 .14em .16em rgba(0,0,0,.85))}
+  filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
 .L,.R{display:inline-block}
 .L{transform:translateX(calc(var(--sp,0px)*-1))}
 .R{transform:translateX(var(--sp,0px))}
@@ -38,8 +38,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 .ch{display:inline-block;background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .slash{position:absolute;left:50%;top:50%;line-height:1;text-rendering:geometricPrecision;font-weight:900;font-variation-settings:"wdth" var(--wdth);opacity:0;transform-origin:50% 50%;
   background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 .035em 0 #3a3b41) drop-shadow(0 .07em 0 #17181b) drop-shadow(0 .14em .16em rgba(0,0,0,.85))}
-.tag{position:absolute;left:50%;top:50%;transform:translateX(-50%);font:500 clamp(10px,1.05vw,13px)/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#a3a5ad;white-space:nowrap;opacity:0;text-shadow:0 1px 8px #000}
+  filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
+.tag{position:absolute;left:50%;top:50%;transform:translateX(-50%);font:700 clamp(10px,1.05vw,13px)/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8a8c94;white-space:nowrap;opacity:0;padding:7px 14px;background:rgba(4,4,5,.78);box-shadow:0 0 24px 10px rgba(4,4,5,.6);border-radius:2px;text-shadow:0 1px 2px #000}
 .grain{position:fixed;inset:-50%;pointer-events:none;opacity:0;transition:opacity 1.2s ease;animation:grain 1s steps(6) infinite}
 .grain.on{opacity:.055}
 @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
