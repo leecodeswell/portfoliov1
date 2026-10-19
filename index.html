@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lee Thompson</title>
-<meta name="description" content="Lee Thompson — development services.">
+<meta name="description" content="Lee Thompson — software development.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500;62..125,900&family=JetBrains+Mono:wght@400;500&display=swap">
 <meta name="theme-color" content="#050506">
@@ -144,7 +144,7 @@ body.ready .skip{opacity:0;pointer-events:none}
   <div class="tag" id="tag">Software · Automation · Web</div>
 </div>
 <div class="grain" id="grain"></div>
-<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Development Services</h1>
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Software Development</h1>
 <nav aria-label="Primary">
   <a class="brand" href="/">LEE THOMPSON</a>
   <ul>
@@ -224,7 +224,7 @@ function build(row,[l,r]){row.innerHTML="";const L=document.createElement("span"
   L.className="L";G.className="gap";R.className="R";
   const mk=(box,t)=>[...t].map(c=>{const s=document.createElement("span");s.className="ch";s.textContent=c;box.appendChild(s);return s;});
   const lc=mk(L,l),rc=mk(R,r);row.append(L,G,R);return{row,L,G,R,chars:[...lc,...rc]};}
-const nm=build(rowName,["LEE","THOMPSON"]),sv=build(rowServ,["DEVELOPMENT","SERVICES"]);
+const nm=build(rowName,["LEE","THOMPSON"]),sv=build(rowServ,["SOFTWARE","DEVELOPMENT"]);
 let nameSize=80,servSize=50;
 function measure(o){const L=o.L.getBoundingClientRect(),R=o.R.getBoundingClientRect(),G=o.G.getBoundingClientRect();
   o.left=L.left;o.right=R.right;o.gx=G.left+G.width/2;const bs=o.chars.map(c=>c.getBoundingClientRect());o.cx=bs.map(b=>b.left+b.width/2);o.le=bs.map(b=>b.left);o.re=bs.map(b=>b.right);}
@@ -376,7 +376,7 @@ async function intro(){
   // glide past the end of the services line, growing for the wipe
   const xs1=sv.right+bigS*.3;
   await tween(340,p=>p*p,k=>slashAt(nm.gx+(xs1-nm.gx)*k,0,0,nameSize*REST+(bigS-nameSize*REST)*k));
-  // wipe back: the slash cuts the name away and leaves DEVELOPMENT / SERVICES behind it
+  // wipe back: the slash cuts the name away and leaves SOFTWARE / DEVELOPMENT behind it
   const xs0=sv.left-bigS*.3,D2=760,passS=triggerer(sv,rise,"re"),vIn=(xs1-nm.gx)/340*2;
   await tween(D2,p=>p,(k,p)=>{const x=herm(p,xs1,xs0,-vIn*D2,(xs0-xs1)*.35);slashAt(x,0,0,bigS);
     rowName.style.clipPath=leftOf(x);rowServ.style.clipPath=rightOf(x);passS(x,-1);});
