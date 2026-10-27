@@ -141,7 +141,7 @@ body.ready .skip{opacity:0;pointer-events:none}
   <div class="row" id="rowName" style="clip-path:inset(0 100% 0 0)"></div>
   <div class="row" id="rowServ" style="clip-path:inset(0 0 0 100%)"></div>
   <div class="slash" id="slash">/</div>
-  <div class="tag" id="tag">SEO &amp; AI Visibility · AI Tools · Apps</div>
+  <div class="tag" id="tag">Web Design · Online Visibility · AI Integration</div>
 </div>
 <div class="grain" id="grain"></div>
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Web Design Development</h1>
@@ -217,7 +217,32 @@ body.ready .skip{opacity:0;pointer-events:none}
 (()=>{
 const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $=id=>document.getElementById(id);
-const gcv=$("grid"),gctx=gcv.getContext("2d"),dcv=$("dots"),dctx=dcv.getContext("2d");
+const gcv=$("grid"),gctx=gcv.getContext("2d");let dcv=$("dots");
+/* The portrait's dots are drawn with WebGL when it's available: each frame sends only the dots' positions to the
+   graphics card and it draws them all in one go, at the screen's full pixel density. Without WebGL they are
+   painted into an image instead (the 2D fallback below). */
+let gl=null,GLD=null,glBuf=null,glCol=null,uRes=null,uDpr=null,dctx=null;
+try{gl=dcv.getContext("webgl",{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false,powerPreference:"high-performance"});}catch(e){gl=null;}
+// WebGL running on the CPU (no graphics card, or hardware acceleration off) is slower than the 2D fallback
+if(gl){const ri=gl.getExtension("WEBGL_debug_renderer_info"),rn=ri?String(gl.getParameter(ri.UNMASKED_RENDERER_WEBGL)):"";
+  if(/swiftshader|llvmpipe|software|basic render/i.test(rn)){const lc=gl.getExtension("WEBGL_lose_context");if(lc)lc.loseContext();gl=null;}}
+if(gl){
+  const sh=(type,src)=>{const o=gl.createShader(type);gl.shaderSource(o,src);gl.compileShader(o);return o;};
+  const pr=gl.createProgram();
+  // a = (x, y) of the dot's top-left corner in CSS pixels, its size, its alpha; c = its grey level
+  gl.attachShader(pr,sh(gl.VERTEX_SHADER,"attribute vec4 a;attribute float c;uniform vec2 r;uniform float d;varying vec4 v;"+
+    "void main(){vec2 p=(a.xy+a.z*.5)/r*2.-1.;gl_Position=vec4(p.x,-p.y,0.,1.);gl_PointSize=a.z*d;v=vec4(vec3(c),a.w);}"));
+  gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,"precision mediump float;varying vec4 v;void main(){gl_FragColor=v;}"));
+  gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS))gl=null;
+  else{gl.useProgram(pr);uRes=gl.getUniformLocation(pr,"r");uDpr=gl.getUniformLocation(pr,"d");
+    glBuf=gl.createBuffer();glCol=gl.createBuffer();
+    const la=gl.getAttribLocation(pr,"a"),lc=gl.getAttribLocation(pr,"c");
+    gl.bindBuffer(gl.ARRAY_BUFFER,glCol);gl.enableVertexAttribArray(lc);gl.vertexAttribPointer(lc,1,gl.UNSIGNED_BYTE,true,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,glBuf);gl.enableVertexAttribArray(la);gl.vertexAttribPointer(la,4,gl.FLOAT,false,0,0);
+    gl.clearColor(0,0,0,0);}
+}
+if(!gl){if(dcv.getContext("2d")===null){const c=dcv.cloneNode(false);dcv.replaceWith(c);dcv=c;}dctx=dcv.getContext("2d");} // a canvas that tried WebGL can't switch to 2D
 const head=$("headline"),rowName=$("rowName"),rowServ=$("rowServ"),slash=$("slash"),tag=$("tag");
 let W=0,H=0,DPR=1;
 
@@ -278,7 +303,13 @@ function buildParticles(arrived){
     CX[p]=W*(.08+Math.random()*.4);CY[p]=(SY[p]+y)*.5+(Math.random()-.5)*H*.55;
     if(arrived){X[p]=x;Y[p]=y;ARR[p]=1;}else{X[p]=SX[p];Y[p]=SY[p];ARR[p]=0;}
   }
-  dcv.width=W;dcv.height=H;imgData=dctx.createImageData(W,H);buf=new Uint32Array(imgData.data.buffer);
+  if(gl){
+    dcv.width=Math.round(W*DPR);dcv.height=Math.round(H*DPR);gl.viewport(0,0,dcv.width,dcv.height);gl.uniform2f(uRes,W,H);gl.uniform1f(uDpr,dcv.width/W);
+    GLD=new Float32Array(N*4);const g=new Uint8Array(N);for(let p=0;p<N;p++)g[p]=COL[p]&255;
+    gl.bindBuffer(gl.ARRAY_BUFFER,glCol);gl.bufferData(gl.ARRAY_BUFFER,g,gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER,glBuf);gl.bufferData(gl.ARRAY_BUFFER,GLD.byteLength,gl.DYNAMIC_DRAW);
+    buf=true;
+  }else{dcv.width=W;dcv.height=H;imgData=dctx.createImageData(W,H);buf=new Uint32Array(imgData.data.buffer);}
   px0=py0=0;px1=py1=-1;still=false;
 }
 
@@ -314,7 +345,8 @@ function drawDots(t){
   const e=energy;
   if(still&&e<=.002)return;
   const T=(t-swarmT0)/1000;
-  for(let ry=py0;ry<=py1;ry++){const o=ry*W;buf.fill(0,o+px0,o+px1+1);}
+  const G=GLD;
+  if(!G)for(let ry=py0;ry<=py1;ry++){const o=ry*W;buf.fill(0,o+px0,o+px1+1);}
   const cx=box.x+box.w/2,cy=box.y+box.h*.35,ang=e*.6*swirl;
   if(e>.002)for(let k=0;k<32;k++){const aa=ang*(.4+(k+.5)/32);COS[k]=Math.cos(aa);SIN[k]=Math.sin(aa);}
   const S=SZ,Wd=W,Hd=H;
@@ -326,7 +358,9 @@ function drawDots(t){
       if(p<=0)continue;
       if(p<1){const k=1-Math.pow(1-p,3),u=1-k;
         x=u*u*SX[i]+2*u*k*CX[i]+k*k*HX[i];y=u*u*SY[i]+2*u*k*CY[i]+k*k*HY[i];a=Math.min(1,p*3)*(.55+.45*k);X[i]=x;Y[i]=y;
-        sz=k>.85?S:1+(RND[i]>.5);ix=Math.round(x);iy=Math.round(y);col=(COL[i]|((a*255|0)<<24))>>>0;
+        sz=k>.85?S:1+(RND[i]>.5);ix=Math.round(x);iy=Math.round(y);
+        if(G){const o=i*4;G[o]=ix;G[o+1]=iy;G[o+2]=sz;G[o+3]=a;continue;}
+        col=(COL[i]|((a*255|0)<<24))>>>0;
       }else{ARR[i]=1;X[i]=HX[i];Y[i]=HY[i];VX[i]=VY[i]=0;}
     }
     if(ARR[i]){
@@ -338,7 +372,9 @@ function drawDots(t){
       let vx=VX[i]+(hx-X[i])*.075,vy=VY[i]+(hy-Y[i])*.075;
       vx*=.8;vy*=.8;VX[i]=vx;VY[i]=vy;x=X[i]+=vx;y=Y[i]+=vy;
       const sp2=vx*vx+vy*vy;if(sp2>vmax)vmax=sp2;
-      ix=Math.round(x);iy=Math.round(y);sz=S;col=(COL[i]|0xff000000)>>>0;
+      ix=Math.round(x);iy=Math.round(y);sz=S;
+      if(G){const o=i*4;G[o]=ix;G[o+1]=iy;G[o+2]=sz;G[o+3]=1;continue;}
+      col=(COL[i]|0xff000000)>>>0;
     }
     if(ix+sz<=0||iy+sz<=0||ix>=Wd||iy>=Hd)continue;
     const x0=ix<0?0:ix,y0=iy<0?0:iy,x1=Math.min(Wd,ix+sz),y1=Math.min(Hd,iy+sz);
@@ -346,6 +382,7 @@ function drawDots(t){
     if(x0<nx0)nx0=x0;if(y0<ny0)ny0=y0;if(x1-1>nx1)nx1=x1-1;if(y1-1>ny1)ny1=y1-1;
   }
   // upload the union of last frame's area (now cleared) and this frame's
+  if(G){gl.bufferSubData(gl.ARRAY_BUFFER,0,G);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.POINTS,0,N);still=landed===N&&vmax<.0004;return;}
   const ux0=Math.min(px0,nx0),uy0=Math.min(py0,ny0),ux1=Math.max(px1,nx1),uy1=Math.max(py1,ny1);
   if(ux1>=ux0&&uy1>=uy0)dctx.putImageData(imgData,0,0,ux0,uy0,ux1-ux0+1,uy1-uy0+1);
   px0=nx0;py0=ny0;px1=nx1;py1=ny1;
@@ -384,7 +421,7 @@ const light=$("light"),setLight=(o,ly,lw,lh)=>{light.style.opacity=o;
   light.style.transform=`translate(${(W/2).toFixed(1)}px,${(ly/100*H).toFixed(1)}px) translate(-50%,-50%) scale(${(lw/40).toFixed(4)},${(lh/46).toFixed(4)})`;};
 async function intro(){
   // during the wipe the slash is its own layer, drawn once at its largest size and only moved and shrunk after that
-  slash.style.willChange="transform";
+  slash.style.willChange=rowName.style.willChange=rowServ.style.willChange="transform";
   setLight(0,50,30,26);
   await pause(250);                                        // fully dark
   const bigN=nameSize*BIG,bigS=servSize*BIG;
@@ -398,7 +435,6 @@ async function intro(){
   rowName.style.clipPath="none";
   // snap into the gap
   await tween(260,expo,k=>slashAt(xr+(nm.gx-xr)*k,0,0,bigN+(nameSize*REST-bigN)*k));
-  if(swarmT0<0)swarmT0=performance.now();                 // portrait starts streaming in behind the name
   await pause(450);
   // glide past the end of the services line, growing for the wipe
   const xs1=sv.right+bigS*.3;
@@ -410,7 +446,6 @@ async function intro(){
   rowName.style.visibility="hidden";rowServ.style.clipPath="none";
   await tween(260,expo,k=>slashAt(xs0+(sv.gx-xs0)*k,0,0,bigS+(servSize*REST-bigS)*k));
   await pause(120);
-  slash.style.willChange="auto";                           // back to a normal layer, so it rests crisp
 }
 let finalY=0;
 const lightY=()=>((box.y+box.h*.28)/H*100);
@@ -423,12 +458,15 @@ function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="
 async function settle(){
   if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
   const dy=finalY-H/2,ly=lightY();
-  const tg=tween(800,eout,p=>{head.style.transform=`translateY(${Math.round(dy*p)}px)`;});
+  head.style.willChange="transform";
+  const tg=tween(900,eout,p=>{head.style.transform=`translateY(${(dy*p).toFixed(2)}px)`;});
   // light lifts off the headline and opens up behind the head, like the reel
   tween(1600,eout,p=>setLight(.9+.1*p,50+(ly-50)*p,30+(40-30)*p,26+(46-26)*p));
   tween(1600,eout,p=>{gridAlpha=p;});
   tag.animate([{opacity:0,transform:"translate(-50%,8px)"},{opacity:1,transform:"translate(-50%,0)"}],{duration:500,delay:500,fill:"forwards",easing:"ease-out"});
-  await tg;ready=true;document.body.classList.add("ready");
+  await tg;head.style.transform=`translateY(${Math.round(dy)}px)`;
+  requestAnimationFrame(()=>{head.style.willChange=slash.style.willChange=rowName.style.willChange=rowServ.style.willChange="auto";});
+  ready=true;document.body.classList.add("ready");
 }
 $("skip").addEventListener("click",()=>{speed=.08;});
 /* ================= About / Contact panels ================= */
