@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+
+:root {
+  --bg: #141517;
+  --panel: #1c1d20;
+  --panel-2: #222327;
+  --line: #2e3034;
+  --line-strong: #3d3f44;
+  --text: #e7e5e0;
+  --muted: #9b9a97;
+  --faint: #6c6c6c;
+  --accent: #cdb895;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@page { size: Letter; margin: 0; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html { background: var(--bg); }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 400 9.3pt/1.55 var(--sans); letter-spacing: 0.005em;
+}
+
+.page {
+  width: 8.5in; height: 11in; overflow: hidden; padding: 0.65in 0.8in 0.8in;
+  position: relative; page-break-after: always; break-after: page;
+  background: var(--bg);
+}
+.page:last-child { page-break-after: auto; break-after: auto; }
+.fill { position:absolute; inset:0 0 auto 0; height:1px; }
+
+/* Running header / footer */
+.top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--line); padding-bottom: 10pt; margin-bottom: 22pt;
+  font-size: 7.5pt; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+}
+.brand { font: 600 9pt var(--sans); letter-spacing: 0.32em; color: var(--text); }
+.brand span { color: var(--accent); }
+.foot {
+  position: absolute; left: 0.85in; right: 0.85in; bottom: 0.45in;
+  display: flex; justify-content: space-between;
+  font-size: 7pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint);
+}
+
+/* Cover */
+.cover { display: flex; flex-direction: column; }
+.cover .eyebrow { margin-top: 0.7in; }
+.eyebrow { font-size: 7.5pt; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent); margin-bottom: 12pt; }
+h1 { font: 400 42pt/1.02 var(--serif); margin: 0 0 18pt; letter-spacing: -0.01em; }
+h1 em, h2 em { color: var(--accent); font-style: italic; }
+.lead { font-size: 11.5pt; line-height: 1.65; color: var(--muted); max-width: 5.2in; margin: 0; }
+.rule { height: 1px; background: var(--line); margin: 22pt 0; }
+
+h2 { font: 400 22pt/1.15 var(--serif); margin: 0 0 12pt; }
+h3 {
+  font: 600 8pt var(--sans); letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text); margin: 0 0 6pt;
+}
+p { margin: 0 0 8pt; }
+.muted { color: var(--muted); }
+strong { font-weight: 600; color: var(--text); }
+
+/* Detail table (parties, summary) */
+.details { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 4pt; overflow: hidden; }
+.details > div { padding: 12pt 14pt; border-bottom: 1px solid var(--line); background: var(--panel); }
+.details > div:nth-child(odd) { border-right: 1px solid var(--line); }
+.details > div.wide { grid-column: span 2; border-right: 0; }
+.details > div:nth-last-child(-n+2):not(.wide), .details > div.wide:last-child { border-bottom: 0; }
+.label { display: block; font-size: 7pt; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); margin-bottom: 4pt; }
+
+/* Fill-in blanks */
+.blank {
+  display: inline-block; min-width: 1.6in; border-bottom: 1px solid var(--line-strong);
+  color: var(--faint); font-size: 8pt; letter-spacing: 0.06em; padding: 0 2pt 1pt; line-height: 1.4;
+}
+.blank.short { min-width: 0.8in; }
+.blank.block { display: block; min-width: 0; height: 22pt; margin-top: 2pt; }
+
+/* Clauses */
+.clause { display: grid; grid-template-columns: 0.45in 1fr; gap: 0 10pt; padding: 9pt 0; border-top: 1px solid var(--line); break-inside: avoid; }
+.clause:first-of-type { border-top: 0; padding-top: 0; }
+.clause .n { font: 400 15pt/1 var(--serif); color: var(--accent); padding-top: 1pt; }
+.clause p { color: #cfcdc8; }
+.clause ol { margin: 4pt 0 6pt; padding-left: 14pt; color: #cfcdc8; }
+.clause li { margin-bottom: 3pt; }
+
+/* Cards and steps */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 4pt; padding: 16pt; break-inside: avoid; }
+.card .num { font: 400 13pt var(--serif); color: var(--accent); display: block; margin-bottom: 6pt; }
+.card p { color: var(--muted); font-size: 9.2pt; }
+.checklist { list-style: none; margin: 6pt 0 0; padding: 0; }
+.checklist li { padding: 4pt 0 4pt 16pt; border-top: 1px solid var(--line); position: relative; font-size: 9.2pt; color: #cfcdc8; }
+.checklist li::before { content: ''; position: absolute; left: 0; top: 9.5pt; width: 6pt; height: 6pt; border: 1px solid var(--accent); border-radius: 1pt; }
+
+.timeline { border-left: 1px solid var(--line-strong); margin-left: 6pt; }
+.timeline .stage { position: relative; padding: 0 0 12pt 22pt; break-inside: avoid; }
+.timeline .stage::before { content: ''; position: absolute; left: -4pt; top: 5pt; width: 7pt; height: 7pt; border-radius: 50%; background: var(--bg); border: 1px solid var(--accent); }
+.timeline .when { font-size: 7pt; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+.timeline h4 { font: 400 15pt var(--serif); margin: 1pt 0 3pt; }
+.timeline p { color: var(--muted); font-size: 9.2pt; margin: 0; }
+
+.callout { border-left: 2px solid var(--accent); background: var(--panel); padding: 12pt 16pt; border-radius: 0 4pt 4pt 0; color: #cfcdc8; font-size: 9.2pt; break-inside: avoid; }
+
+/* Fees table */
+table { width: 100%; border-collapse: collapse; font-size: 9.2pt; }
+th { text-align: left; font: 600 7pt var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); padding: 0 0 8pt; border-bottom: 1px solid var(--line-strong); }
+td { padding: 6pt 0; border-bottom: 1px solid var(--line); vertical-align: top; color: #cfcdc8; }
+td:last-child, th:last-child { text-align: right; }
+
+/* Signatures */
+.sign { display: grid; grid-template-columns: 1fr 1fr; gap: 22pt; margin-top: 18pt; }
+.sign .party { background: var(--panel); border: 1px solid var(--line); border-radius: 4pt; padding: 16pt; }
+.sign .line { border-bottom: 1px solid var(--line-strong); height: 24pt; margin-bottom: 4pt; }
+.sign .cap { font-size: 7pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); margin-bottom: 8pt; }
+
+
