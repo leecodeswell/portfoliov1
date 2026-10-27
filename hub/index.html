@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lee Thompson</title>
-<meta name="description" content="Lee Thompson — software development.">
+<meta name="description" content="Lee Thompson — web design and development, online visibility, and AI tools for small to medium businesses.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500;62..125,900&family=JetBrains+Mono:wght@400;500&display=swap">
 <meta name="theme-color" content="#050506">
@@ -23,7 +23,7 @@
 }
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
 body{background:var(--ink);color:var(--fg);font-family:var(--display);-webkit-font-smoothing:antialiased}
-.light{position:fixed;inset:0;background:radial-gradient(ellipse var(--lw,34%) var(--lh,30%) at 50% var(--ly,50%),var(--spot) 0%,rgba(18,18,22,.55) 48%,transparent 78%);opacity:0}
+.light{position:fixed;left:0;top:0;width:80vw;height:92vh;background:radial-gradient(ellipse 50% 50% at 50% 50%,var(--spot) 0%,rgba(18,18,22,.55) 48%,transparent 78%);opacity:0;pointer-events:none}
 .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 80% at 50% 45%,transparent 55%,rgba(0,0,0,.7) 100%);opacity:0;transition:opacity 1.4s ease}
 .vig.on{opacity:1}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
@@ -36,7 +36,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 .R{transform:translateX(var(--sp,0px))}
 .gap{display:inline-block;width:.85em}
 .ch{display:inline-block;background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.slash{position:absolute;left:50%;top:50%;line-height:1;text-rendering:geometricPrecision;font-weight:900;font-variation-settings:"wdth" var(--wdth);opacity:0;transform-origin:50% 50%;
+.slash{position:absolute;left:0;top:50%;line-height:1;text-rendering:geometricPrecision;font-weight:900;font-variation-settings:"wdth" var(--wdth);opacity:0;transform-origin:50% 50%;
   background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
 .tag{position:absolute;left:50%;top:50%;transform:translateX(-50%);font:700 clamp(10px,1.05vw,13px)/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8a8c94;white-space:nowrap;opacity:0;padding:7px 14px;background:rgba(4,4,5,.78);box-shadow:0 0 24px 10px rgba(4,4,5,.6);border-radius:2px;text-shadow:0 1px 2px #000}
@@ -141,10 +141,10 @@ body.ready .skip{opacity:0;pointer-events:none}
   <div class="row" id="rowName" style="clip-path:inset(0 100% 0 0)"></div>
   <div class="row" id="rowServ" style="clip-path:inset(0 0 0 100%)"></div>
   <div class="slash" id="slash">/</div>
-  <div class="tag" id="tag">AI Integration · Automation · Web Design</div>
+  <div class="tag" id="tag">SEO &amp; AI Visibility · AI Tools · Apps</div>
 </div>
 <div class="grain" id="grain"></div>
-<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Software Development</h1>
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Web Design Development</h1>
 <nav aria-label="Primary">
   <a class="brand" href="/">LEE THOMPSON</a>
   <ul>
@@ -171,9 +171,9 @@ body.ready .skip{opacity:0;pointer-events:none}
     <p class="eyebrow">About</p>
     <h2 class="ph" id="about-h">Lee Thompson</h2>
     <p class="role">Founder · Ares Web Development &amp; Outreachdev</p>
-    <p class="body">I'm an engineering student at Embry-Riddle Aeronautical University who builds websites and custom software for small to medium businesses. Ares Web Development designs sites around a business's own look and story. Outreachdev builds the apps and automation that take repetitive work off their plate.</p>
+    <p class="body">I'm an engineering student at Embry-Riddle Aeronautical University who builds websites and custom software for small to medium businesses. Ares Web Development designs sites around a business's own look and story. Outreachdev gets businesses found online and builds the AI tools and apps that take work off their plate.</p>
     <p class="body">You talk to the person writing the code. Every project is scoped clearly and priced up front.</p>
-    <div class="mission"><p class="eyebrow">Mission</p><p>Helping small to medium businesses optimally integrate automation.</p></div>
+    <div class="mission"><p class="eyebrow">Mission</p><p>Helping small to medium sized businesses optimize their online conversion rates.</p></div>
     <div class="row-links">
       <a href="/desk/">See my desk</a>
       <a href="https://outreachdev.dev">Outreachdev</a>
@@ -196,8 +196,10 @@ body.ready .skip{opacity:0;pointer-events:none}
       <div class="field"><label for="c-topic">What's it about</label>
         <select id="c-topic" name="topic">
           <option>A website</option>
-          <option>An app or automation</option>
-          <option>AI integration</option>
+          <option>Online visibility &amp; marketing</option>
+          <option>AI tools &amp; integration</option>
+          <option>An app</option>
+          <option>Ongoing partnership</option>
           <option>Something else</option>
         </select></div>
       <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required></textarea></div>
@@ -224,21 +226,22 @@ function build(row,[l,r]){row.innerHTML="";const L=document.createElement("span"
   L.className="L";G.className="gap";R.className="R";
   const mk=(box,t)=>[...t].map(c=>{const s=document.createElement("span");s.className="ch";s.textContent=c;box.appendChild(s);return s;});
   const lc=mk(L,l),rc=mk(R,r);row.append(L,G,R);return{row,L,G,R,chars:[...lc,...rc]};}
-const nm=build(rowName,["LEE","THOMPSON"]),sv=build(rowServ,["SOFTWARE","DEVELOPMENT"]);
-let nameSize=80,servSize=50;
+const nm=build(rowName,["LEE","THOMPSON"]),sv=build(rowServ,["WEB\u00a0DESIGN","DEVELOPMENT"]);
+const REST=1.15,BIG=2.1,SLOPE=.34;   // slash size at rest / while wiping (x row font-size); slant of the "/" glyph
+let nameSize=80,servSize=50,slashBase=100;
 function measure(o){const L=o.L.getBoundingClientRect(),R=o.R.getBoundingClientRect(),G=o.G.getBoundingClientRect();
   o.left=L.left;o.right=R.right;o.gx=G.left+G.width/2;const bs=o.chars.map(c=>c.getBoundingClientRect());o.cx=bs.map(b=>b.left+b.width/2);o.le=bs.map(b=>b.left);o.re=bs.map(b=>b.right);}
 function fit(){
   for(const [o,frac,cap] of [[nm,.8,.16],[sv,.9,.11]]){
     o.row.style.fontSize="100px";const w=o.L.offsetWidth+o.G.offsetWidth+o.R.offsetWidth;
     const s=Math.min(W*frac/w*100,H*cap);o.row.style.fontSize=s+"px";if(o===nm)nameSize=s;else servSize=s;}
-  slash.style.fontSize=(nameSize*1.22)+"px";
+  slashBase=Math.max(nameSize,servSize)*BIG;slash.style.fontSize=slashBase.toFixed(1)+"px";
   measure(nm);measure(sv);
 }
 const sScale=()=>servSize/nameSize;
 
 /* ================= portrait particles ================= */
-let N=0,HX,HY,SX,SY,CX,CY,X,Y,VX,VY,COL,DEL,DUR,RND,ARR,SZ=2;
+let N=0,RB,HX,HY,SX,SY,CX,CY,X,Y,VX,VY,COL,DEL,DUR,RND,ARR,SZ=2;
 let box={x:0,y:0,w:1,h:1},img=null,swarmT0=-1,buf=null,imgData=null,step=3;
 const PA=960/540;
 function layout(){
@@ -261,21 +264,22 @@ function buildParticles(arrived){
     for(let i=0;i<gw;i++){const x=box.x+i*step;if(x<0||x>=W)continue;const k=(j*gw+i)*4;if(d[k+3]<128)continue;list.push(x,y,d[k]/255);}}
   N=list.length/3;
   HX=new Float32Array(N);HY=new Float32Array(N);SX=new Float32Array(N);SY=new Float32Array(N);X=new Float32Array(N);Y=new Float32Array(N);VX=new Float32Array(N);VY=new Float32Array(N);
-  COL=new Uint32Array(N);DEL=new Float32Array(N);DUR=new Float32Array(N);CX=new Float32Array(N);CY=new Float32Array(N);RND=new Float32Array(N);ARR=new Uint8Array(N);
+  COL=new Uint32Array(N);RB=new Uint8Array(N);DEL=new Float32Array(N);DUR=new Float32Array(N);CX=new Float32Array(N);CY=new Float32Array(N);RND=new Float32Array(N);ARR=new Uint8Array(N);
   SZ=2;
   for(let p=0;p<N;p++){const x=list[p*3],y=list[p*3+1];let v=list[p*3+2];
     v=Math.pow(v,.95)*(.88+Math.random()*.24);
     const L=Math.max(0,Math.min(255,16+239*v))|0;
     COL[p]=(L<<16)|(L<<8)|L;
-    HX[p]=x+(Math.random()-.5)*1.6;HY[p]=y+(Math.random()-.5)*1.6;RND[p]=Math.random();
+    HX[p]=x+(Math.random()-.5)*1.6;HY[p]=y+(Math.random()-.5)*1.6;RND[p]=Math.random();RB[p]=RND[p]*32|0;
     // swarm streams in from the left edge on curved paths; head forms first, then the body fills downward
     const ny=(y-box.y)/box.h;
-    DEL[p]=.05+ny*1.3+Math.random()*.9;DUR[p]=1.5+Math.random()*.9;
+    DEL[p]=.05+ny*.95+Math.random()*.6;DUR[p]=1.25+Math.random()*.6;
     SX[p]=-30-Math.random()*W*.45;SY[p]=H*(.2+Math.random()*.65);
     CX[p]=W*(.08+Math.random()*.4);CY[p]=(SY[p]+y)*.5+(Math.random()-.5)*H*.55;
     if(arrived){X[p]=x;Y[p]=y;ARR[p]=1;}else{X[p]=SX[p];Y[p]=SY[p];ARR[p]=0;}
   }
   dcv.width=W;dcv.height=H;imgData=dctx.createImageData(W,H);buf=new Uint32Array(imgData.data.buffer);
+  px0=py0=0;px1=py1=-1;still=false;
 }
 
 /* ================= interaction ================= */
@@ -300,33 +304,52 @@ function drawGrid(dt){
   gctx.stroke();
 }
 const eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+// Only the area the dots covered last frame is cleared and only the area they cover now is uploaded,
+// instead of the whole screen every frame; once the portrait has settled and nothing is moving, it stops redrawing.
+let px0=0,py0=0,px1=-1,py1=-1,still=false;
+// each dot's swirl angle comes from one of 32 steps, so the trig is done 32 times a frame instead of once per dot
+const COS=new Float32Array(32),SIN=new Float32Array(32);
 function drawDots(t){
   if(!buf||swarmT0<0)return;
-  const T=(t-swarmT0)/1000;buf.fill(0);
-  const cx=box.x+box.w/2,cy=box.y+box.h*.35,e=energy,ang=e*.6*swirl;
+  const e=energy;
+  if(still&&e<=.002)return;
+  const T=(t-swarmT0)/1000;
+  for(let ry=py0;ry<=py1;ry++){const o=ry*W;buf.fill(0,o+px0,o+px1+1);}
+  const cx=box.x+box.w/2,cy=box.y+box.h*.35,ang=e*.6*swirl;
+  if(e>.002)for(let k=0;k<32;k++){const aa=ang*(.4+(k+.5)/32);COS[k]=Math.cos(aa);SIN[k]=Math.sin(aa);}
   const S=SZ,Wd=W,Hd=H;
+  let nx0=Wd,ny0=Hd,nx1=-1,ny1=-1,vmax=0,landed=0;
   for(let i=0;i<N;i++){
-    let x,y,a;
+    let x,y,a,ix,iy,sz,col;
     if(!ARR[i]){
       const p=(T-DEL[i])/DUR[i];
       if(p<=0)continue;
       if(p<1){const k=1-Math.pow(1-p,3),u=1-k;
         x=u*u*SX[i]+2*u*k*CX[i]+k*k*HX[i];y=u*u*SY[i]+2*u*k*CY[i]+k*k*HY[i];a=Math.min(1,p*3)*(.55+.45*k);X[i]=x;Y[i]=y;
-        const sz=k>.85?S:1+(RND[i]>.5),ix=x|0,iy=y|0,col=COL[i]|((a*255|0)<<24);
-        for(let yy=0;yy<sz;yy++){const ry=iy+yy;if(ry<0||ry>=Hd)continue;const o=ry*Wd;for(let xx=0;xx<sz;xx++){const rx=ix+xx;if(rx>=0&&rx<Wd)buf[o+rx]=col;}}
-        continue;}
-      ARR[i]=1;X[i]=HX[i];Y[i]=HY[i];VX[i]=VY[i]=0;
+        sz=k>.85?S:1+(RND[i]>.5);ix=Math.round(x);iy=Math.round(y);col=(COL[i]|((a*255|0)<<24))>>>0;
+      }else{ARR[i]=1;X[i]=HX[i];Y[i]=HY[i];VX[i]=VY[i]=0;}
     }
-    // settled: spring toward home, pulled apart by scrolling
-    let hx=HX[i],hy=HY[i];
-    if(e>.002){const ddx=hx-cx,ddy=hy-cy,aa=ang*(.4+RND[i]),c2=Math.cos(aa),s2=Math.sin(aa),sc=1+e*(.2+RND[i]*.9);
-      hx=cx+(ddx*c2-ddy*s2)*sc;hy=cy+(ddx*s2+ddy*c2)*sc-e*RND[i]*H*.18;}
-    let vx=VX[i]+(hx-X[i])*.075,vy=VY[i]+(hy-Y[i])*.075;
-    vx*=.8;vy*=.8;VX[i]=vx;VY[i]=vy;x=X[i]+=vx;y=Y[i]+=vy;
-    const ix=Math.round(x),iy=Math.round(y),col=(COL[i]|0xff000000)>>>0;
-    for(let yy=0;yy<S;yy++){const ry=iy+yy;if(ry<0||ry>=Hd)continue;const o=ry*Wd;for(let xx=0;xx<S;xx++){const rx=ix+xx;if(rx>=0&&rx<Wd)buf[o+rx]=col;}}
+    if(ARR[i]){
+      // settled: spring toward home, pulled apart by scrolling
+      landed++;
+      let hx=HX[i],hy=HY[i];
+      if(e>.002){const ddx=hx-cx,ddy=hy-cy,c2=COS[RB[i]],s2=SIN[RB[i]],sc=1+e*(.2+RND[i]*.9);
+        hx=cx+(ddx*c2-ddy*s2)*sc;hy=cy+(ddx*s2+ddy*c2)*sc-e*RND[i]*H*.18;}
+      let vx=VX[i]+(hx-X[i])*.075,vy=VY[i]+(hy-Y[i])*.075;
+      vx*=.8;vy*=.8;VX[i]=vx;VY[i]=vy;x=X[i]+=vx;y=Y[i]+=vy;
+      const sp2=vx*vx+vy*vy;if(sp2>vmax)vmax=sp2;
+      ix=Math.round(x);iy=Math.round(y);sz=S;col=(COL[i]|0xff000000)>>>0;
+    }
+    if(ix+sz<=0||iy+sz<=0||ix>=Wd||iy>=Hd)continue;
+    const x0=ix<0?0:ix,y0=iy<0?0:iy,x1=Math.min(Wd,ix+sz),y1=Math.min(Hd,iy+sz);
+    for(let ry=y0;ry<y1;ry++){const o=ry*Wd;for(let rx=x0;rx<x1;rx++)buf[o+rx]=col;}
+    if(x0<nx0)nx0=x0;if(y0<ny0)ny0=y0;if(x1-1>nx1)nx1=x1-1;if(y1-1>ny1)ny1=y1-1;
   }
-  dctx.putImageData(imgData,0,0);
+  // upload the union of last frame's area (now cleared) and this frame's
+  const ux0=Math.min(px0,nx0),uy0=Math.min(py0,ny0),ux1=Math.max(px1,nx1),uy1=Math.max(py1,ny1);
+  if(ux1>=ux0&&uy1>=uy0)dctx.putImageData(imgData,0,0,ux0,uy0,ux1-ux0+1,uy1-uy0+1);
+  px0=nx0;py0=ny0;px1=nx1;py1=ny1;
+  still=landed===N&&vmax<.0004;
 }
 let sp=0;
 function frame(t){
@@ -346,8 +369,7 @@ function tween(dur,ease,fn){return new Promise(res=>{let acc=0,prev=performance.
   const f=now=>{acc+=(now-prev)/speed;prev=now;const p=Math.min(1,acc/dur);fn(ease(p),p);p<1?requestAnimationFrame(f):res();};requestAnimationFrame(f);});}
 const pause=ms=>tween(ms,p=>p,()=>{});
 const expo=p=>p>=1?1:1-Math.pow(2,-10*p),eout=p=>1-Math.pow(1-p,3),eosine=p=>Math.sin(p*Math.PI/2);
-const REST=1.15,BIG=2.1,SLOPE=.34;   // slash size at rest / while wiping (x row font-size); slant of the "/" glyph
-function slashAt(x,dy,rot,fs){slash.style.left=x.toFixed(1)+"px";slash.style.fontSize=fs.toFixed(1)+"px";slash.style.transform=`translate(-50%,-50%) translateY(${dy.toFixed(1)}px) rotate(${rot}deg)`;}
+function slashAt(x,dy,rot,fs){slash.style.transform=`translate(${x.toFixed(2)}px,${dy.toFixed(2)}px) translate(-50%,-50%) rotate(${(+rot).toFixed(3)}deg) scale(${(fs/slashBase).toFixed(4)})`;}
 // hard-edged clip regions either side of a line parallel to the slash, through (x, row centre)
 const xAt=(x,y)=>x+(H/2-y)*SLOPE;
 const leftOf=x=>`polygon(-20px 0px,${xAt(x,0)}px 0px,${xAt(x,H)}px ${H}px,-20px ${H}px)`;
@@ -357,12 +379,16 @@ function rise(c){const a=c.animate([{transform:"translateY(.16em)"},{transform:"
 function triggerer(o,fn,key){const done=new Set();return(x,dir)=>{o[key].forEach((cx,i)=>{if(done.has(i))return;if(dir>0?x>=cx:x<=cx){done.add(i);fn(o.chars[i]);}});};}
 // Hermite curve so a sweep can start at the speed the slash is already moving (never a dead stop)
 const herm=(s,p0,p1,m0,m1)=>{const s2=s*s,s3=s2*s;return(2*s3-3*s2+1)*p0+(s3-2*s2+s)*m0+(-2*s3+3*s2)*p1+(s3-s2)*m1;};
-const light=$("light"),setLight=(o,ly,lw,lh)=>{light.style.opacity=o;light.style.setProperty("--ly",ly+"%");light.style.setProperty("--lw",lw+"%");light.style.setProperty("--lh",lh+"%");};
+// the glow is drawn once at its final size (40% x 46% radii) and only moved and scaled after that
+const light=$("light"),setLight=(o,ly,lw,lh)=>{light.style.opacity=o;
+  light.style.transform=`translate(${(W/2).toFixed(1)}px,${(ly/100*H).toFixed(1)}px) translate(-50%,-50%) scale(${(lw/40).toFixed(4)},${(lh/46).toFixed(4)})`;};
 async function intro(){
+  // during the wipe the slash is its own layer, drawn once at its largest size and only moved and shrunk after that
+  slash.style.willChange="transform";
   setLight(0,50,30,26);
-  await pause(450);                                        // fully dark
+  await pause(250);                                        // fully dark
   const bigN=nameSize*BIG,bigS=servSize*BIG;
-  const drift=nameSize*.55,FL=2200,x0=Math.max(nm.left-bigN*.42,drift+bigN*.45);    // slow float down, already drifting right
+  const drift=nameSize*.5,FL=1500,x0=Math.max(nm.left-bigN*.42,drift+bigN*.45);    // slow float down, already drifting right
   const v0=drift/FL;                                       // px per ms at the end of the float
   await tween(FL,p=>p,(k,p)=>{const x=x0-drift+drift*p;slashAt(x,-(1-eosine(p))*H*.34,(1-eosine(p))*-12,bigN);slash.style.opacity=Math.min(1,p*2);});
   // wipe across: reveal LEE / THOMPSON behind the slash, light blooms as the name appears
@@ -372,7 +398,8 @@ async function intro(){
   rowName.style.clipPath="none";
   // snap into the gap
   await tween(260,expo,k=>slashAt(xr+(nm.gx-xr)*k,0,0,bigN+(nameSize*REST-bigN)*k));
-  await pause(700);
+  if(swarmT0<0)swarmT0=performance.now();                 // portrait starts streaming in behind the name
+  await pause(450);
   // glide past the end of the services line, growing for the wipe
   const xs1=sv.right+bigS*.3;
   await tween(340,p=>p*p,k=>slashAt(nm.gx+(xs1-nm.gx)*k,0,0,nameSize*REST+(bigS-nameSize*REST)*k));
@@ -382,7 +409,8 @@ async function intro(){
     rowName.style.clipPath=leftOf(x);rowServ.style.clipPath=rightOf(x);passS(x,-1);});
   rowName.style.visibility="hidden";rowServ.style.clipPath="none";
   await tween(260,expo,k=>slashAt(xs0+(sv.gx-xs0)*k,0,0,bigS+(servSize*REST-bigS)*k));
-  await pause(300);
+  await pause(120);
+  slash.style.willChange="auto";                           // back to a normal layer, so it rests crisp
 }
 let finalY=0;
 const lightY=()=>((box.y+box.h*.28)/H*100);
@@ -393,9 +421,9 @@ function placeHeadline(){
   else finalY=Math.round(Math.min(box.y+box.h*.72,H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;if(ready)head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
 function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="none";rowServ.style.clipPath="none";slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
-  swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
+  if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
   const dy=finalY-H/2,ly=lightY();
-  const tg=tween(900,eout,p=>{head.style.transform=`translateY(${Math.round(dy*p)}px)`;});
+  const tg=tween(800,eout,p=>{head.style.transform=`translateY(${Math.round(dy*p)}px)`;});
   // light lifts off the headline and opens up behind the head, like the reel
   tween(1600,eout,p=>setLight(.9+.1*p,50+(ly-50)*p,30+(40-30)*p,26+(46-26)*p));
   tween(1600,eout,p=>{gridAlpha=p;});
