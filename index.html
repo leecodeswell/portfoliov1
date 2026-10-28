@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lee Thompson | Web Designer &amp; Developer for Small Businesses</title>
+<meta name="description" content="Lee Thompson — web design and development, online visibility, and AI tools for small to medium businesses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500;62..125,900&family=JetBrains+Mono:wght@400;500&display=swap">
+<meta name="theme-color" content="#050506">
+<link rel="icon" href="/book.svg" type="image/svg+xml">
+<link rel="icon" href="/book-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/book-180.png">
+<style>
+/* Layout: one fixed screen. Layers: lighting < grid canvas < particle canvas < headline < grain < nav/footer */
+:root{
+  --ink:#050506; --spot:#24252b; --chrome-hi:#ffffff; --chrome-mid:#d9dade; --chrome-lo:#6b6d75;
+  --fg:#e7e8ec; --muted:#8c8e96;
+  --display:"Archivo","Arial Black",Impact,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --wdth:112; --spot-y:30%;
+  color-scheme:dark;
+}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:var(--ink);color:var(--fg);font-family:var(--display);-webkit-font-smoothing:antialiased}
+.light{position:fixed;left:0;top:0;width:80vw;height:92vh;background:radial-gradient(ellipse 50% 50% at 50% 50%,var(--spot) 0%,rgba(18,18,22,.55) 48%,transparent 78%);opacity:0;pointer-events:none}
+.vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 80% at 50% 45%,transparent 55%,rgba(0,0,0,.7) 100%);opacity:0;transition:opacity 1.4s ease}
+.vig.on{opacity:1}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#dots{image-rendering:pixelated;touch-action:none}
+.headline{position:fixed;inset:0;pointer-events:none}
+.row{position:absolute;inset:0;text-rendering:geometricPrecision;display:flex;align-items:center;justify-content:center;font-weight:900;font-variation-settings:"wdth" var(--wdth);letter-spacing:.02em;white-space:nowrap;line-height:1;
+  filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
+.L,.R{display:inline-block}
+.L{transform:translateX(calc(var(--sp,0px)*-1))}
+.R{transform:translateX(var(--sp,0px))}
+.gap{display:inline-block;width:.85em}
+.ch{display:inline-block;background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.slash{position:absolute;left:0;top:50%;line-height:1;text-rendering:geometricPrecision;font-weight:900;font-variation-settings:"wdth" var(--wdth);opacity:0;transform-origin:50% 50%;
+  background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
+.tag{position:absolute;left:50%;top:50%;transform:translateX(-50%);font:700 clamp(10px,1.05vw,13px)/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8a8c94;white-space:nowrap;opacity:0;padding:7px 14px;background:rgba(4,4,5,.78);box-shadow:0 0 24px 10px rgba(4,4,5,.6);border-radius:2px;text-shadow:0 1px 2px #000}
+.grain{position:fixed;inset:-50%;pointer-events:none;opacity:0;transition:opacity 1.2s ease;animation:grain 1s steps(6) infinite}
+.grain.on{opacity:.055}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+nav{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-top:calc(18px + env(safe-area-inset-top,0px));padding-bottom:18px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));
+  opacity:0;transform:translateY(-6px);transition:opacity .7s ease,transform .7s ease}
+.brand{font-weight:900;font-variation-settings:"wdth" 125;font-size:13px;letter-spacing:.02em;color:var(--fg);text-decoration:none;white-space:nowrap}
+nav ul{display:flex;gap:clamp(14px,2.6vw,36px);list-style:none;margin:0;padding:0}
+nav a.link{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:6px 0;position:relative;transition:color .25s}
+nav a.link::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--fg);transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+nav a.link:hover,nav a.link:focus-visible{color:var(--fg)}
+nav a.link:hover::after,nav a.link:focus-visible::after{transform:scaleX(1)}
+.has-peek{position:relative}
+.peek{position:absolute;top:calc(100% + 14px);left:50%;width:140px;margin-left:-70px;display:grid;justify-items:center;gap:8px;padding:16px 14px 14px;
+  background:rgba(8,8,10,.88);border:1px solid rgba(244,244,242,.12);border-radius:3px;box-shadow:0 18px 40px rgba(0,0,0,.6);
+  opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .25s ease,transform .35s cubic-bezier(.2,.8,.2,1)}
+.peek::before{content:"";position:absolute;top:-5px;left:50%;width:8px;height:8px;margin-left:-4px;background:rgba(8,8,10,.88);border-left:1px solid rgba(244,244,242,.12);border-top:1px solid rgba(244,244,242,.12);transform:rotate(45deg)}
+@media (hover:hover){.has-peek:hover .peek,.has-peek:focus-within .peek{opacity:1;transform:none}}
+.peek-book{width:64px;height:auto;overflow:visible}
+.peek-book .cover{fill:none;stroke:rgba(244,244,242,.55);stroke-width:1.4;stroke-linejoin:round}
+.peek-book .spine{stroke:rgba(244,244,242,.3);stroke-width:1.2}
+.peek-book .leaf{transform-origin:60px 33px;transform-box:view-box;animation:leaf 3.6s cubic-bezier(.55,.1,.35,1) infinite paused;opacity:0}
+.has-peek:hover .leaf,.has-peek:focus-within .leaf{animation-play-state:running}
+.peek-book .leaf path{fill:rgba(244,244,242,.06);stroke:rgba(244,244,242,.75);stroke-width:1.1;stroke-linejoin:round}
+.peek-book .l2{animation-delay:1.2s}.peek-book .l3{animation-delay:2.4s}
+@keyframes leaf{0%{transform:scaleX(1);opacity:0}10%{opacity:1}50%{transform:scaleX(.02)}90%{opacity:1}100%{transform:scaleX(-1);opacity:0}}
+.peek-title{font:italic 400 13px/1 Georgia,"Times New Roman",serif;letter-spacing:.02em;color:var(--fg)}
+.peek-note{font:400 9.5px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center}
+@media (max-width:640px){.peek{left:auto;right:-8px;margin-left:0}.peek::before{left:auto;right:22px}}
+@media (prefers-reduced-motion:reduce){.peek-book .leaf{animation:none}.peek-book .l1{opacity:1;transform:scaleX(.5)}}
+/* ---------- About / Contact panels ---------- */
+.sheet{position:fixed;inset:0;z-index:30;display:grid;place-items:center;
+  padding-top:calc(24px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:rgba(3,3,4,.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+.sheet.open{opacity:1;visibility:visible;transition:opacity .35s ease}
+.panel{position:relative;width:min(560px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;box-sizing:border-box;padding:40px 36px 34px;
+  background:#09090b;border:1px solid rgba(244,244,242,.1);box-shadow:0 30px 80px rgba(0,0,0,.7);transform:translateY(14px);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.sheet.open .panel{transform:none}
+.x{position:absolute;top:14px;right:14px;width:36px;height:36px;display:grid;place-items:center;background:none;border:0;color:var(--muted);font:400 22px/1 var(--mono);cursor:pointer}
+.x:hover{color:var(--fg)}
+.eyebrow{font:500 10px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+.ph{margin:0 0 6px;font-weight:900;font-variation-settings:"wdth" 112;font-size:clamp(28px,5vw,40px);line-height:1;letter-spacing:.01em;
+  background:linear-gradient(180deg,#fff 0%,#d9dade 40%,#9a9ca3 80%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.role{margin:0 0 22px;font:500 11px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#a3a5ad}
+.panel p.body{margin:0 0 14px;font:500 15px/1.65 var(--display);font-variation-settings:"wdth" 100;color:#c3c5cc;max-width:60ch}
+.mission{margin:24px 0;padding:16px 0 16px 18px;border-left:1px solid rgba(244,244,242,.35)}
+.mission .eyebrow{margin-bottom:8px}
+.mission p:not(.eyebrow){margin:0;font:600 18px/1.4 var(--display);font-variation-settings:"wdth" 100;color:var(--fg)}
+.row-links{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:22px}
+.row-links a,.row-links button{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fg);text-decoration:none;background:none;border:0;padding:6px 0;border-bottom:1px solid rgba(244,244,242,.3);cursor:pointer}
+.row-links a:hover,.row-links button:hover{border-color:var(--fg)}
+.cform{display:grid;gap:18px;margin-top:8px}
+.field{display:grid;gap:7px}
+.field label{font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea,.field select{width:100%;box-sizing:border-box;font:500 15px/1.4 var(--display);font-variation-settings:"wdth" 100;color:var(--fg);
+  background:rgba(244,244,242,.03);border:1px solid rgba(244,244,242,.14);border-radius:2px;padding:12px 13px;outline:none;transition:border-color .2s}
+.field select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,#8c8e96 50%),linear-gradient(135deg,#8c8e96 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+.field select option{background:#0b0b0d;color:var(--fg)}
+.field textarea{min-height:130px;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(244,244,242,.6)}
+.field [aria-invalid="true"]{border-color:#c98a8a}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.two>*{min-width:0}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.send{justify-self:start;font:500 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#050506;background:var(--fg);border:0;border-radius:2px;padding:15px 22px;cursor:pointer;transition:opacity .2s}
+.send:hover{opacity:.88}
+.send[disabled]{opacity:.5;cursor:default}
+.status{min-height:1.4em;margin:0;font:500 13px/1.5 var(--display);font-variation-settings:"wdth" 100;color:#c3c5cc}
+.status.err{color:#e0a3a3}.status.ok{color:#d8e6d8}
+.status a{color:var(--fg)}
+.small{margin:6px 0 0;font:400 10px/1.5 var(--mono);letter-spacing:.06em;color:#6a6c74}
+@media (max-width:640px){.panel{padding:34px 22px 26px}.two{grid-template-columns:1fr}}
+a:focus-visible,button:focus-visible{outline:1px solid var(--fg);outline-offset:4px}
+.foot{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;gap:16px;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));
+  font:400 10px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#6a6c74;opacity:0;transition:opacity .7s ease .2s;pointer-events:none;text-shadow:0 1px 6px #000}
+body.ready nav{opacity:1;transform:none}
+body.ready .foot{opacity:1}
+.skip{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#5d5f67;background:none;border:0;padding:8px;cursor:pointer;transition:opacity .3s}
+body.ready .skip{opacity:0;pointer-events:none}
+@media (max-width:640px){
+  :root{--wdth:96}
+  .brand{font-size:11px}
+  nav{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  nav ul{gap:12px}
+  nav a.link{font-size:9.5px;letter-spacing:.1em}
+  .foot{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:9px}
+}
+@media (max-width:380px){nav ul{gap:9px} nav a.link{font-size:8.5px;letter-spacing:.06em}}
+</style>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lee Thompson">
+<meta property="og:url" content="https://ares-web.com/">
+<meta property="og:title" content="Lee Thompson | Web Designer &amp; Developer for Small Businesses">
+<meta property="og:description" content="Lee Thompson — web design and development, online visibility, and AI tools for small to medium businesses.">
+<meta property="og:image" content="https://ares-web.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://ares-web.com/#organization", "name": "Ares Web Development", "alternateName": ["Outreachdev", "ARES"], "url": "https://ares-web.com/", "logo": "https://outreachdev.dev/assets/logo-mark-1024.png", "email": "thompsontechnologiesleet@gmail.com", "description": "Custom websites, web apps and AI tools for small and medium-sized businesses, designed and coded by Lee Thompson.", "areaServed": {"@type": "Country", "name": "United States"}, "sameAs": ["https://ares-web.com/", "https://outreachdev.dev/", "https://www.facebook.com/areswebdev", "https://www.instagram.com/ares.webdev", "https://www.tiktok.com/@areswebdev", "https://www.youtube.com/@Areswebdevelopment"], "founder": {"@id": "https://ares-web.com/#lee"}}, {"@type": "Person", "@id": "https://ares-web.com/#lee", "name": "Lee Thompson", "url": "https://ares-web.com/", "image": "https://outreachdev.dev/assets/lee-thompson.jpg", "jobTitle": "Web designer and developer", "worksFor": {"@id": "https://ares-web.com/#organization"}, "alumniOf": "Embry-Riddle Aeronautical University"}, {"@type": "WebSite", "@id": "https://ares-web.com/#website", "url": "https://ares-web.com/", "name": "Lee Thompson", "publisher": {"@id": "https://ares-web.com/#organization"}}]}</script>
+</head>
+<body>
+
+<div class="light" id="light"></div>
+<div class="vig" id="vig"></div>
+<canvas id="grid" aria-hidden="true"></canvas>
+<canvas id="dots" aria-hidden="true"></canvas>
+<div class="headline" id="headline" aria-hidden="true">
+  <div class="row" id="rowName" style="clip-path:inset(0 100% 0 0)"></div>
+  <div class="row" id="rowServ" style="clip-path:inset(0 0 0 100%)"></div>
+  <div class="slash" id="slash">/</div>
+  <div class="tag" id="tag">Web Design · Online Visibility · AI Integration</div>
+</div>
+<div class="grain" id="grain"></div>
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Web Design Development</h1>
+<nav aria-label="Primary">
+  <a class="brand" href="/">LEE THOMPSON</a>
+  <ul>
+    <li><a class="link" href="https://outreachdev.dev">Services</a></li>
+    <li class="has-peek"><a class="link" id="designs" href="/desk/" aria-describedby="peek">Designs</a>
+      <div class="peek" id="peek" role="tooltip">
+        <svg class="peek-book" viewBox="0 0 120 64" aria-hidden="true">
+          <path class="spine" d="M60 10 V58"/>
+          <path class="cover" d="M60 58 C44 52 22 52 6 58 V12 C22 6 44 6 60 12 C76 6 98 6 114 12 V58 C98 52 76 52 60 58 Z"/>
+          <g class="leaf l1"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
+          <g class="leaf l2"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
+          <g class="leaf l3"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
+        </svg>
+        <span class="peek-title">See my desk</span>
+      </div>
+    </li>
+    <li><a class="link" href="#about">About</a></li>
+    <li><a class="link" href="#contact">Contact</a></li>
+  </ul>
+</nav>
+<div class="sheet" id="about" role="dialog" aria-modal="true" aria-labelledby="about-h">
+  <div class="panel">
+    <button class="x" type="button" data-close aria-label="Close">×</button>
+    <p class="eyebrow">About</p>
+    <h2 class="ph" id="about-h">Lee Thompson</h2>
+    <p class="role">Founder · Ares Web Development &amp; Outreachdev</p>
+    <p class="body">I'm an engineering student at Embry-Riddle Aeronautical University who builds websites and custom software for small to medium businesses. Ares Web Development designs sites around a business's own look and story. Outreachdev gets businesses found online and builds the AI tools and apps that take work off their plate.</p>
+    <p class="body">You talk to the person writing the code. Every project is scoped clearly and priced up front.</p>
+    <div class="mission"><p class="eyebrow">Mission</p><p>Helping small to medium sized businesses optimize their online conversion rates.</p></div>
+    <div class="row-links">
+      <a href="/desk/">See my desk</a>
+      <a href="https://outreachdev.dev">Outreachdev</a>
+      <button type="button" data-open="contact">Get in touch</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="contact" role="dialog" aria-modal="true" aria-labelledby="contact-h">
+  <div class="panel">
+    <button class="x" type="button" data-close aria-label="Close">×</button>
+    <p class="eyebrow">Contact</p>
+    <h2 class="ph" id="contact-h">Start a project</h2>
+    <p class="body">Tell me what you have in mind. Your message goes straight to my inbox and I reply by email.</p>
+    <form class="cform" id="cform" novalidate>
+      <div class="two">
+        <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" autocomplete="name" required></div>
+        <div class="field"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" required></div>
+      </div>
+      <div class="field"><label for="c-topic">What's it about</label>
+        <select id="c-topic" name="topic">
+          <option>A website</option>
+          <option>Online visibility &amp; marketing</option>
+          <option>AI tools &amp; integration</option>
+          <option>An app</option>
+          <option>Ongoing partnership</option>
+          <option>Something else</option>
+        </select></div>
+      <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required></textarea></div>
+      <div class="hp" aria-hidden="true"><label for="c-hp">Leave this empty</label><input id="c-hp" name="_honey" tabindex="-1" autocomplete="off"></div>
+      <button class="send" type="submit" id="c-send">Send message</button>
+      <p class="status" id="c-status" role="status" aria-live="polite"></p>
+      <p class="small">Or email <span id="c-addr">thompsontechnologiesleet@gmail.com</span>. Sent with FormSubmit.</p>
+    </form>
+  </div>
+</div>
+<div class="foot"><span>© 2026 Lee Thompson</span><span>Scroll to disturb</span></div>
+<button class="skip" id="skip" type="button">Skip intro</button>
+
+<script>
+(()=>{
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $=id=>document.getElementById(id);
+const gcv=$("grid"),gctx=gcv.getContext("2d");let dcv=$("dots");
+/* The portrait's dots are drawn with WebGL when it's available: each frame sends only the dots' positions to the
+   graphics card and it draws them all in one go, at the screen's full pixel density. Without WebGL they are
+   painted into an image instead (the 2D fallback below). */
+let gl=null,GLD=null,glBuf=null,glCol=null,uRes=null,uDpr=null,dctx=null;
+try{gl=dcv.getContext("webgl",{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false,powerPreference:"high-performance"});}catch(e){gl=null;}
+// WebGL running on the CPU (no graphics card, or hardware acceleration off) is slower than the 2D fallback
+if(gl){const ri=gl.getExtension("WEBGL_debug_renderer_info"),rn=ri?String(gl.getParameter(ri.UNMASKED_RENDERER_WEBGL)):"";
+  if(/swiftshader|llvmpipe|software|basic render/i.test(rn)){const lc=gl.getExtension("WEBGL_lose_context");if(lc)lc.loseContext();gl=null;}}
+if(gl){
+  const sh=(type,src)=>{const o=gl.createShader(type);gl.shaderSource(o,src);gl.compileShader(o);return o;};
+  const pr=gl.createProgram();
+  // a = (x, y) of the dot's top-left corner in CSS pixels, its size, its alpha; c = its grey level
+  gl.attachShader(pr,sh(gl.VERTEX_SHADER,"attribute vec4 a;attribute float c;uniform vec2 r;uniform float d;varying vec4 v;"+
+    "void main(){vec2 p=(a.xy+a.z*.5)/r*2.-1.;gl_Position=vec4(p.x,-p.y,0.,1.);gl_PointSize=a.z*d;v=vec4(vec3(c),a.w);}"));
+  gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,"precision mediump float;varying vec4 v;void main(){gl_FragColor=v;}"));
+  gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS))gl=null;
+  else{gl.useProgram(pr);uRes=gl.getUniformLocation(pr,"r");uDpr=gl.getUniformLocation(pr,"d");
+    glBuf=gl.createBuffer();glCol=gl.createBuffer();
+    const la=gl.getAttribLocation(pr,"a"),lc=gl.getAttribLocation(pr,"c");
+    gl.bindBuffer(gl.ARRAY_BUFFER,glCol);gl.enableVertexAttribArray(lc);gl.vertexAttribPointer(lc,1,gl.UNSIGNED_BYTE,true,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,glBuf);gl.enableVertexAttribArray(la);gl.vertexAttribPointer(la,4,gl.FLOAT,false,0,0);
+    gl.clearColor(0,0,0,0);}
+}
+if(!gl){if(dcv.getContext("2d")===null){const c=dcv.cloneNode(false);dcv.replaceWith(c);dcv=c;}dctx=dcv.getContext("2d");} // a canvas that tried WebGL can't switch to 2D
+const head=$("headline"),rowName=$("rowName"),rowServ=$("rowServ"),slash=$("slash"),tag=$("tag");
+let W=0,H=0,DPR=1;
+
+/* ================= headline ================= */
+function build(row,[l,r]){row.innerHTML="";const L=document.createElement("span"),G=document.createElement("span"),R=document.createElement("span");
+  L.className="L";G.className="gap";R.className="R";
+  const mk=(box,t)=>[...t].map(c=>{const s=document.createElement("span");s.className="ch";s.textContent=c;box.appendChild(s);return s;});
+  const lc=mk(L,l),rc=mk(R,r);row.append(L,G,R);return{row,L,G,R,chars:[...lc,...rc]};}
+const nm=build(rowName,["LEE","THOMPSON"]),sv=build(rowServ,["WEB\u00a0DESIGN","DEVELOPMENT"]);
+const REST=1.15,BIG=2.1,SLOPE=.34;   // slash size at rest / while wiping (x row font-size); slant of the "/" glyph
+let nameSize=80,servSize=50,slashBase=100;
+function measure(o){const L=o.L.getBoundingClientRect(),R=o.R.getBoundingClientRect(),G=o.G.getBoundingClientRect();
+  o.left=L.left;o.right=R.right;o.gx=G.left+G.width/2;const bs=o.chars.map(c=>c.getBoundingClientRect());o.cx=bs.map(b=>b.left+b.width/2);o.le=bs.map(b=>b.left);o.re=bs.map(b=>b.right);}
+function fit(){
+  for(const [o,frac,cap] of [[nm,.8,.16],[sv,.9,.11]]){
+    o.row.style.fontSize="100px";const w=o.L.offsetWidth+o.G.offsetWidth+o.R.offsetWidth;
+    const s=Math.min(W*frac/w*100,H*cap);o.row.style.fontSize=s+"px";if(o===nm)nameSize=s;else servSize=s;}
+  slashBase=Math.max(nameSize,servSize)*BIG;slash.style.fontSize=slashBase.toFixed(1)+"px";
+  measure(nm);measure(sv);
+}
+const sScale=()=>servSize/nameSize;
+
+/* ================= portrait particles ================= */
+let N=0,RB,HX,HY,SX,SY,CX,CY,X,Y,VX,VY,COL,DEL,DUR,RND,ARR,SZ=2;
+let box={x:0,y:0,w:1,h:1},img=null,swarmT0=-1,buf=null,imgData=null,step=3;
+const PA=960/540;
+function layout(){
+  // largest size that keeps the hair (3.7% down the photo) under the nav; head centre is 48.9% across
+  // the whole photo, shoulders included (it spans the full frame width). Phones are too narrow for that
+  // without shrinking the face to a thumbnail, so portrait screens keep the head large and crop the shoulder tips.
+  const top=Math.max(70,H*.08),hv=(H-top)/(1-.037),tall=H>W*1.02;
+  const h=Math.min(hv,(tall?W*1.75:W)/PA),w=h*PA;
+  box={w,h,x:tall?W/2-.489*w:(W-w)/2,y:H-h};
+  document.documentElement.style.setProperty("--spot-y",((box.y+box.h*.26)/H*100).toFixed(1)+"%");
+}
+function buildParticles(arrived){
+  if(!img)return;
+  step=W<700?3:Math.max(3,Math.round(Math.min(W,H)/300));
+  const gw=Math.ceil(box.w/step),gh=Math.ceil(box.h/step);
+  const o=document.createElement("canvas");o.width=gw;o.height=gh;const c=o.getContext("2d",{willReadFrequently:true});
+  c.imageSmoothingQuality="high";c.drawImage(img,0,0,gw,gh);const d=c.getImageData(0,0,gw,gh).data;
+  const list=[];const cx=box.x+box.w/2;
+  for(let j=0;j<gh;j++){const y=box.y+j*step;if(y<0||y>=H)continue;
+    for(let i=0;i<gw;i++){const x=box.x+i*step;if(x<0||x>=W)continue;const k=(j*gw+i)*4;if(d[k+3]<128)continue;list.push(x,y,d[k]/255);}}
+  N=list.length/3;
+  HX=new Float32Array(N);HY=new Float32Array(N);SX=new Float32Array(N);SY=new Float32Array(N);X=new Float32Array(N);Y=new Float32Array(N);VX=new Float32Array(N);VY=new Float32Array(N);
+  COL=new Uint32Array(N);RB=new Uint8Array(N);DEL=new Float32Array(N);DUR=new Float32Array(N);CX=new Float32Array(N);CY=new Float32Array(N);RND=new Float32Array(N);ARR=new Uint8Array(N);
+  SZ=2;
+  for(let p=0;p<N;p++){const x=list[p*3],y=list[p*3+1];let v=list[p*3+2];
+    v=Math.pow(v,.95)*(.88+Math.random()*.24);
+    const L=Math.max(0,Math.min(255,16+239*v))|0;
+    COL[p]=(L<<16)|(L<<8)|L;
+    HX[p]=x+(Math.random()-.5)*1.6;HY[p]=y+(Math.random()-.5)*1.6;RND[p]=Math.random();RB[p]=RND[p]*32|0;
+    // swarm streams in from the left edge on curved paths; head forms first, then the body fills downward
+    const ny=(y-box.y)/box.h;
+    DEL[p]=.05+ny*.95+Math.random()*.6;DUR[p]=1.25+Math.random()*.6;
+    SX[p]=-30-Math.random()*W*.45;SY[p]=H*(.2+Math.random()*.65);
+    CX[p]=W*(.08+Math.random()*.4);CY[p]=(SY[p]+y)*.5+(Math.random()-.5)*H*.55;
+    if(arrived){X[p]=x;Y[p]=y;ARR[p]=1;}else{X[p]=SX[p];Y[p]=SY[p];ARR[p]=0;}
+  }
+  if(gl){
+    dcv.width=Math.round(W*DPR);dcv.height=Math.round(H*DPR);gl.viewport(0,0,dcv.width,dcv.height);gl.uniform2f(uRes,W,H);gl.uniform1f(uDpr,dcv.width/W);
+    GLD=new Float32Array(N*4);const g=new Uint8Array(N);for(let p=0;p<N;p++)g[p]=COL[p]&255;
+    gl.bindBuffer(gl.ARRAY_BUFFER,glCol);gl.bufferData(gl.ARRAY_BUFFER,g,gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER,glBuf);gl.bufferData(gl.ARRAY_BUFFER,GLD.byteLength,gl.DYNAMIC_DRAW);
+    buf=true;
+  }else{dcv.width=W;dcv.height=H;imgData=dctx.createImageData(W,H);buf=new Uint32Array(imgData.data.buffer);}
+  px0=py0=0;px1=py1=-1;still=false;
+}
+
+/* ================= interaction ================= */
+let energy=0,swirl=1,ready=false;
+function disturb(d){if(!ready||RM)return;energy=Math.min(1.6,energy+Math.abs(d)*.0016);if(d)swirl=Math.sign(d);}
+addEventListener("wheel",e=>{if(openSheet)return;e.preventDefault();disturb(e.deltaY*(e.deltaMode?30:1));},{passive:false});
+let ty=null;
+addEventListener("touchstart",e=>{ty=openSheet?null:e.touches[0].clientY;},{passive:true});
+addEventListener("touchmove",e=>{if(ty==null)return;const y=e.touches[0].clientY;disturb((ty-y)*2.2);ty=y;},{passive:true});
+addEventListener("touchend",()=>{ty=null;});
+addEventListener("keydown",e=>{if(openSheet)return;if(["ArrowDown","ArrowUp","PageDown","PageUp"," "].includes(e.key))disturb(e.key==="ArrowUp"||e.key==="PageUp"?-260:260);});
+
+/* ================= render loop ================= */
+let gridAlpha=0,gridZ=0,last=performance.now(),running=true;
+function drawGrid(dt){
+  gctx.setTransform(DPR,0,0,DPR,0,0);gctx.clearRect(0,0,W,H);if(gridAlpha<=0)return;
+  const hz=H*(H>W*1.02?.72:.62),vx=W/2;gridZ=(gridZ+dt*(.00016+energy*.0016))%1;
+  const g=gctx.createLinearGradient(0,hz,0,H);g.addColorStop(0,"rgba(170,180,230,0)");g.addColorStop(.4,`rgba(170,180,230,${.12*gridAlpha})`);g.addColorStop(1,`rgba(190,198,240,${.28*gridAlpha})`);
+  gctx.lineWidth=1;gctx.strokeStyle=g;gctx.beginPath();
+  for(let i=0;i<14;i++){const z=(i+1-gridZ)/14,y=hz+(H-hz)*Math.pow(1-z,2.1)*1.02;if(y>hz+1){gctx.moveTo(0,y);gctx.lineTo(W,y);}}
+  for(let i=-22;i<=22;i++){gctx.moveTo(vx+i*W*.004,hz);gctx.lineTo(vx+i*W*.16,H);}
+  gctx.stroke();
+}
+const eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+// Only the area the dots covered last frame is cleared and only the area they cover now is uploaded,
+// instead of the whole screen every frame; once the portrait has settled and nothing is moving, it stops redrawing.
+let px0=0,py0=0,px1=-1,py1=-1,still=false;
+// each dot's swirl angle comes from one of 32 steps, so the trig is done 32 times a frame instead of once per dot
+const COS=new Float32Array(32),SIN=new Float32Array(32);
+function drawDots(t){
+  if(!buf||swarmT0<0)return;
+  const e=energy;
+  if(still&&e<=.002)return;
+  const T=(t-swarmT0)/1000;
+  const G=GLD;
+  if(!G)for(let ry=py0;ry<=py1;ry++){const o=ry*W;buf.fill(0,o+px0,o+px1+1);}
+  const cx=box.x+box.w/2,cy=box.y+box.h*.35,ang=e*.6*swirl;
+  if(e>.002)for(let k=0;k<32;k++){const aa=ang*(.4+(k+.5)/32);COS[k]=Math.cos(aa);SIN[k]=Math.sin(aa);}
+  const S=SZ,Wd=W,Hd=H;
+  let nx0=Wd,ny0=Hd,nx1=-1,ny1=-1,vmax=0,landed=0;
+  for(let i=0;i<N;i++){
+    let x,y,a,ix,iy,sz,col;
+    if(!ARR[i]){
+      const p=(T-DEL[i])/DUR[i];
+      if(p<=0)continue;
+      if(p<1){const k=1-Math.pow(1-p,3),u=1-k;
+        x=u*u*SX[i]+2*u*k*CX[i]+k*k*HX[i];y=u*u*SY[i]+2*u*k*CY[i]+k*k*HY[i];a=Math.min(1,p*3)*(.55+.45*k);X[i]=x;Y[i]=y;
+        sz=k>.85?S:1+(RND[i]>.5);ix=Math.round(x);iy=Math.round(y);
+        if(G){const o=i*4;G[o]=ix;G[o+1]=iy;G[o+2]=sz;G[o+3]=a;continue;}
+        col=(COL[i]|((a*255|0)<<24))>>>0;
+      }else{ARR[i]=1;X[i]=HX[i];Y[i]=HY[i];VX[i]=VY[i]=0;}
+    }
+    if(ARR[i]){
+      // settled: spring toward home, pulled apart by scrolling
+      landed++;
+      let hx=HX[i],hy=HY[i];
+      if(e>.002){const ddx=hx-cx,ddy=hy-cy,c2=COS[RB[i]],s2=SIN[RB[i]],sc=1+e*(.2+RND[i]*.9);
+        hx=cx+(ddx*c2-ddy*s2)*sc;hy=cy+(ddx*s2+ddy*c2)*sc-e*RND[i]*H*.18;}
+      let vx=VX[i]+(hx-X[i])*.075,vy=VY[i]+(hy-Y[i])*.075;
+      vx*=.8;vy*=.8;VX[i]=vx;VY[i]=vy;x=X[i]+=vx;y=Y[i]+=vy;
+      const sp2=vx*vx+vy*vy;if(sp2>vmax)vmax=sp2;
+      ix=Math.round(x);iy=Math.round(y);sz=S;
+      if(G){const o=i*4;G[o]=ix;G[o+1]=iy;G[o+2]=sz;G[o+3]=1;continue;}
+      col=(COL[i]|0xff000000)>>>0;
+    }
+    if(ix+sz<=0||iy+sz<=0||ix>=Wd||iy>=Hd)continue;
+    const x0=ix<0?0:ix,y0=iy<0?0:iy,x1=Math.min(Wd,ix+sz),y1=Math.min(Hd,iy+sz);
+    for(let ry=y0;ry<y1;ry++){const o=ry*Wd;for(let rx=x0;rx<x1;rx++)buf[o+rx]=col;}
+    if(x0<nx0)nx0=x0;if(y0<ny0)ny0=y0;if(x1-1>nx1)nx1=x1-1;if(y1-1>ny1)ny1=y1-1;
+  }
+  // upload the union of last frame's area (now cleared) and this frame's
+  if(G){gl.bufferSubData(gl.ARRAY_BUFFER,0,G);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.POINTS,0,N);still=landed===N&&vmax<.0004;return;}
+  const ux0=Math.min(px0,nx0),uy0=Math.min(py0,ny0),ux1=Math.max(px1,nx1),uy1=Math.max(py1,ny1);
+  if(ux1>=ux0&&uy1>=uy0)dctx.putImageData(imgData,0,0,ux0,uy0,ux1-ux0+1,uy1-uy0+1);
+  px0=nx0;py0=ny0;px1=nx1;py1=ny1;
+  still=landed===N&&vmax<.0004;
+}
+let sp=0;
+function frame(t){
+  if(!running)return;
+  const dt=Math.min(50,t-last);last=t;
+  drawGrid(dt);drawDots(t);
+  energy*=.955;if(energy<.001)energy=0;
+  if(ready){const target=energy*Math.min(W*.025,44);if(Math.abs(target-sp)>.05||sp!==0){sp+=(target-sp)*.18;if(Math.abs(sp)<.05)sp=0;rowServ.style.setProperty("--sp",sp.toFixed(2)+"px");
+    slashAt(sv.gx,0,sp/44*25*swirl,servSize*REST);}}
+  requestAnimationFrame(frame);
+}
+document.addEventListener("visibilitychange",()=>{running=!document.hidden;if(running){last=performance.now();requestAnimationFrame(frame);}});
+
+/* ================= intro: slash wipe ================= */
+let speed=1;
+function tween(dur,ease,fn){return new Promise(res=>{let acc=0,prev=performance.now();
+  const f=now=>{acc+=(now-prev)/speed;prev=now;const p=Math.min(1,acc/dur);fn(ease(p),p);p<1?requestAnimationFrame(f):res();};requestAnimationFrame(f);});}
+const pause=ms=>tween(ms,p=>p,()=>{});
+const expo=p=>p>=1?1:1-Math.pow(2,-10*p),eout=p=>1-Math.pow(1-p,3),eosine=p=>Math.sin(p*Math.PI/2);
+function slashAt(x,dy,rot,fs){slash.style.transform=`translate(${x.toFixed(2)}px,${dy.toFixed(2)}px) translate(-50%,-50%) rotate(${(+rot).toFixed(3)}deg) scale(${(fs/slashBase).toFixed(4)})`;}
+// hard-edged clip regions either side of a line parallel to the slash, through (x, row centre)
+const xAt=(x,y)=>x+(H/2-y)*SLOPE;
+const leftOf=x=>`polygon(-20px 0px,${xAt(x,0)}px 0px,${xAt(x,H)}px ${H}px,-20px ${H}px)`;
+const rightOf=x=>`polygon(${xAt(x,0)}px 0px,${W+20}px 0px,${W+20}px ${H}px,${xAt(x,H)}px ${H}px)`;
+// letters settle up a touch as the wipe uncovers them; animation is removed afterwards so text stays crisp
+function rise(c){const a=c.animate([{transform:"translateY(.16em)"},{transform:"none"}],{duration:300*speed,easing:"cubic-bezier(.2,.8,.3,1)"});a.onfinish=()=>a.cancel();}
+function triggerer(o,fn,key){const done=new Set();return(x,dir)=>{o[key].forEach((cx,i)=>{if(done.has(i))return;if(dir>0?x>=cx:x<=cx){done.add(i);fn(o.chars[i]);}});};}
+// Hermite curve so a sweep can start at the speed the slash is already moving (never a dead stop)
+const herm=(s,p0,p1,m0,m1)=>{const s2=s*s,s3=s2*s;return(2*s3-3*s2+1)*p0+(s3-2*s2+s)*m0+(-2*s3+3*s2)*p1+(s3-s2)*m1;};
+// the glow is drawn once at its final size (40% x 46% radii) and only moved and scaled after that
+const light=$("light"),setLight=(o,ly,lw,lh)=>{light.style.opacity=o;
+  light.style.transform=`translate(${(W/2).toFixed(1)}px,${(ly/100*H).toFixed(1)}px) translate(-50%,-50%) scale(${(lw/40).toFixed(4)},${(lh/46).toFixed(4)})`;};
+async function intro(){
+  // during the wipe the slash is its own layer, drawn once at its largest size and only moved and shrunk after that
+  slash.style.willChange=rowName.style.willChange=rowServ.style.willChange="transform";
+  setLight(0,50,30,26);
+  await pause(250);                                        // fully dark
+  const bigN=nameSize*BIG,bigS=servSize*BIG;
+  const drift=nameSize*.5,FL=1500,x0=Math.max(nm.left-bigN*.42,drift+bigN*.45);    // slow float down, already drifting right
+  const v0=drift/FL;                                       // px per ms at the end of the float
+  await tween(FL,p=>p,(k,p)=>{const x=x0-drift+drift*p;slashAt(x,-(1-eosine(p))*H*.34,(1-eosine(p))*-12,bigN);slash.style.opacity=Math.min(1,p*2);});
+  // wipe across: reveal LEE / THOMPSON behind the slash, light blooms as the name appears
+  const xr=nm.right+bigN*.3,D1=720,passN=triggerer(nm,rise,"le");
+  await tween(D1,p=>p,(k,p)=>{const x=herm(p,x0,xr,v0*D1,(xr-x0)*.35);slashAt(x,0,0,bigN);rowName.style.clipPath=leftOf(x);passN(x,1);
+    const q=Math.min(1,Math.max(0,(x-nm.left)/(nm.right-nm.left)));setLight(.9*q,50,30+6*q,26+4*q);});
+  rowName.style.clipPath="none";
+  // snap into the gap
+  await tween(260,expo,k=>slashAt(xr+(nm.gx-xr)*k,0,0,bigN+(nameSize*REST-bigN)*k));
+  await pause(450);
+  // glide past the end of the services line, growing for the wipe
+  const xs1=sv.right+bigS*.3;
+  await tween(340,p=>p*p,k=>slashAt(nm.gx+(xs1-nm.gx)*k,0,0,nameSize*REST+(bigS-nameSize*REST)*k));
+  // wipe back: the slash cuts the name away and leaves SOFTWARE / DEVELOPMENT behind it
+  const xs0=sv.left-bigS*.3,D2=760,passS=triggerer(sv,rise,"re"),vIn=(xs1-nm.gx)/340*2;
+  await tween(D2,p=>p,(k,p)=>{const x=herm(p,xs1,xs0,-vIn*D2,(xs0-xs1)*.35);slashAt(x,0,0,bigS);
+    rowName.style.clipPath=leftOf(x);rowServ.style.clipPath=rightOf(x);passS(x,-1);});
+  rowName.style.visibility="hidden";rowServ.style.clipPath="none";
+  await tween(260,expo,k=>slashAt(xs0+(sv.gx-xs0)*k,0,0,bigS+(servSize*REST-bigS)*k));
+  await pause(120);
+}
+let finalY=0;
+const lightY=()=>((box.y+box.h*.28)/H*100);
+function placeHeadline(){
+  // phones/tall screens: centre the headline (+ tagline) in the open space between the nav and the top of the hair
+  if(H>W*1.02){const navB=Math.max(64,H*.075),hair=box.y+box.h*.037,blockH=servSize*.85+servSize*.85+16;
+    finalY=Math.round(navB+(hair-navB)/2-(blockH/2-servSize*.5));}
+  else finalY=Math.round(Math.min(box.y+box.h*.72,H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;if(ready)head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
+function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="none";rowServ.style.clipPath="none";slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
+async function settle(){
+  if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
+  const dy=finalY-H/2,ly=lightY();
+  head.style.willChange="transform";
+  const tg=tween(900,eout,p=>{head.style.transform=`translateY(${(dy*p).toFixed(2)}px)`;});
+  // light lifts off the headline and opens up behind the head, like the reel
+  tween(1600,eout,p=>setLight(.9+.1*p,50+(ly-50)*p,30+(40-30)*p,26+(46-26)*p));
+  tween(1600,eout,p=>{gridAlpha=p;});
+  tag.animate([{opacity:0,transform:"translate(-50%,8px)"},{opacity:1,transform:"translate(-50%,0)"}],{duration:500,delay:500,fill:"forwards",easing:"ease-out"});
+  await tg;head.style.transform=`translateY(${Math.round(dy)}px)`;
+  requestAnimationFrame(()=>{head.style.willChange=slash.style.willChange=rowName.style.willChange=rowServ.style.willChange="auto";});
+  ready=true;document.body.classList.add("ready");
+}
+$("skip").addEventListener("click",()=>{speed=.08;});
+/* ================= About / Contact panels ================= */
+const CONTACT_EMAIL="thompsontechnologiesleet@gmail.com";
+let openSheet=null,lastFocus=null;
+function openPanel(id){const s=$(id);if(!s)return;if(openSheet&&openSheet!==s)openSheet.classList.remove("open");
+  lastFocus=document.activeElement;openSheet=s;s.classList.add("open");
+  const f=s.querySelector(id==="contact"?"input":".x");setTimeout(()=>f&&f.focus({preventScroll:true}),60);
+  try{history.replaceState(null,"","#"+id);}catch(e){}}
+function closePanel(){if(!openSheet)return;openSheet.classList.remove("open");openSheet=null;
+  try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+  if(lastFocus&&lastFocus.focus)lastFocus.focus({preventScroll:true});}
+document.querySelectorAll('a.link[href="#about"],a.link[href="#contact"]').forEach(a=>a.addEventListener("click",e=>{e.preventDefault();openPanel(a.getAttribute("href").slice(1));}));
+document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>openPanel(b.dataset.open)));
+document.querySelectorAll(".sheet").forEach(s=>{s.addEventListener("click",e=>{if(e.target===s||e.target.closest("[data-close]"))closePanel();});});
+addEventListener("keydown",e=>{if(e.key==="Escape")closePanel();
+  if(e.key==="Tab"&&openSheet){const f=[...openSheet.querySelectorAll("a,button,input,select,textarea")].filter(x=>!x.closest(".hp"));
+    if(!f.length)return;const first=f[0],lastEl=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();lastEl.focus();}else if(!e.shiftKey&&document.activeElement===lastEl){e.preventDefault();first.focus();}}});
+if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel(location.hash.slice(1)),50);
+
+{const form=$("cform"),st=$("c-status"),btn=$("c-send");
+  const fail=(el,msg)=>{form.querySelectorAll("[aria-invalid]").forEach(x=>x.removeAttribute("aria-invalid"));if(el){el.setAttribute("aria-invalid","true");el.focus();}st.textContent=msg;st.className="status err";};
+  form.addEventListener("submit",e=>{e.preventDefault();
+    const f=form.elements,name=f.name.value.trim(),email=f.email.value.trim(),msg=f.message.value.trim(),topic=f.topic.value;
+    if(!name)return fail(f.name,"Please enter your name.");
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return fail(f.email,"Please enter a valid email address.");
+    if(msg.length<5)return fail(f.message,"Please add a few words about your project.");
+    form.querySelectorAll("[aria-invalid]").forEach(x=>x.removeAttribute("aria-invalid"));
+    if(f._honey.value)return; // a bot filled the hidden field
+    const subject="ares-web.com: "+topic+" from "+name;
+    const mailto="mailto:"+CONTACT_EMAIL+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(msg+"\n\n"+name+" ("+email+")");
+    btn.disabled=true;btn.textContent="Sending…";st.textContent="";st.className="status";
+    fetch("https://formsubmit.co/ajax/"+CONTACT_EMAIL,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({_subject:subject,_template:"table",_replyto:email,Name:name,Email:email,Topic:topic,Message:msg,From:"ares-web.com"})})
+      .then(r=>r.json().then(d=>{if(!r.ok||String(d.success)!=="true")throw new Error(d.message||"Send failed");}))
+      .then(()=>{form.reset();st.textContent="Thanks, "+name.split(" ")[0]+". Your message was sent. I'll reply by email soon.";st.className="status ok";})
+      .catch(()=>{st.innerHTML="";st.append("That didn't go through. Please ");const a=document.createElement("a");a.href=mailto;a.textContent="email me directly";st.append(a," at "+CONTACT_EMAIL+".");st.className="status err";})
+      .finally(()=>{btn.disabled=false;btn.textContent="Send message";});});}
+
+
+
+/* ================= boot ================= */
+function makeGrain(){const c=document.createElement("canvas");c.width=c.height=160;const g=c.getContext("2d"),im=g.createImageData(160,160);
+  for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255;}g.putImageData(im,0,0);
+  $("grain").style.backgroundImage=`url(${c.toDataURL()})`;}
+let introDone=false;
+function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);gcv.width=W*DPR|0;gcv.height=H*DPR|0;
+  layout();fit();placeHeadline();
+  if(introDone){finalState();setLight(1,lightY(),40,46);}
+  if(img&&swarmT0>=0)buildParticles(true);}
+let rt=0;
+async function boot(){
+  makeGrain();
+  try{await document.fonts.load('900 100px "Archivo"');}catch(e){}
+  resize();addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(resize,120);});
+  const lp=new Promise(res=>{const im=new Image();im.onload=()=>{img=im;res();};im.onerror=res;im.src="portrait.png";});
+  requestAnimationFrame(frame);
+  if(RM){setLight(1,lightY(),40,46);$("vig").classList.add("on");await lp;introDone=true;finalState();buildParticles(true);swarmT0=performance.now();gridAlpha=1;ready=true;
+    head.style.transform=`translateY(${finalY-H/2}px)`;tag.style.opacity=1;document.body.classList.add("ready");$("grain").classList.add("on");return;}
+  await lp;buildParticles(false);
+  await intro();introDone=true;await settle();
+}
+boot();
+})();
+</script>
+</body>
+</html>
