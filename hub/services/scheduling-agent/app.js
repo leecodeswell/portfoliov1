@@ -1,5 +1,5 @@
 /* =====================================================================
-   Scheduling Agent v1 (Outreachdev)
+   Scheduling Agent v1 (Ares Web Services)
    Everything runs in the browser and saves to this browser's storage.
    Sign-in, real employee phones, notifications and the AI helper arrive
    when the backend is connected.
@@ -559,7 +559,7 @@
 
     var h = '<div class="frame">';
     h += '<header class="topbar' + (companyHTML() ? " has-co" : "") + '">' +
-      '<a class="brand" href="#" data-act="nav" data-v="schedule"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Outreachdev</small></span></a>' +
+      '<a class="brand" href="#" data-act="nav" data-v="schedule"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Ares</small></span></a>' +
       companyHTML() +
       '<span class="top-spacer"></span>' +
       (access().state === "trial" ? '<button class="pill ' + (access().days <= 3 ? "pill-warn" : "pill-draft") + '" style="border:0" data-act="nav" data-v="settings" title="See plans">Trial: ' + access().days + (access().days === 1 ? " day" : " days") + " left</button>" : "") +
@@ -839,7 +839,7 @@
   }
   function icsText(key, pid) {
     var stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
-    var L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Outreachdev//Scheduling Agent//EN", "CALSCALE:GREGORIAN",
+    var L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Ares Web Services//Scheduling Agent//EN", "CALSCALE:GREGORIAN",
       "X-WR-CALNAME:" + icsEsc((S.business.name || "Work") + " shifts")];
     try { var tz = Intl.DateTimeFormat().resolvedOptions().timeZone; if (tz) L.push("X-WR-TIMEZONE:" + tz); } catch (e) { }
     shiftsFor(key, pid, true).forEach(function (x) {
@@ -1282,11 +1282,11 @@
     var pending = reqs.filter(function (x) { return x.r.status === "open" && !x.r.resp[p.id]; });
     var real = !!S.ui.employee, h;
     if (real) {
-      h = '<div class="frame emp-real" style="grid-template-columns:1fr"><header class="topbar"><span class="brand"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Outreachdev</small></span></span><span class="top-spacer"></span>' +
+      h = '<div class="frame emp-real" style="grid-template-columns:1fr"><header class="topbar"><span class="brand"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Ares</small></span></span><span class="top-spacer"></span>' +
         '<button class="btn btn-sm btn-ghost" data-act="sign-out">Sign out</button></header><main class="main" style="padding:0">' +
         (SACloud.error ? '<div class="note note-warn" style="margin:12px">' + icon("alert") + "<span>" + esc(SACloud.error) + "</span></div>" : "") + '<div class="emp-stage"><div class="phone">';
     } else {
-      h = '<div class="frame" style="grid-template-columns:1fr"><header class="topbar"><a class="brand" href="#" data-act="exit-emp"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Outreachdev</small></span></a><span class="top-spacer"></span>' +
+      h = '<div class="frame" style="grid-template-columns:1fr"><header class="topbar"><a class="brand" href="#" data-act="exit-emp"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Ares</small></span></a><span class="top-spacer"></span>' +
         '<label class="viewas"><span>View as</span><select class="input input-sm" data-change="viewas"><option value="">Owner (you)</option>' + S.people.map(function (x) { return '<option value="' + x.id + '"' + (x.id === p.id ? " selected" : "") + ">" + esc(x.name) + "</option>"; }).join("") + "</select></label></header>" +
         '<main class="main" style="padding:0"><div class="emp-banner">' + icon("eye") + "<span>Preview: what " + esc(p.name) + " sees on their phone" + (CLOUD ? "" : " once sign-in is connected") + '.</span><span style="flex:1"></span><button class="btn btn-sm" data-act="exit-emp">Back to owner view</button></div><div class="emp-stage"><div class="phone">';
     }
@@ -1679,7 +1679,7 @@
     s.push("done");
     return s;
   }
-  var brandHTML = '<span class="brand"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Outreachdev</small></span></span>';
+  var brandHTML = '<span class="brand"><span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span><span><b>Scheduling Agent</b><small>by Ares</small></span></span>';
 
   function renderOnboarding() {
     var h = '<div class="onboard"><div class="ob-card">';

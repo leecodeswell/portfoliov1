@@ -672,7 +672,7 @@ button.chip-open:hover { border-color: var(--accent); }
 .good-for::before { content: "// "; color: var(--text-faint); }
 .step-num::before { content: "["; } .step-num::after { content: "]"; }
 
-/* Outreachdev wordmark */
+/* Wordmark */
 .brand { gap: 12px; }
 .brand-name { font-size: 1.3125rem; font-weight: 700; }
 .brand-dev { color: #9A9AA5; }

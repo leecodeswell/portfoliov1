@@ -1,5 +1,5 @@
 /* =====================================================================
-   Work Order Manager by Outreachdev: the screens
+   Work Order Manager by Ares Web Services: the screens
 
    Reads and writes through WOStore (wo-store.js); rules and checks live in
    WOCore (wo-core.js). Everything here is drawing and reacting to clicks.
@@ -179,7 +179,7 @@
      Render
      ------------------------------------------------------------------ */
   var brandMark = '<span class="mark"><svg viewBox="0 0 28 28" aria-hidden="true"><use href="#o-mark"/></svg></span>';
-  var brandHTML = '<a class="brand" href="#" data-act="nav" data-v="dashboard">' + brandMark + '<span><b>Work Order Manager</b><small>by Outreachdev</small></span></a>';
+  var brandHTML = '<a class="brand" href="#" data-act="nav" data-v="dashboard">' + brandMark + '<span><b>Work Order Manager</b><small>by Ares</small></span></a>';
   function fkey(el) {
     if (!el || el === document.body) return null;
     if (el.id) return "#" + CSS.escape(el.id);

@@ -1,5 +1,5 @@
 /* =====================================================================
-   Outreachdev (by Thompson Technologies): shared site behavior
+   Ares Web Services (by Thompson Technologies): shared site behavior
    ===================================================================== */
 (function () {
   "use strict";

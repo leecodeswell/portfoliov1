@@ -121,40 +121,15 @@ body.ready nav{opacity:1;transform:none}
 body.ready .foot{opacity:1}
 .skip{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));font:400 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#5d5f67;background:none;border:0;padding:8px;cursor:pointer;transition:opacity .3s}
 body.ready .skip{opacity:0;pointer-events:none}
-/* ---------- Services / Designs: floating words either side of the head ---------- */
-.door{position:fixed;left:0;top:0;z-index:5;display:grid;justify-items:center;gap:14px;padding:18px 24px;text-decoration:none;color:var(--fg);
-  opacity:0;pointer-events:none;transform:translate(var(--dx,0px),var(--dy,0px)) translate(-50%,-50%) translateY(16px);
-  transition:opacity 1s ease,transform .9s cubic-bezier(.2,.8,.2,1);cursor:pointer}
-body.ready .door{opacity:1;pointer-events:auto;transform:translate(var(--dx,0px),var(--dy,0px)) translate(-50%,-50%)}
-body.ready #doorD{transition-delay:.15s}
-.door-f{display:grid;justify-items:center;gap:14px;animation:float 5.5s ease-in-out infinite}
-#doorD .door-f{animation-delay:-2.75s}
-@keyframes float{0%,100%{transform:translateY(-5px)}50%{transform:translateY(5px)}}
-.door-k{position:relative;font:400 clamp(40px,5.2vw,86px)/1 var(--display);letter-spacing:.06em;text-transform:uppercase;padding-bottom:12px;
-  background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 45%,#a9abb2 75%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 2px 10px rgba(0,0,0,.95));transition:letter-spacing .5s cubic-bezier(.2,.8,.2,1),filter .4s ease}
-.door-k::after{content:"";position:absolute;left:50%;bottom:0;width:0;height:1px;background:linear-gradient(90deg,transparent,rgba(244,244,242,.9),transparent);transform:translateX(-50%);transition:width .55s cubic-bezier(.2,.8,.2,1)}
-.door-book{width:64px;height:auto;overflow:visible;opacity:.85;transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 2px 8px rgba(0,0,0,.9))}
-.door-book .cover{fill:none;stroke:rgba(244,244,242,.7);stroke-width:1.3;stroke-linejoin:round}
-.door-book .spine{stroke:rgba(244,244,242,.35);stroke-width:1.1}
-.door-book .leaf{transform-origin:60px 33px;transform-box:view-box;animation:leaf 3.6s cubic-bezier(.55,.1,.35,1) infinite;opacity:0}
-.door-book .leaf path{fill:rgba(244,244,242,.06);stroke:rgba(244,244,242,.85);stroke-width:1;stroke-linejoin:round}
-.door-book .l2{animation-delay:1.8s}
-.door-win .dot{fill:rgba(244,244,242,.5)}
-.door-win .type{stroke:rgba(244,244,242,.8);stroke-width:2;stroke-linecap:round;stroke-dasharray:70;stroke-dashoffset:70;animation:type 3.6s ease-in-out infinite}
-.door-win .t2{animation-delay:.35s}.door-win .t3{animation-delay:.7s}
-@keyframes type{0%{stroke-dashoffset:70}35%,75%{stroke-dashoffset:0}100%{stroke-dashoffset:-70}}
-@media (hover:hover){
-  .door:hover .door-k,.door:focus-visible .door-k{letter-spacing:.12em;filter:drop-shadow(0 2px 10px rgba(0,0,0,.95)) drop-shadow(0 0 22px rgba(225,230,255,.35))}
-  .door:hover .door-k::after,.door:focus-visible .door-k::after{width:100%}
-  .door:hover .door-book,.door:focus-visible .door-book{opacity:1;transform:translateY(-4px)}
-}
-.door:focus-visible{outline:none}
-body.tall .door{padding:10px 8px;gap:8px}
-body.tall .door-f{gap:8px}
-body.tall .door-k{font-size:clamp(24px,7.4vw,34px);padding-bottom:7px}
-body.tall .door-book{width:40px}
-@media (prefers-reduced-motion:reduce){.door-f,.door-book .leaf,.door-win .type{animation:none}.door-book .l1{opacity:1;transform:scaleX(.5)}.door-win .type{stroke-dashoffset:0}}
+/* ---------- Services / Designs: particle icons either side of the head ----------
+   The icons and their words are drawn as dots on #fx (like the portrait); each .door is the invisible
+   link over its icon, sized and placed by placeDoors() */
+#fx{z-index:4;pointer-events:none}
+.door{position:fixed;left:0;top:0;z-index:5;width:var(--dw,160px);height:var(--dh,120px);transform:translate(var(--dx,0px),var(--dy,0px)) translate(-50%,-50%);
+  text-decoration:none;border-radius:6px;pointer-events:none;cursor:pointer}
+body.ready .door{pointer-events:auto}
+.door-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.door:focus-visible{outline:1px solid rgba(244,244,242,.5);outline-offset:6px}
 @media (max-width:640px){
   :root{--wdth:96}
   .brand{font-size:11px}
@@ -174,7 +149,7 @@ body.tall .door-book{width:40px}
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://ares-web.com/#organization", "name": "Ares Web Services", "alternateName": ["Outreachdev", "ARES"], "url": "https://ares-web.com/", "logo": "https://outreachdev.dev/assets/logo-mark-1024.png", "email": "thompsontechnologiesleet@gmail.com", "description": "Custom websites, web apps and AI tools for small and medium-sized businesses, designed and coded by Lee Thompson.", "areaServed": {"@type": "Country", "name": "United States"}, "sameAs": ["https://ares-web.com/", "https://outreachdev.dev/", "https://www.facebook.com/areswebdev", "https://www.instagram.com/ares.webdev", "https://www.tiktok.com/@areswebdev", "https://www.youtube.com/@Areswebdevelopment"], "founder": {"@id": "https://ares-web.com/#lee"}}, {"@type": "Person", "@id": "https://ares-web.com/#lee", "name": "Lee Thompson", "url": "https://ares-web.com/", "image": "https://outreachdev.dev/assets/lee-thompson.jpg", "jobTitle": "Web designer and developer", "worksFor": {"@id": "https://ares-web.com/#organization"}, "alumniOf": "Embry-Riddle Aeronautical University"}, {"@type": "WebSite", "@id": "https://ares-web.com/#website", "url": "https://ares-web.com/", "name": "Lee Thompson", "publisher": {"@id": "https://ares-web.com/#organization"}}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://ares-web.com/#organization", "name": "Ares Web Services", "alternateName": ["ARES"], "url": "https://ares-web.com/", "logo": "https://ares-web.com/services/assets/logo-mark-1024.png", "email": "thompsontechnologiesleet@gmail.com", "description": "Custom websites, web apps and AI tools for small and medium-sized businesses, designed and coded by Lee Thompson.", "areaServed": {"@type": "Country", "name": "United States"}, "sameAs": ["https://ares-web.com/", "https://www.facebook.com/areswebdev", "https://www.instagram.com/ares.webdev", "https://www.tiktok.com/@areswebdev", "https://www.youtube.com/@Areswebdevelopment"], "founder": {"@id": "https://ares-web.com/#lee"}}, {"@type": "Person", "@id": "https://ares-web.com/#lee", "name": "Lee Thompson", "url": "https://ares-web.com/", "image": "https://ares-web.com/services/assets/lee-thompson.jpg", "jobTitle": "Web designer and developer", "worksFor": {"@id": "https://ares-web.com/#organization"}, "alumniOf": "Embry-Riddle Aeronautical University"}, {"@type": "WebSite", "@id": "https://ares-web.com/#website", "url": "https://ares-web.com/", "name": "Lee Thompson", "publisher": {"@id": "https://ares-web.com/#organization"}}]}</script>
 </head>
 <body>
 
@@ -188,28 +163,9 @@ body.tall .door-book{width:40px}
   <div class="slash" id="slash">/</div>
   <div class="tag" id="tag">Web Design · Online Visibility · AI Integration</div>
 </div>
-<a class="door" id="doorS" href="/services/">
-<span class="door-f">
-  <svg class="door-book door-win" viewBox="0 0 120 64" aria-hidden="true">
-    <rect class="cover" x="14" y="8" width="92" height="50" rx="3"/>
-    <path class="spine" d="M14 19 H106"/>
-    <circle class="dot" cx="22" cy="13.5" r="1.6"/><circle class="dot" cx="28" cy="13.5" r="1.6"/><circle class="dot" cx="34" cy="13.5" r="1.6"/>
-    <path class="type t1" d="M24 30 H70"/><path class="type t2" d="M24 39 H88"/><path class="type t3" d="M24 48 H56"/>
-  </svg>
-  <span class="door-k">Services</span>
-</span>
-</a>
-<a class="door" id="doorD" href="/desk/">
-<span class="door-f">
-  <svg class="door-book" viewBox="0 0 120 64" aria-hidden="true">
-    <path class="spine" d="M60 10 V58"/>
-    <path class="cover" d="M60 58 C44 52 22 52 6 58 V12 C22 6 44 6 60 12 C76 6 98 6 114 12 V58 C98 52 76 52 60 58 Z"/>
-    <g class="leaf l1"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
-    <g class="leaf l2"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
-  </svg>
-  <span class="door-k">Designs</span>
-</span>
-</a>
+<canvas id="fx" aria-hidden="true"></canvas>
+<a class="door" id="doorS" href="/services/" aria-label="Services"><span class="door-label">Services</span></a>
+<a class="door" id="doorD" href="/desk/" aria-label="Designs: open my portfolio desk"><span class="door-label">Designs</span></a>
 <div class="grain" id="grain"></div>
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Web Design Development</h1>
 <nav aria-label="Primary">
@@ -237,8 +193,8 @@ body.tall .door-book{width:40px}
     <button class="x" type="button" data-close aria-label="Close">×</button>
     <p class="eyebrow">About</p>
     <h2 class="ph" id="about-h">Lee Thompson</h2>
-    <p class="role">Founder · Ares Web Development &amp; Outreachdev</p>
-    <p class="body">I'm an engineering student at Embry-Riddle Aeronautical University who builds websites and custom software for small to medium businesses. Ares Web Development designs sites around a business's own look and story. Outreachdev gets businesses found online and builds the AI tools and apps that take work off their plate.</p>
+    <p class="role">Founder · Ares Web Services</p>
+    <p class="body">I'm an engineering student at Embry-Riddle Aeronautical University who builds websites and custom software for small to medium businesses. Ares Web Services designs sites around a business's own look and story, gets them found online, and builds the AI tools and apps that take work off their plate.</p>
     <p class="body">You talk to the person writing the code. Every project is scoped clearly and priced up front.</p>
     <div class="mission"><p class="eyebrow">Mission</p><p>Helping small to medium sized businesses optimize their online conversion rates.</p></div>
     <div class="row-links">
@@ -491,11 +447,10 @@ async function intro(){
   slash.style.willChange=rowName.style.willChange=rowServ.style.willChange="transform";
   const hy=finalY/H*100;                                   // the headline's height on screen, in %
   setLight(0,hy,30,26);
-  await pause(250);                                        // fully dark
+  // no wait: the slash is already cutting the name in as the page appears
   const bigN=nameSize*BIG,bigS=servSize*BIG;
-  const drift=nameSize*.5,FL=1500,x0=Math.max(nm.left-bigN*.42,drift+bigN*.45);    // slow fade-in, already drifting right
-  const v0=drift/FL;                                       // px per ms at the end of the float
-  await tween(FL,p=>p,(k,p)=>{const x=x0-drift+drift*p;slashAt(x,0,0,bigN);slash.style.opacity=Math.min(1,p*2);});  // fades in on the line and drifts right: no drop from above
+  const x0=Math.max(nm.left-bigN*.42,bigN*.45),v0=(nm.right-nm.left)/900;   // enters already at wipe speed
+  slashAt(x0,0,0,bigN);slash.style.opacity=1;
   // wipe across: reveal LEE / THOMPSON behind the slash, light blooms as the name appears
   const xr=nm.right+bigN*.3,D1=720,passN=triggerer(nm,rise,"le");
   await tween(D1,p=>p,(k,p)=>{const x=herm(p,x0,xr,v0*D1,(xr-x0)*.35);slashAt(x,0,0,bigN);rowName.style.clipPath=leftOf(x);passN(x,1);
@@ -524,20 +479,25 @@ function placeHeadline(){
   else finalY=Math.round(Math.min(box.y+box.h*.72,H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
 /* Services / Designs sit either side of the head; on tall screens (phones) the head fills the width,
    so they sit side by side below it instead */
+/* Services / Designs sit either side of the head, centred in the open space and clear of the face;
+   on tall screens (phones) the head fills the width, so they sit above it, under the tagline */
+let doorGeo=null;
 function placeDoors(){
   const tall=H>W*1.02;document.body.classList.toggle("tall",tall);
-  const dS=$("doorS"),dD=$("doorD"),kS=dS.querySelector(".door-k"),kD=dD.querySelector(".door-k");
-  const put=(el,x,y)=>{el.style.setProperty("--dx",Math.round(x)+"px");el.style.setProperty("--dy",Math.round(y)+"px");};
-  kS.style.fontSize=kD.style.fontSize="";
-  // phones: the head fills the width, so the words sit low on either side, clear of the face
-  if(tall){const y=H-78;put(dS,W*.25,y);put(dD,W*.75,y);return;}
-  // each word centred in the open space beside the head, at eye height, sized to keep clear of the face
-  const hx=box.x+box.w*.489,half=box.w*.165,hy=box.y+box.h*.3,gap=Math.max(48,W*.04);
-  const leftSpace=hx-half,rightSpace=W-(hx+half);
-  const room=Math.min(leftSpace,rightSpace)-gap-Math.max(24,W*.02);
-  const widest=Math.max(kS.offsetWidth,kD.offsetWidth)*1.12;   // leave room for the hover spacing
-  if(widest>room){const k=Math.max(.45,room/widest),fs=parseFloat(getComputedStyle(kS).fontSize)*k;kS.style.fontSize=kD.style.fontSize=fs.toFixed(1)+"px";}
-  put(dS,(leftSpace-gap)/2,hy);put(dD,hx+half+gap+(rightSpace-gap)/2,hy);
+  let iconW,fontPx,cs,cd,y;
+  // phones: in the open space between the tagline and the top of the hair (over the portrait they'd be lost)
+  if(tall){iconW=Math.min(80,W*.19);fontPx=Math.min(24,W*.062);
+    const below=finalY+servSize*.85+30,hair=box.y+box.h*.037;y=Math.max(below+iconW*.55,(below+hair)/2);cs=W*.27;cd=W*.73;}
+  else{
+    const hx=box.x+box.w*.489,half=box.w*.165,gap=Math.max(48,W*.04);
+    const leftSpace=hx-half,rightSpace=W-(hx+half),room=Math.min(leftSpace,rightSpace)-gap-Math.max(24,W*.02);
+    fontPx=Math.max(22,Math.min(64,room/6.6));iconW=Math.min(150,Math.max(84,fontPx*2.3));
+    y=box.y+box.h*.3;cs=(leftSpace-gap)/2;cd=hx+half+gap+(rightSpace-gap)/2;}
+  const iconH=iconW*48/60,wordGap=fontPx*.55,boxW=Math.max(iconW,fontPx*6.4),boxH=iconH+wordGap+fontPx*1.1;
+  doorGeo={iconW,iconH,fontPx,wordGap,tall,doors:[{id:"doorS",x:cs,y,word:"SERVICES",icon:"window"},{id:"doorD",x:cd,y,word:"DESIGNS",icon:"book"}]};
+  for(const d of doorGeo.doors){const el=$(d.id);el.style.setProperty("--dx",Math.round(d.x)+"px");el.style.setProperty("--dy",Math.round(d.y)+"px");
+    el.style.setProperty("--dw",Math.round(boxW+24)+"px");el.style.setProperty("--dh",Math.round(boxH+24)+"px");}
+  if(window.__fxBuild)window.__fxBuild();
 }
 function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="none";rowServ.style.clipPath="none";slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
@@ -592,6 +552,75 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
 
 
 
+/* ================= Services / Designs: particle icons ================= */
+/* Each icon is a cloud of dots on home points sampled from its outline. Hovering an icon makes extra dots
+   stream out of it and assemble into its word in Cinzel below; leaving sends them back in. The dots dodge
+   the cursor and scatter with scrolling, like the portrait. Touch screens have no hover: words stay formed. */
+(()=>{
+  const cv=$("fx"),cx=cv.getContext("2d");
+  const ICON={
+    book:[["M32 48 C24 44.5 14 44.5 6 48 V18 C14 14.5 24 14.5 32 18 C40 14.5 50 14.5 58 18 V48 C50 44.5 40 44.5 32 48 Z",3],["M32 18 V48",2.2],["M32 18 C37 15.8 42 15.6 46 16.4 V44.6 C42 43.8 37 44 32 46 Z",2.2]],
+    window:[["M8 10 H56 A3 3 0 0 1 59 13 V45 A3 3 0 0 1 56 48 H8 A3 3 0 0 1 5 45 V13 A3 3 0 0 1 8 10 Z",3],["M5 20 H59",2.2],["M12 15 h.1",3.4],["M18 15 h.1",3.4],["M24 15 h.1",3.4],["M14 29 H40",3],["M14 36 H50",3],["M14 43 H32",3]]};
+  const groups=[],hovered=[false,false],touch=matchMedia("(hover:none)").matches,t0=performance.now();
+  let mx=-1e4,my=-1e4,DPRf=1,fade=0;
+  // the lit pixels of a drawing, as points (step = spacing between dots)
+  function sample(w,h,paint,step){const o=document.createElement("canvas");o.width=Math.ceil(w);o.height=Math.ceil(h);const g=o.getContext("2d");paint(g);
+    const d=g.getImageData(0,0,o.width,o.height).data,pts=[];
+    for(let y=0;y<o.height;y+=step)for(let x=0;x<o.width;x+=step){const k=(Math.round(y)*o.width+Math.round(x))*4;if(d[k+3]>110)pts.push(x+(Math.random()-.5)*.8,y+(Math.random()-.5)*.8,d[k+3]/255);}
+    return pts;}
+  function build(){
+    if(!doorGeo)return;const G=doorGeo;DPRf=Math.min(devicePixelRatio||1,2);
+    cv.width=Math.round(W*DPRf);cv.height=Math.round(H*DPRf);groups.length=0;
+    const step=G.tall?1.6:1.8;
+    for(const d of G.doors){
+      const iw=G.iconW,ih=G.iconH,sc=iw/60,fs=G.fontPx;
+      const icon=sample(iw+8,ih+8,g=>{g.translate(4-2*sc,4-10*sc);g.scale(sc,sc);g.strokeStyle="#fff";g.lineJoin=g.lineCap="round";
+        for(const [path,lw] of ICON[d.icon]){g.lineWidth=lw;g.stroke(new Path2D(path));}},step);
+      const ww=fs*6.6,wh=fs*1.35;
+      const word=sample(ww,wh,g=>{g.font="400 "+fs+"px Cinzel, Georgia, serif";g.letterSpacing=(fs*.08)+"px";g.fillStyle="#fff";g.textAlign="center";g.textBaseline="middle";g.fillText(d.word,ww/2,wh/2);},Math.max(1.2,step*.85));
+      const ix=d.x-(iw+8)/2,iy=d.y-(ih+G.wordGap+fs)/2-4,wx=d.x-ww/2,wy=iy+ih+8+G.wordGap-wh*.15;
+      const n=icon.length/3,m=word.length/3;
+      const P={n,m,hx:new Float32Array(n),hy:new Float32Array(n),x:new Float32Array(n),y:new Float32Array(n),vx:new Float32Array(n),vy:new Float32Array(n),c:new Float32Array(n),ph:new Float32Array(n),
+        wx:new Float32Array(m),wy:new Float32Array(m),ox:new Uint16Array(m),t:new Float32Array(m),r:new Float32Array(m),wc:new Float32Array(m)};
+      for(let i=0;i<n;i++){P.hx[i]=ix+icon[i*3];P.hy[i]=iy+icon[i*3+1];P.x[i]=P.hx[i];P.y[i]=P.hy[i];P.c[i]=.55+.45*icon[i*3+2];P.ph[i]=Math.random()*6.283;}
+      for(let j=0;j<m;j++){P.wx[j]=wx+word[j*3];P.wy[j]=wy+word[j*3+1];P.ox[j]=Math.random()*n|0;P.r[j]=.035+Math.random()*.05;P.wc[j]=.6+.4*word[j*3+2];P.t[j]=touch?1:0;}
+      groups.push(P);}
+  }
+  window.__fxBuild=build;build();
+  for(const [i,id] of [[0,"doorS"],[1,"doorD"]]){const el=$(id);
+    const on=()=>{hovered[i]=true;},off=()=>{hovered[i]=false;};
+    el.addEventListener("pointerenter",on);el.addEventListener("pointerleave",off);el.addEventListener("focus",on);el.addEventListener("blur",off);}
+  addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY;},{passive:true});
+  document.addEventListener("pointerleave",()=>{mx=my=-1e4;});
+  function draw(now){
+    requestAnimationFrame(draw);
+    if(!running||!groups.length)return;
+    cx.setTransform(DPRf,0,0,DPRf,0,0);cx.clearRect(0,0,W,H);
+    if(!document.body.classList.contains("ready")){fade=0;return;}
+    fade=Math.min(1,fade+.025);
+    const T=(now-t0)/1000,e=energy,R=58,S=1.6;
+    groups.forEach((P,gi)=>{
+      const want=touch||hovered[gi]?1:0;
+      // icon dots: spring home with a gentle shimmer, dodge the cursor, scatter with scrolling
+      for(let i=0;i<P.n;i++){
+        let tx=P.hx[i]+Math.sin(T*1.3+P.ph[i])*.7,ty=P.hy[i]+Math.cos(T*1.1+P.ph[i])*.7;
+        if(e>.002){tx+=Math.cos(P.ph[i]*7)*e*26;ty+=Math.sin(P.ph[i]*5)*e*26-e*12;}
+        const dx=P.x[i]-mx,dy=P.y[i]-my,d2=dx*dx+dy*dy;
+        if(d2<R*R&&!want){const d=Math.sqrt(d2)||1,f=(1-d/R)*2.4;P.vx[i]+=dx/d*f;P.vy[i]+=dy/d*f;}
+        P.vx[i]=(P.vx[i]+(tx-P.x[i])*.08)*.82;P.vy[i]=(P.vy[i]+(ty-P.y[i])*.08)*.82;P.x[i]+=P.vx[i];P.y[i]+=P.vy[i];
+        const L=Math.round(255*P.c[i]*(want?1:.86));cx.fillStyle="rgba("+L+","+L+","+(L+6)+","+fade+")";cx.fillRect(P.x[i],P.y[i],S,S);}
+      // word dots: born at a random icon dot, they fly out (arcing up) into the word, and back
+      for(let j=0;j<P.m;j++){
+        const t=P.t[j]+=(want-P.t[j])*(want?P.r[j]:P.r[j]*1.6);
+        if(t<.01)continue;
+        const k=t*t*(3-2*t),o=P.ox[j],sx=P.x[o],sy=P.y[o];
+        const x=sx+(P.wx[j]-sx)*k+Math.sin(T*1.7+j)*.4*(1-k),y=sy+(P.wy[j]-sy)*k-Math.sin(k*3.1416)*14;
+        const L=Math.round(255*P.wc[j]);cx.fillStyle="rgba("+L+","+L+","+(L+6)+","+(Math.min(1,t*1.4)*fade)+")";cx.fillRect(x,y,1.3,1.3);}
+    });
+  }
+  requestAnimationFrame(draw);
+})();
+
 /* ================= boot ================= */
 function makeGrain(){const c=document.createElement("canvas");c.width=c.height=160;const g=c.getContext("2d"),im=g.createImageData(160,160);
   for(let i=0;i<im.data.length;i+=4){const v=Math.random()*255;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255;}g.putImageData(im,0,0);
@@ -610,9 +639,9 @@ async function boot(){
   requestAnimationFrame(frame);
   if(RM){setLight(1,lightY(),40,46);$("vig").classList.add("on");await lp;introDone=true;finalState();buildParticles(true);swarmT0=performance.now();gridAlpha=1;ready=true;
     head.style.transform=`translateY(${finalY-H/2}px)`;tag.style.opacity=1;document.body.classList.add("ready");$("grain").classList.add("on");return;}
-  await lp;buildParticles(false);
-  swarmT0=performance.now();  // the portrait streams in while the name is wiped in, not after
-  await intro();introDone=true;await settle();
+  // the wipe starts at once; the portrait streams in as soon as its image arrives, alongside it
+  lp.then(()=>{buildParticles(false);swarmT0=performance.now();});
+  await intro();await lp;introDone=true;await settle();
 }
 boot();
 })();
