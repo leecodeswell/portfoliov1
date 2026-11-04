@@ -25,13 +25,21 @@
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
 body{background:var(--ink);color:var(--fg);font-family:var(--display);-webkit-font-smoothing:antialiased}
 .light{position:fixed;left:0;top:0;width:80vw;height:92vh;background:radial-gradient(ellipse 50% 50% at 50% 50%,var(--spot) 0%,rgba(18,18,22,.55) 48%,transparent 78%);opacity:0;pointer-events:none}
-.vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 80% at 50% 45%,transparent 55%,rgba(0,0,0,.7) 100%);opacity:0;transition:opacity 1.4s ease}
+.vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 80% at 50% 45%,transparent 55%,rgba(0,0,0,.7) 100%);opacity:.001;will-change:opacity;transition:opacity 1.4s ease}
 .vig.on{opacity:1}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #dots{image-rendering:pixelated;touch-action:none}
 .headline{position:fixed;inset:0;pointer-events:none}
 .row{position:absolute;inset:0;text-rendering:geometricPrecision;display:flex;align-items:center;justify-content:center;font-weight:400;letter-spacing:.02em;white-space:nowrap;line-height:1;
   filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
+/* wipe windows: a window three screens wide whose one edge is the slash's line, slid and slanted with a
+   transform; the line inside is counter-transformed so it stays put (see clipLeft / clipRight) */
+.clipwin{position:absolute;top:-50%;height:200%;overflow:hidden;will-change:transform}
+.clipwin.left{left:-300%;width:300%;transform-origin:100% 50%}
+.clipwin.right{left:0;width:300%;transform-origin:0 50%}
+.clipin{position:absolute;top:25%;height:50%;width:33.3333%;will-change:transform;transform-origin:0 50%}
+.clipwin.left .clipin{left:100%}
+.clipwin.right .clipin{left:0}
 .L,.R{display:inline-block}
 .L{transform:translateX(calc(var(--sp,0px)*-1))}
 .R{transform:translateX(var(--sp,0px))}
@@ -41,7 +49,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
   background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
 .tag{position:absolute;left:50%;top:50%;transform:translateX(-50%);font:400 clamp(10px,1.05vw,13px)/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8a8c94;white-space:nowrap;opacity:0;padding:7px 14px;background:rgba(4,4,5,.78);box-shadow:0 0 24px 10px rgba(4,4,5,.6);border-radius:2px;text-shadow:0 1px 2px #000}
-.grain{position:fixed;inset:-50%;pointer-events:none;opacity:0;transition:opacity 1.2s ease;animation:grain 1s steps(6) infinite}
+.grain{position:fixed;inset:-50%;pointer-events:none;opacity:.001;will-change:transform,opacity;transition:opacity 1.2s ease;animation:grain 1s steps(6) infinite}
 .grain.on{opacity:.055}
 @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
 nav{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -158,8 +166,8 @@ body.ready .door{pointer-events:auto}
 <canvas id="grid" aria-hidden="true"></canvas>
 <canvas id="dots" aria-hidden="true"></canvas>
 <div class="headline" id="headline" aria-hidden="true">
-  <div class="row" id="rowName" style="clip-path:inset(0 100% 0 0)"></div>
-  <div class="row" id="rowServ" style="clip-path:inset(0 0 0 100%)"></div>
+  <div class="clipwin left" id="winName"><div class="clipin" id="inName"><div class="row" id="rowName"></div></div></div>
+  <div class="clipwin right" id="winServ"><div class="clipin" id="inServ"><div class="row" id="rowServ"></div></div></div>
   <div class="slash" id="slash">/</div>
   <div class="tag" id="tag">Web Design · Online Visibility · AI Integration</div>
 </div>
@@ -284,7 +292,9 @@ function fit(){
     o.row.style.fontSize="100px";const w=o.L.offsetWidth+o.G.offsetWidth+o.R.offsetWidth;
     const s=Math.min(W*frac/w*100,H*cap);o.row.style.fontSize=s+"px";if(o===nm)nameSize=s;else servSize=s;}
   slashBase=Math.max(nameSize,servSize)*BIG;slash.style.fontSize=slashBase.toFixed(1)+"px";
+  for(const el of [winN,inN,winS,inS])el.style.transform="none";
   measure(nm);measure(sv);
+  if(clipN>-1e5)clipLeft(clipN);else HIDE_N();if(clipS<1e5)clipRight(clipS);else HIDE_S();
 }
 const sScale=()=>servSize/nameSize;
 
@@ -431,9 +441,14 @@ const pause=ms=>tween(ms,p=>p,()=>{});
 const expo=p=>p>=1?1:1-Math.pow(2,-10*p),eout=p=>1-Math.pow(1-p,3),eosine=p=>Math.sin(p*Math.PI/2);
 function slashAt(x,dy,rot,fs){slash.style.transform=`translate(${x.toFixed(2)}px,${dy.toFixed(2)}px) translate(-50%,-50%) rotate(${(+rot).toFixed(3)}deg) scale(${(fs/slashBase).toFixed(4)})`;}
 // hard-edged clip regions either side of a line parallel to the slash, through (x, row centre)
-const xAt=(x,y)=>x+(H/2-y)*SLOPE;
-const leftOf=x=>`polygon(-20px 0px,${xAt(x,0)}px 0px,${xAt(x,H)}px ${H}px,-20px ${H}px)`;
-const rightOf=x=>`polygon(${xAt(x,0)}px 0px,${W+20}px 0px,${W+20}px ${H}px,${xAt(x,H)}px ${H}px)`;
+// show the name left of / the services line right of a line through x parallel to the slash, by sliding
+// and slanting its window and counter-moving the line inside (transforms only: nothing repaints)
+const SKEW=Math.atan(SLOPE)*180/Math.PI;
+const winN=$("winName"),inN=$("inName"),winS=$("winServ"),inS=$("inServ");
+let clipN=-1e5,clipS=1e5;
+function clipWin(win,inner,x){win.style.transform=`translateX(${x.toFixed(2)}px) skewX(${-SKEW}deg)`;inner.style.transform=`skewX(${SKEW}deg) translateX(${(-x).toFixed(2)}px)`;}
+const clipLeft=x=>{clipN=x;clipWin(winN,inN,x);},clipRight=x=>{clipS=x;clipWin(winS,inS,x);};
+const SHOW_N=()=>clipLeft(W*2),HIDE_N=()=>clipLeft(-W),SHOW_S=()=>clipRight(-W),HIDE_S=()=>clipRight(W*2);
 // letters settle up a touch as the wipe uncovers them; animation is removed afterwards so text stays crisp
 function rise(c){const a=c.animate([{transform:"translateY(.16em)"},{transform:"none"}],{duration:300*speed,easing:"cubic-bezier(.2,.8,.3,1)"});a.onfinish=()=>a.cancel();}
 function triggerer(o,fn,key){const done=new Set();return(x,dir)=>{o[key].forEach((cx,i)=>{if(done.has(i))return;if(dir>0?x>=cx:x<=cx){done.add(i);fn(o.chars[i]);}});};}
@@ -453,9 +468,9 @@ async function intro(){
   slashAt(x0,0,0,bigN);slash.style.opacity=1;
   // wipe across: reveal LEE / THOMPSON behind the slash, light blooms as the name appears
   const xr=nm.right+bigN*.3,D1=720,passN=triggerer(nm,rise,"le");
-  await tween(D1,p=>p,(k,p)=>{const x=herm(p,x0,xr,v0*D1,(xr-x0)*.35);slashAt(x,0,0,bigN);rowName.style.clipPath=leftOf(x);passN(x,1);
+  await tween(D1,p=>p,(k,p)=>{const x=herm(p,x0,xr,v0*D1,(xr-x0)*.35);slashAt(x,0,0,bigN);clipLeft(x);passN(x,1);
     const q=Math.min(1,Math.max(0,(x-nm.left)/(nm.right-nm.left)));setLight(.9*q,hy,30+6*q,26+4*q);});
-  rowName.style.clipPath="none";
+  SHOW_N();
   // snap into the gap
   await tween(260,expo,k=>slashAt(xr+(nm.gx-xr)*k,0,0,bigN+(nameSize*REST-bigN)*k));
   await pause(450);
@@ -465,8 +480,8 @@ async function intro(){
   // wipe back: the slash cuts the name away and leaves SOFTWARE / DEVELOPMENT behind it
   const xs0=sv.left-bigS*.3,D2=760,passS=triggerer(sv,rise,"re"),vIn=(xs1-nm.gx)/340*2;
   await tween(D2,p=>p,(k,p)=>{const x=herm(p,xs1,xs0,-vIn*D2,(xs0-xs1)*.35);slashAt(x,0,0,bigS);
-    rowName.style.clipPath=leftOf(x);rowServ.style.clipPath=rightOf(x);passS(x,-1);});
-  rowName.style.visibility="hidden";rowServ.style.clipPath="none";
+    clipLeft(x);clipRight(x);passS(x,-1);});
+  rowName.style.visibility="hidden";SHOW_S();
   await tween(260,expo,k=>slashAt(xs0+(sv.gx-xs0)*k,0,0,bigS+(servSize*REST-bigS)*k));
   await pause(120);
 }
@@ -503,7 +518,7 @@ function placeDoors(){
     el.style.setProperty("--dw",Math.round(boxW+24)+"px");el.style.setProperty("--dh",Math.round(boxH+24)+"px");}
   if(window.__fxBuild)window.__fxBuild();
 }
-function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="none";rowServ.style.clipPath="none";slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
+function finalState(){rowName.style.visibility="hidden";SHOW_N();SHOW_S();slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
   if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
   const ly=lightY(),hy=finalY/H*100;
@@ -566,7 +581,7 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
     book:[["M32 48 C24 44.5 14 44.5 6 48 V18 C14 14.5 24 14.5 32 18 C40 14.5 50 14.5 58 18 V48 C50 44.5 40 44.5 32 48 Z",3],["M32 18 V48",2.2],["M32 18 C37 15.8 42 15.6 46 16.4 V44.6 C42 43.8 37 44 32 46 Z",2.2]],
     window:[["M8 10 H56 A3 3 0 0 1 59 13 V45 A3 3 0 0 1 56 48 H8 A3 3 0 0 1 5 45 V13 A3 3 0 0 1 8 10 Z",3],["M5 20 H59",2.2],["M12 15 h.1",3.4],["M18 15 h.1",3.4],["M24 15 h.1",3.4],["M14 29 H40",3],["M14 36 H50",3],["M14 43 H32",3]]};
   const groups=[],hovered=[false,false],touch=matchMedia("(hover:none)").matches,t0=performance.now();
-  let mx=-1e4,my=-1e4,DPRf=1,fade=0;
+  let mx=-1e4,my=-1e4,DPRf=1,fade=0,launched=false,launchT=0;
   // the lit pixels of a drawing, as points (step = spacing between dots)
   function sample(w,h,paint,step){const o=document.createElement("canvas");o.width=Math.ceil(w);o.height=Math.ceil(h);const g=o.getContext("2d");paint(g);
     const d=g.getImageData(0,0,o.width,o.height).data,pts=[];
@@ -585,9 +600,17 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
       const ix=d.x-(iw+8)/2,iy=d.y-(ih+G.wordGap+fs)/2-4,wx=d.x-ww/2,wy=iy+ih+8+G.wordGap-wh*.15;
       const n=icon.length/3,m=word.length/3;
       const P={n,m,hx:new Float32Array(n),hy:new Float32Array(n),x:new Float32Array(n),y:new Float32Array(n),vx:new Float32Array(n),vy:new Float32Array(n),c:new Float32Array(n),ph:new Float32Array(n),
-        wx:new Float32Array(m),wy:new Float32Array(m),ox:new Uint16Array(m),t:new Float32Array(m),r:new Float32Array(m),wc:new Float32Array(m)};
-      for(let i=0;i<n;i++){P.hx[i]=ix+icon[i*3];P.hy[i]=iy+icon[i*3+1];P.x[i]=P.hx[i];P.y[i]=P.hy[i];P.c[i]=.55+.45*icon[i*3+2];P.ph[i]=Math.random()*6.283;}
-      for(let j=0;j<m;j++){P.wx[j]=wx+word[j*3];P.wy[j]=wy+word[j*3+1];P.ox[j]=Math.random()*n|0;P.r[j]=.035+Math.random()*.05;P.wc[j]=.6+.4*word[j*3+2];P.t[j]=touch?1:0;}
+        wx:new Float32Array(m),wy:new Float32Array(m),ox:new Uint16Array(m),t:new Float32Array(m),r:new Float32Array(m),wc:new Float32Array(m),
+        sx:new Float32Array(n),sy:new Float32Array(n),cx:new Float32Array(n),cy:new Float32Array(n),dl:new Float32Array(n),du:new Float32Array(n),landed:false};
+      // each dot leaves from somewhere on the face, arcs out and lands on its place in the icon
+      const fx0=box.x+box.w*.489,fy0=box.y+box.h*.3,fr=box.w*.11;
+      for(let i=0;i<n;i++){P.hx[i]=ix+icon[i*3];P.hy[i]=iy+icon[i*3+1];P.c[i]=.55+.45*icon[i*3+2];P.ph[i]=Math.random()*6.283;
+        const a=Math.random()*6.283,rr=Math.sqrt(Math.random())*fr;P.sx[i]=fx0+Math.cos(a)*rr;P.sy[i]=fy0+Math.sin(a)*rr*1.2;
+        P.cx[i]=(P.sx[i]+P.hx[i])/2+(Math.random()-.5)*W*.08;P.cy[i]=Math.min(P.sy[i],P.hy[i])-H*(.06+Math.random()*.14);
+        P.dl[i]=Math.random()*.55;P.du[i]=.85+Math.random()*.5;
+        if(launched){P.x[i]=P.hx[i];P.y[i]=P.hy[i];}else{P.x[i]=P.sx[i];P.y[i]=P.sy[i];}}
+      P.landed=launched;
+      for(let j=0;j<m;j++){P.wx[j]=wx+word[j*3];P.wy[j]=wy+word[j*3+1];P.ox[j]=Math.random()*n|0;P.r[j]=.035+Math.random()*.05;P.wc[j]=.6+.4*word[j*3+2];P.t[j]=touch&&launched?1:0;}
       groups.push(P);}
   }
   window.__fxBuild=build;build();
@@ -601,9 +624,20 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
     if(!running||!groups.length)return;
     cx.setTransform(DPRf,0,0,DPRf,0,0);cx.clearRect(0,0,W,H);
     if(!document.body.classList.contains("ready")){fade=0;return;}
-    fade=Math.min(1,fade+.025);
-    const T=(now-t0)/1000,e=energy,R=58,S=1.6;
+    if(!launched&&!launchT)launchT=now;   // the wipe is done: the icons fly in
+    fade=Math.min(1,fade+.06);
+    const T=(now-t0)/1000,e=energy,R=58,S=1.6,L0=(now-launchT)/1000;
     groups.forEach((P,gi)=>{
+      if(!P.landed){
+        // in flight: along a curve from the face to the icon, easing out; then the usual behaviour
+        let done=0;
+        for(let i=0;i<P.n;i++){const q=(L0-P.dl[i])/P.du[i];
+          if(q<=0){continue;}
+          if(q>=1){done++;P.x[i]=P.hx[i];P.y[i]=P.hy[i];}
+          else{const k=1-Math.pow(1-q,3),u=1-k;P.x[i]=u*u*P.sx[i]+2*u*k*P.cx[i]+k*k*P.hx[i];P.y[i]=u*u*P.sy[i]+2*u*k*P.cy[i]+k*k*P.hy[i];}
+          const L=Math.round(255*P.c[i]*.86);cx.fillStyle="rgba("+L+","+L+","+(L+6)+","+Math.min(1,q*3)+")";cx.fillRect(P.x[i],P.y[i],q<.85?1.2:S,q<.85?1.2:S);}
+        if(done===P.n){P.landed=true;if(groups.every(g=>g.landed))launched=true;}
+        return;}
       const want=touch||hovered[gi]?1:0;
       // icon dots: spring home with a gentle shimmer, dodge the cursor, scatter with scrolling
       for(let i=0;i<P.n;i++){
@@ -644,7 +678,17 @@ async function boot(){
   if(RM){setLight(1,lightY(),40,46);$("vig").classList.add("on");await lp;introDone=true;finalState();buildParticles(true);swarmT0=performance.now();gridAlpha=1;ready=true;
     head.style.transform=`translateY(${finalY-H/2}px)`;tag.style.opacity=1;document.body.classList.add("ready");$("grain").classList.add("on");return;}
   // the wipe starts at once; the portrait streams in as soon as its image arrives, alongside it
-  lp.then(()=>{buildParticles(false);swarmT0=performance.now();});
+  // all the heavy setup happens behind the first black frame (waiting at most 0.7 s for the portrait),
+  // so the wipe then runs on a quiet main thread; a slow image joins in when it arrives
+  const early=await Promise.race([lp.then(()=>true),new Promise(r=>setTimeout(()=>r(false),700))]);
+  const startSwarm=()=>{buildParticles(false);swarmT0=performance.now();};
+  // warm-up, invisible (0.1% opacity): the slash and both headline lines get painted once with their
+  // shadows, so their first real frames in the wipe don't stall
+  head.style.opacity=".001";SHOW_N();SHOW_S();slash.style.opacity="1";slashAt(nm.left,0,0,nameSize*BIG);
+  if(early)startSwarm();else lp.then(startSwarm);
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+  HIDE_N();HIDE_S();slash.style.opacity="0";head.style.opacity="";
+  if(early)swarmT0=performance.now();
   await intro();await lp;introDone=true;await settle();
 }
 boot();
