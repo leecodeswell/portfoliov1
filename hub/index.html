@@ -373,11 +373,15 @@ const eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
 let px0=0,py0=0,px1=-1,py1=-1,still=false;
 // each dot's swirl angle comes from one of 32 steps, so the trig is done 32 times a frame instead of once per dot
 const COS=new Float32Array(32),SIN=new Float32Array(32);
+let sBase=-1,sT=0,sLast=0;
 function drawDots(t){
   if(!buf||swarmT0<0)return;
   const e=energy;
   if(still&&e<=.002)return;
-  const T=(t-swarmT0)/1000;
+  // the swarm runs on its own clock, capped at 50 ms a frame, so a stalled or hidden start can't skip it
+  if(swarmT0!==sBase){sBase=swarmT0;sT=0;sLast=t;}
+  sT+=Math.max(0,Math.min(t-sLast,50))/1000;sLast=t;
+  const T=sT;
   const G=GLD;
   if(!G)for(let ry=py0;ry<=py1;ry++){const o=ry*W;buf.fill(0,o+px0,o+px1+1);}
   const cx=box.x+box.w/2,cy=box.y+box.h*.35,ang=e*.6*swirl;
@@ -473,6 +477,7 @@ async function intro(){
   SHOW_N();
   // snap into the gap
   await tween(260,expo,k=>slashAt(xr+(nm.gx-xr)*k,0,0,bigN+(nameSize*REST-bigN)*k));
+  liftLight();
   await pause(450);
   // glide past the end of the services line, growing for the wipe
   const xs1=sv.right+bigS*.3;
@@ -487,6 +492,9 @@ async function intro(){
 }
 let finalY=0;
 const lightY=()=>((box.y+box.h*.28)/H*100);
+// light lifts off the headline and opens up behind the head, like the reel (starts as soon as the name is in)
+let lightP=null;
+function liftLight(){if(!lightP){const ly=lightY(),hy=finalY/H*100;lightP=tween(1600,eout,p=>setLight(.9+.1*p,hy+(ly-hy)*p,30+(40-30)*p,26+(46-26)*p));}return lightP;}
 function placeHeadline(){
   // phones/tall screens: centre the headline (+ tagline) in the open space between the nav and the top of the hair
   // phones/tall screens: headline (+ tagline), then the Services / Designs icons, then the bust, top to
@@ -521,9 +529,7 @@ function placeDoors(){
 function finalState(){rowName.style.visibility="hidden";SHOW_N();SHOW_S();slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
   if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
-  const ly=lightY(),hy=finalY/H*100;
-  // light lifts off the headline and opens up behind the head, like the reel
-  const tg=tween(1600,eout,p=>setLight(.9+.1*p,hy+(ly-hy)*p,30+(40-30)*p,26+(46-26)*p));
+  const tg=liftLight();
   tween(1600,eout,p=>{gridAlpha=p;});
   tag.animate([{opacity:0,transform:"translate(-50%,8px)"},{opacity:1,transform:"translate(-50%,0)"}],{duration:500,delay:500,fill:"forwards",easing:"ease-out"});
   await tg;
@@ -667,7 +673,8 @@ let introDone=false;
 function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);gcv.width=W*DPR|0;gcv.height=H*DPR|0;
   layout();fit();placeHeadline();placeDoors();
   if(introDone){finalState();setLight(1,lightY(),40,46);}
-  if(img&&swarmT0>=0)buildParticles(true);}
+  // a resize mid-swarm (e.g. a phone's address bar) restarts the swarm instead of snapping it in
+  if(img&&swarmT0>=0){const done=sT>3.6;buildParticles(done);if(!done)swarmT0=performance.now();}}
 let rt=0;
 async function boot(){
   makeGrain();
