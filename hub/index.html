@@ -30,6 +30,8 @@ body{background:var(--ink);color:var(--fg);font-family:var(--display);-webkit-fo
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #dots{image-rendering:pixelated;touch-action:none}
 .headline{position:fixed;inset:0;pointer-events:none}
+/* every O gets a little hairline through its top left, slanted like the slash */
+.ch.o{position:relative}.ch.o::after{content:"";position:absolute;left:4%;top:16%;width:.045em;height:.34em;background:var(--chrome-mid);transform:rotate(19deg);transform-origin:50% 50%;pointer-events:none}
 .row{position:absolute;inset:0;text-rendering:geometricPrecision;display:flex;align-items:center;justify-content:center;font-weight:400;letter-spacing:.02em;white-space:nowrap;line-height:1;
   filter:drop-shadow(0 .035em 0 #26272b) drop-shadow(0 .07em 0 #0b0b0d) drop-shadow(0 .16em .2em rgba(0,0,0,.97))}
 /* wipe windows: a window three screens wide whose one edge is the slash's line, slid and slanted with a
@@ -280,7 +282,7 @@ let W=0,H=0,DPR=1;
 /* ================= headline ================= */
 function build(row,[l,r]){row.innerHTML="";const L=document.createElement("span"),G=document.createElement("span"),R=document.createElement("span");
   L.className="L";G.className="gap";R.className="R";
-  const mk=(box,t)=>[...t].map(c=>{const s=document.createElement("span");s.className="ch";s.textContent=c;box.appendChild(s);return s;});
+  const mk=(box,t)=>[...t].map(c=>{const s=document.createElement("span");s.className=c==="O"?"ch o":"ch";s.textContent=c;box.appendChild(s);return s;});
   const lc=mk(L,l),rc=mk(R,r);row.append(L,G,R);return{row,L,G,R,chars:[...lc,...rc]};}
 const nm=build(rowName,["LEE","THOMPSON"]),sv=build(rowServ,["WEB\u00a0DESIGN","DEVELOPMENT"]);
 const REST=1.15,BIG=2.1,SLOPE=.34;   // slash size at rest / while wiping (x row font-size); slant of the "/" glyph
