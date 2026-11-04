@@ -474,20 +474,24 @@ let finalY=0;
 const lightY=()=>((box.y+box.h*.28)/H*100);
 function placeHeadline(){
   // phones/tall screens: centre the headline (+ tagline) in the open space between the nav and the top of the hair
+  // phones/tall screens: headline (+ tagline), then the Services / Designs icons, then the bust, top to
+  // bottom, with even gaps from the nav down to the top of the hair
   if(H>W*1.02){const navB=Math.max(64,H*.075),hair=box.y+box.h*.037,blockH=servSize*.85+servSize*.85+16;
-    finalY=Math.round(navB+(hair-navB)/2-(blockH/2-servSize*.5));}
+    const m=tallDoorMetrics(),gap=Math.max(12,(hair-navB-blockH-m.h)/3);
+    finalY=Math.round(navB+gap+servSize*.5);tallDoorY=navB+gap+blockH+gap+m.h/2;}
   else finalY=Math.round(Math.min(box.y+box.h*.72,H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
 /* Services / Designs sit either side of the head; on tall screens (phones) the head fills the width,
    so they sit side by side below it instead */
 /* Services / Designs sit either side of the head, centred in the open space and clear of the face;
    on tall screens (phones) the head fills the width, so they sit above it, under the tagline */
-let doorGeo=null;
+let doorGeo=null,tallDoorY=0;
+// phone-sized icon + word, and the height of that block (icon, gap, word)
+function tallDoorMetrics(){const iconW=Math.min(80,W*.19),fontPx=Math.min(24,W*.062);return{iconW,fontPx,h:iconW*48/60+fontPx*.55+fontPx*1.1};}
 function placeDoors(){
   const tall=H>W*1.02;document.body.classList.toggle("tall",tall);
   let iconW,fontPx,cs,cd,y;
   // phones: in the open space between the tagline and the top of the hair (over the portrait they'd be lost)
-  if(tall){iconW=Math.min(80,W*.19);fontPx=Math.min(24,W*.062);
-    const below=finalY+servSize*.85+30,hair=box.y+box.h*.037;y=Math.max(below+iconW*.55,(below+hair)/2);cs=W*.27;cd=W*.73;}
+  if(tall){const m=tallDoorMetrics();iconW=m.iconW;fontPx=m.fontPx;y=tallDoorY;cs=W*.27;cd=W*.73;}
   else{
     const hx=box.x+box.w*.489,half=box.w*.165,gap=Math.max(48,W*.04);
     const leftSpace=hx-half,rightSpace=W-(hx+half),room=Math.min(leftSpace,rightSpace)-gap-Math.max(24,W*.02);
