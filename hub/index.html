@@ -607,7 +607,7 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
       const n=icon.length/3,m=word.length/3;
       const P={n,m,hx:new Float32Array(n),hy:new Float32Array(n),x:new Float32Array(n),y:new Float32Array(n),vx:new Float32Array(n),vy:new Float32Array(n),c:new Float32Array(n),ph:new Float32Array(n),
         wx:new Float32Array(m),wy:new Float32Array(m),ox:new Uint16Array(m),t:new Float32Array(m),r:new Float32Array(m),wc:new Float32Array(m),
-        sx:new Float32Array(n),sy:new Float32Array(n),cx:new Float32Array(n),cy:new Float32Array(n),dl:new Float32Array(n),du:new Float32Array(n),landed:false};
+        ax:d.x,ay:d.y,sx:new Float32Array(n),sy:new Float32Array(n),cx:new Float32Array(n),cy:new Float32Array(n),dl:new Float32Array(n),du:new Float32Array(n),landed:false};
       // each dot leaves from somewhere on the face, arcs out and lands on its place in the icon
       const fx0=box.x+box.w*.489,fy0=box.y+box.h*.3,fr=box.w*.11;
       for(let i=0;i<n;i++){P.hx[i]=ix+icon[i*3];P.hy[i]=iy+icon[i*3+1];P.c[i]=.55+.45*icon[i*3+2];P.ph[i]=Math.random()*6.283;
@@ -661,6 +661,12 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
         const x=sx+(P.wx[j]-sx)*k+Math.sin(T*1.7+j)*.4*(1-k),y=sy+(P.wy[j]-sy)*k-Math.sin(k*3.1416)*14;
         const L=Math.round(255*P.wc[j]);cx.fillStyle="rgba("+L+","+L+","+(L+6)+","+(Math.min(1,t*1.4)*fade)+")";cx.fillRect(x,y,1.3,1.3);}
     });
+    // a faint trail of dots drifting from the cursor to each icon
+    if(mx>-1e3&&launched){const sp=11;
+      for(const P of groups){const dx=P.ax-mx,dy=P.ay-my,len=Math.hypot(dx,dy);if(len<40)continue;
+        const nx=-dy/len,ny=dx/len,n=len/sp|0,off=(T*28)%sp;
+        for(let i=0;i<n;i++){const d=i*sp+off,f=d/len,w=Math.sin(T*2+i*.7)*1.2,a=.22*fade*Math.sin(Math.PI*f);
+          if(a<.01)continue;cx.fillStyle="rgba(220,222,230,"+a.toFixed(3)+")";cx.fillRect(mx+dx*f+nx*w,my+dy*f+ny*w,1.2,1.2);}}}
   }
   requestAnimationFrame(draw);
 })();
