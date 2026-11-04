@@ -120,6 +120,54 @@ body.ready nav{opacity:1;transform:none}
 body.ready .foot{opacity:1}
 .skip{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#5d5f67;background:none;border:0;padding:8px;cursor:pointer;transition:opacity .3s}
 body.ready .skip{opacity:0;pointer-events:none}
+/* ---------- Services / Designs: either side of the head ---------- */
+.door{position:fixed;left:0;top:0;z-index:5;display:grid;justify-items:center;gap:9px;padding:24px 34px 20px;box-sizing:border-box;min-width:210px;
+  text-decoration:none;color:var(--fg);border-radius:4px;isolation:isolate;
+  background:linear-gradient(180deg,rgba(18,18,22,.72),rgba(6,6,8,.78));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:1px solid rgba(244,244,242,.16);box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+  opacity:0;pointer-events:none;transform:translate(var(--dx,0px),var(--dy,0px)) translate(-50%,-50%) translateY(14px);
+  transition:opacity .8s ease,transform .7s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .35s;cursor:pointer}
+body.ready .door{opacity:1;pointer-events:auto;transform:translate(var(--dx,0px),var(--dy,0px)) translate(-50%,-50%)}
+body.ready #doorD{transition-delay:.12s,.12s,0s,0s}
+/* a slow light sweep along the edge, and a soft pulse: they ask to be clicked */
+.door::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;z-index:-1;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.85) 48%,transparent 66%) 0 0/250% 100% no-repeat;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  animation:sweep 4.2s ease-in-out infinite}
+#doorD::before{animation-delay:2.1s}
+.door::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-2;pointer-events:none;box-shadow:0 0 0 0 rgba(220,226,255,0);animation:pulse 4.2s ease-out infinite}
+#doorD::after{animation-delay:2.1s}
+@keyframes sweep{0%{background-position:130% 0}55%,100%{background-position:-130% 0}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(220,226,255,.22)}60%,100%{box-shadow:0 0 0 18px rgba(220,226,255,0)}}
+.door-k{font-weight:900;font-variation-settings:"wdth" 112;font-size:clamp(26px,2.8vw,42px);line-height:1;letter-spacing:.03em;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--chrome-hi) 0%,var(--chrome-mid) 38%,#a9abb2 58%,var(--chrome-lo) 86%,#8f9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 .05em 0 #0b0b0d)}
+.door-s{font:500 10px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#a3a5ad;white-space:nowrap}
+.door-go{margin-top:6px;font:500 10px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--fg);padding:9px 14px;border:1px solid rgba(244,244,242,.3);border-radius:2px;transition:background .3s,color .3s,border-color .3s}
+.door-go i{display:inline-block;font-style:normal;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.door-book{width:54px;height:auto;overflow:visible;margin-bottom:2px}
+.door-book .cover{fill:none;stroke:rgba(244,244,242,.6);stroke-width:1.4;stroke-linejoin:round}
+.door-book .spine{stroke:rgba(244,244,242,.3);stroke-width:1.2}
+.door-book .leaf{transform-origin:60px 33px;transform-box:view-box;animation:leaf 3.6s cubic-bezier(.55,.1,.35,1) infinite;opacity:0}
+.door-book .leaf path{fill:rgba(244,244,242,.06);stroke:rgba(244,244,242,.8);stroke-width:1.1;stroke-linejoin:round}
+.door-book .l2{animation-delay:1.8s}
+.door-win .dot{fill:rgba(244,244,242,.45)}
+.door-win .type{stroke:rgba(244,244,242,.75);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:70;stroke-dashoffset:70;animation:type 3.6s ease-in-out infinite}
+.door-win .t2{animation-delay:.35s}.door-win .t3{animation-delay:.7s}
+@keyframes type{0%{stroke-dashoffset:70}35%,75%{stroke-dashoffset:0}100%{stroke-dashoffset:-70}}
+@media (hover:hover){
+  body.ready .door:hover,body.ready .door:focus-visible{transform:translate(var(--dx,0px),var(--dy,0px)) translate(-50%,-50%) translateY(-6px) scale(1.04);
+    border-color:rgba(244,244,242,.55);box-shadow:0 26px 70px rgba(0,0,0,.7),0 0 46px rgba(210,218,255,.18),inset 0 1px 0 rgba(255,255,255,.1)}
+  .door:hover .door-go,.door:focus-visible .door-go{background:var(--fg);color:#050506;border-color:var(--fg)}
+  .door:hover .door-go i,.door:focus-visible .door-go i{transform:translateX(5px)}
+}
+.door:active{transition-duration:.1s}
+body.tall .door{min-width:0;width:min(44vw,190px);padding:12px 10px 11px;gap:5px}
+body.tall .door-go{margin-top:2px;padding:7px 11px}
+body.tall .door-k{font-size:clamp(18px,5.4vw,26px)}
+body.tall .door-s{font-size:8.5px;letter-spacing:.08em;white-space:normal;text-align:center}
+body.tall .door-book{width:32px}
+@media (prefers-reduced-motion:reduce){.door::before,.door::after,.door-book .leaf,.door-win .type{animation:none}.door-win .type{stroke-dashoffset:0}.door-book .l1{opacity:1;transform:scaleX(.5)}}
 @media (max-width:640px){
   :root{--wdth:96}
   .brand{font-size:11px}
@@ -153,12 +201,34 @@ body.ready .skip{opacity:0;pointer-events:none}
   <div class="slash" id="slash">/</div>
   <div class="tag" id="tag">Web Design · Online Visibility · AI Integration</div>
 </div>
+<a class="door" id="doorS" href="/services/">
+  <svg class="door-book door-win" viewBox="0 0 120 64" aria-hidden="true">
+    <rect class="cover" x="14" y="8" width="92" height="50" rx="3"/>
+    <path class="spine" d="M14 19 H106"/>
+    <circle class="dot" cx="22" cy="13.5" r="1.6"/><circle class="dot" cx="28" cy="13.5" r="1.6"/><circle class="dot" cx="34" cy="13.5" r="1.6"/>
+    <path class="type t1" d="M24 30 H70"/><path class="type t2" d="M24 39 H88"/><path class="type t3" d="M24 48 H56"/>
+  </svg>
+  <span class="door-k">Services</span>
+  <span class="door-s">Websites · AI tools · Apps</span>
+  <span class="door-go" aria-hidden="true">Explore <i>→</i></span>
+</a>
+<a class="door" id="doorD" href="/desk/">
+  <svg class="door-book" viewBox="0 0 120 64" aria-hidden="true">
+    <path class="spine" d="M60 10 V58"/>
+    <path class="cover" d="M60 58 C44 52 22 52 6 58 V12 C22 6 44 6 60 12 C76 6 98 6 114 12 V58 C98 52 76 52 60 58 Z"/>
+    <g class="leaf l1"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
+    <g class="leaf l2"><path d="M60 12 C74 7 92 7 106 12 V54 C92 49 74 49 60 54 Z"/></g>
+  </svg>
+  <span class="door-k">Designs</span>
+  <span class="door-s">Open my portfolio desk</span>
+  <span class="door-go" aria-hidden="true">Open <i>→</i></span>
+</a>
 <div class="grain" id="grain"></div>
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lee Thompson — Web Design Development</h1>
 <nav aria-label="Primary">
   <a class="brand" href="/">LEE THOMPSON</a>
   <ul>
-    <li><a class="link" href="https://outreachdev.dev">Services</a></li>
+    <li><a class="link" href="/services/">Services</a></li>
     <li class="has-peek"><a class="link" id="designs" href="/desk/" aria-describedby="peek">Designs</a>
       <div class="peek" id="peek" role="tooltip">
         <svg class="peek-book" viewBox="0 0 120 64" aria-hidden="true">
@@ -186,7 +256,7 @@ body.ready .skip{opacity:0;pointer-events:none}
     <div class="mission"><p class="eyebrow">Mission</p><p>Helping small to medium sized businesses optimize their online conversion rates.</p></div>
     <div class="row-links">
       <a href="/desk/">See my desk</a>
-      <a href="https://outreachdev.dev">Outreachdev</a>
+      <a href="/services/">Services</a>
       <button type="button" data-open="contact">Get in touch</button>
     </div>
   </div>
@@ -411,7 +481,7 @@ function frame(t){
 document.addEventListener("visibilitychange",()=>{running=!document.hidden;if(running){last=performance.now();requestAnimationFrame(frame);}});
 
 /* ================= intro: slash wipe ================= */
-let speed=1;
+let speed=.55;  // a mini version of the full reel: the same wipe in a little over half the time
 function tween(dur,ease,fn){return new Promise(res=>{let acc=0,prev=performance.now();
   const f=now=>{acc+=(now-prev)/speed;prev=now;const p=Math.min(1,acc/dur);fn(ease(p),p);p<1?requestAnimationFrame(f):res();};requestAnimationFrame(f);});}
 const pause=ms=>tween(ms,p=>p,()=>{});
@@ -464,6 +534,16 @@ function placeHeadline(){
   if(H>W*1.02){const navB=Math.max(64,H*.075),hair=box.y+box.h*.037,blockH=servSize*.85+servSize*.85+16;
     finalY=Math.round(navB+(hair-navB)/2-(blockH/2-servSize*.5));}
   else finalY=Math.round(Math.min(box.y+box.h*.72,H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;if(ready)head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
+/* Services / Designs sit either side of the head; on tall screens (phones) the head fills the width,
+   so they sit side by side below it instead */
+function placeDoors(){
+  const tall=H>W*1.02;document.body.classList.toggle("tall",tall);
+  const put=(el,x,y)=>{el.style.setProperty("--dx",Math.round(x)+"px");el.style.setProperty("--dy",Math.round(y)+"px");};
+  // phones: low over the shoulders, clear of the face, just above the footer
+  if(tall){const y=H-82;put($("doorS"),W*.27,y);put($("doorD"),W*.73,y);return;}
+  const hx=box.x+box.w*.489,hy=box.y+box.h*.32,off=Math.max(box.w*.27,250),m=150;
+  put($("doorS"),Math.max(m,hx-off),hy);put($("doorD"),Math.min(W-m,hx+off),hy);
+}
 function finalState(){rowName.style.visibility="hidden";rowName.style.clipPath="none";rowServ.style.clipPath="none";slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
   if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
@@ -525,7 +605,7 @@ function makeGrain(){const c=document.createElement("canvas");c.width=c.height=1
   $("grain").style.backgroundImage=`url(${c.toDataURL()})`;}
 let introDone=false;
 function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);gcv.width=W*DPR|0;gcv.height=H*DPR|0;
-  layout();fit();placeHeadline();
+  layout();fit();placeHeadline();placeDoors();
   if(introDone){finalState();setLight(1,lightY(),40,46);}
   if(img&&swarmT0>=0)buildParticles(true);}
 let rt=0;
@@ -538,6 +618,7 @@ async function boot(){
   if(RM){setLight(1,lightY(),40,46);$("vig").classList.add("on");await lp;introDone=true;finalState();buildParticles(true);swarmT0=performance.now();gridAlpha=1;ready=true;
     head.style.transform=`translateY(${finalY-H/2}px)`;tag.style.opacity=1;document.body.classList.add("ready");$("grain").classList.add("on");return;}
   await lp;buildParticles(false);
+  swarmT0=performance.now();  // the portrait streams in while the name is wiped in, not after
   await intro();introDone=true;await settle();
 }
 boot();
