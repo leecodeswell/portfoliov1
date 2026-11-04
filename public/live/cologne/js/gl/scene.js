@@ -396,6 +396,9 @@ export class WallScene {
   }
 
   resize() {
+    // the desk hides this page with display:none between visits, which reports a 0 x 0 window;
+    // sizing to that would put 0/0 into the aspect and velocity and reveal the whole relief
+    if (!document.documentElement.clientWidth || !window.innerHeight) return;
     this.width = document.documentElement.clientWidth; // excludes the scrollbar
     this.height = window.innerHeight;
     // the wall is soft and the films are 1080p, so extra pixels buy little
@@ -470,6 +473,9 @@ export class WallScene {
 
   render(deltaMs) {
     if (!this.relief) return;
+    // a zero or negative frame time (two frames on one timestamp, or a hidden page coming back) would
+    // divide the velocity by zero; one NaN in the flow map then spreads and reveals the whole relief for good
+    if (!(deltaMs > 0)) return;
     const dt = Math.min(deltaMs, 64) / 16.667;
     this.time += deltaMs / 1000;
 
@@ -481,6 +487,7 @@ export class WallScene {
     v.x *= this.width / this.height;
     const rate = v.lengthSq() > 1e-6 ? 0.1 : 0.04;
     this.velocity.lerp(v, 1 - Math.pow(1 - rate, dt));
+    if (!Number.isFinite(this.velocity.x) || !Number.isFinite(this.velocity.y)) this.velocity.set(0, 0);
     this.pointerPrev.copy(this.pointerSmooth);
 
     // scroll → wall offset, and shift the flow so trails stay on the wall
