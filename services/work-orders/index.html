@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Order Manager</title>
+  <meta name="description" content="Work Order Manager by Ares Web Services: replace the work order spreadsheet with numbered jobs, live status and a full change history.">
+  <meta name="theme-color" content="#F6F7FB">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="od-grad" gradientUnits="userSpaceOnUse" x1="60" y1="30" x2="140" y2="170"><stop offset="0" style="stop-color:var(--logo-a)"/><stop offset="1" style="stop-color:var(--logo-b)"/></linearGradient></defs><symbol id="o-mark" viewBox="2 8 60 48"><g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round"><path stroke-width="3.2" d="M32 48 C24 44.5 14 44.5 6 48 V18 C14 14.5 24 14.5 32 18 C40 14.5 50 14.5 58 18 V48 C50 44.5 40 44.5 32 48 Z"/><path stroke-width="2.4" stroke-opacity=".55" d="M32 18 V48"/><path stroke-width="2.4" stroke-opacity=".8" fill="currentColor" fill-opacity=".08" d="M32 18 C37 15.8 42 15.6 46 16.4 V44.6 C42 43.8 37 44 32 46 Z"/></g></symbol></svg>
+  <div id="app" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="print-root" aria-hidden="true"></div>
+  <script src="config.js"></script>
+  <script src="wo-core.js"></script>
+  <script src="wo-xlsx.js"></script>
+  <script src="wo-localdb.js"></script>
+  <script src="wo-store.js"></script>
+  <script src="wo-app.js"></script>
+</body>
+</html>
