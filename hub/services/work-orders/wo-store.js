@@ -182,7 +182,7 @@
      Plans: free trial, then paid (same model as Scheduling Agent)
      --------------------------------------------------------------- */
   var BILL = window.WO_BILLING || {};
-  St.trialDays = BILL.trialDays || 14;
+  St.trialDays = BILL.trialDays || 7;
   St.access = function () {
     if (St.mode === "local") return { state: "local" };
     var b = St.data.billing || {}, org = St.data.org || {};
@@ -481,6 +481,8 @@
   St.fileLimit = function () { return St.mode === "local" ? 700 * 1024 : 20 * 1024 * 1024; };
   St.uploadFile = function (number, file) {
     guard();
+    if (/html|javascript|ecmascript|^image\/svg|^(text|application)\/xml/i.test(file.type || "") || /\.(html?|xhtml|svg|js|mjs)$/i.test(file.name || ""))
+      return Promise.reject({ message: "Web pages, scripts and SVG images can't be attached. Save it as a PDF or picture instead." });
     if (file.size > St.fileLimit()) return Promise.reject({ message: St.mode === "local" ? "In this browser-only copy, files must be under 700 KB. Online, up to 20 MB." : "Files must be under 20 MB." });
     var meta = { id: W.uid(), name: file.name, size: file.size, type: file.type || "", by: St.user.uid, byName: myName(), at: Date.now() };
     if (St.mode === "local" || fake) {

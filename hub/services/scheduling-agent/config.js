@@ -1,3 +1,10 @@
+/* Never run inside another site's frame (stops "clickjacking", where a page hides this app
+   under fake buttons to trick clicks). If framed, break out, and stay hidden if we can't. */
+if (window.top !== window.self) {
+  try { window.top.location.replace(window.location.href); } catch (e) { }
+  document.documentElement.style.visibility = "hidden";
+}
+
 /* Firebase connection for Scheduling Agent.
    These values identify your project. They are safe to publish: access is
    controlled by the security rules in firestore.rules, not by hiding this. */
@@ -12,9 +19,9 @@ window.SA_FIREBASE_CONFIG = {
 
 /* Plans and prices shown in the app. Change them here any time.
    url: the Payment Link from Stripe for that product (leave null until you have it).
-   If you change trialDays, change the "14" in firestore.rules too. */
+   Keep this the same as the trial length in firestore.rules (search that file for "created"); if you change one, change the other. */
 window.SA_BILLING = {
-  trialDays: 14,
+  trialDays: 7,
   contact: "thompsontechnologiesleet@gmail.com",
   plans: [
     { id: "lifetime", label: "Pay once", price: "$60", per: "one time", note: "Use it for as long as you like. Updates to version 1 included.", url: "https://buy.stripe.com/cNi5kDdN67cf2GcgfM2wU02" },

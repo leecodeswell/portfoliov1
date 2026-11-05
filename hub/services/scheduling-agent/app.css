@@ -14,7 +14,7 @@
   --line-2: #D6D9E3;
   --text: #1C1D24;
   --muted: #5D6170;
-  --faint: #8C90A0;
+  --faint: #676B7B;
   --input-hover: #C3C7D4;
   --logo-a: #6F707C; --logo-b: #24252C;
   --switch-off: #D5D8E2;
@@ -69,7 +69,7 @@
   --line-2: #393B48;
   --text: #ECEDF2;
   --muted: #A6A9B7;
-  --faint: #7B7E8D;
+  --faint: #878A99;
   --input-hover: #4A4D5C;
   --logo-a: #F0F0F4; --logo-b: #9A9AA6;
   --switch-off: #3A3C49;
@@ -152,7 +152,7 @@ button.chip:hover { filter: brightness(.97); }
 .pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
 .pill-draft { background: var(--hover); color: var(--muted); }
 .pill-live { background: var(--ok-soft); color: var(--ok); }
-.pill-warn { background: var(--warn-soft); color: var(--warn); }
+.pill-warn { background: var(--warn-soft); color: var(--warn-ink); }
 .pill-accent { background: var(--accent-soft); color: var(--accent-ink); }
 
 .switch { position: relative; width: 40px; height: 24px; flex: none; }
@@ -321,10 +321,10 @@ table.tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size
 }
 .av-cell:hover { border-color: var(--accent-line); }
 .av-any { background: var(--ok-soft); border-color: var(--ok-line); color: var(--ok); }
-.av-off { background: var(--off-bg); color: var(--faint); text-decoration: line-through; }
+.av-off { background: var(--off-bg); color: var(--muted); text-decoration: line-through; }
 .av-win { background: var(--win-bg); border-color: var(--win-line); color: var(--win-ink); }
 .av-none { color: var(--faint); border-style: dashed; }
-.av-cell.from-pattern { opacity: .78; }
+.av-cell.from-pattern { border-style: dashed; font-style: italic; }   /* from their usual week: marked by shape, not by fading (keeps text readable) */
 .av-cell .src { position: absolute; top: 4px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); align-items: center; }
 .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 6px; vertical-align: -3px; border: 1px solid var(--line-2); }

@@ -34,7 +34,7 @@
      ended and nothing is paid, so this is enforced there, not just in this page. */
   C.billing = { paid: false, plan: null, ai: false, createdMs: null };
   var BILL = window.SA_BILLING || {};
-  C.trialDays = BILL.trialDays || 14;
+  C.trialDays = BILL.trialDays || 7;
   function tsMs(t) { return !t ? null : typeof t.toMillis === "function" ? t.toMillis() : t.__ts ? t.__ts : typeof t === "number" ? t : null; }
   C.access = function () {
     var b = C.billing;

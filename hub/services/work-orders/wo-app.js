@@ -48,7 +48,51 @@
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var DAY3 = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   function $(s, r) { return (r || document).querySelector(s); }
+  // Only web links and uploaded files can be opened. A javascript: or other odd link (which a
+  // team member could only get in by bypassing the app) is shown as a dead link instead.
+  function safeUrl(u) {
+    u = String(u == null ? "" : u).trim();
+    if (/^https?:\/\//i.test(u) || /^blob:/i.test(u)) return u;
+    if (St.mode === "local" && /^data:(image\/(png|jpe?g|gif|webp)|application\/pdf|text\/plain|text\/csv|application\/vnd|application\/msword|application\/zip|application\/octet-stream)[;,]/i.test(u)) return u;
+    return "#";
+  }
+  // Logos are pictures the owner uploaded (data:image/...) or web images. Anything else is dropped.
+  function safeImg(u) { u = String(u == null ? "" : u); return /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+\/=\s]+$/i.test(u) || /^https:\/\//i.test(u) ? u : ""; }
+  function hexOr(c, d) { return /^#[0-9a-f]{6}$/i.test(String(c || "")) ? c : d; }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  // Accessibility safety net: any form field drawn without a label gets one from what's around it
+  // (the setting's title, its table column, or its placeholder), so screen readers can name it.
+  function nameFields(root) {
+    root.querySelectorAll("input:not([type=hidden]),select,textarea").forEach(function (el) {
+      var lab = el.closest("label") || (el.id && root.querySelector('label[for="' + el.id + '"]'));
+      if (el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || (lab && lab.textContent.trim())) return;
+      var t = "", row = el.closest(".set-row"), cell = el.closest("td,th"), n = +(el.dataset.i || 0) + 1;
+      var named = { "set-st-name": "Status " + n + " name", "set-st-cat": "Status " + n + " type", "fld-label": "Extra field " + n + " name", "fld-type": "Extra field " + n + " type", "fld-opts": "Extra field " + n + " choices" }[el.dataset.change || ""];
+      if (named) t = named;
+      else if (/^pa-/.test(el.id || "")) t = "First person";
+      else if (/^pb-/.test(el.id || "")) t = "Second person";
+      if (!t && row) { var b = row.querySelector(".txt b, .txt"); t = b ? b.textContent : ""; }
+      if (!t && cell && cell.parentElement) {
+        var table = cell.closest("table"), i = Array.prototype.indexOf.call(cell.parentElement.children, cell), th = table && table.querySelector("thead tr");
+        if (th && th.children[i]) t = th.children[i].textContent;
+      }
+      t = (t || el.placeholder || el.title || "").replace(/\s+/g, " ").trim();
+      if (t) el.setAttribute("aria-label", t.slice(0, 80));
+    });
+    root.querySelectorAll("button:disabled:empty").forEach(function (b) { b.setAttribute("aria-hidden", "true"); b.tabIndex = -1; });
+    // clickable rows, cards and headers: reachable with Tab, and Enter/Space work like a click
+    root.querySelectorAll("[data-act]").forEach(function (el) {
+      if (/^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY|OPTION)$/.test(el.tagName) || el.hasAttribute("tabindex")) return;
+      if (/^close-(self|pop)$/.test(el.dataset.act) || el.dataset.act === "close" && !el.textContent.trim()) return;   // backdrops: Escape closes them
+      el.tabIndex = 0;
+      if (!/^(TR|TH|TD)$/.test(el.tagName)) el.setAttribute("role", "button");
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    var el = e.target;
+    if ((e.key === "Enter" || e.key === " ") && el && el.dataset && el.dataset.act && !/^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY)$/.test(el.tagName)) { e.preventDefault(); el.click(); }
+  });
   function clone(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
   function plural(n, w, p) { return n + " " + (n === 1 ? w : p || w + "s"); }
   function today() { return W.iso(new Date()); }
@@ -216,7 +260,7 @@
       var acc = St.access();
       if (acc.state === "locked") html += renderLock();
     }
-    app.innerHTML = html;
+    app.innerHTML = html; nameFields(app);
     var m2 = $(".main"); if (m2) m2.scrollTop = y;
     var d2 = $(".drawer-body"); if (d2) d2.scrollTop = dy;
     var dk = overlayKey(U.drawer), mk = overlayKey(U.modal);
@@ -379,7 +423,7 @@
     if (!items.some(function (n) { return n[0] === view; }) && !(view === "settings" && W.canAdmin(r))) view = U.view = "dashboard";
     var b = s.brand || {}, acc = St.access();
     var h = '<div class="frame"><header class="topbar' + (b.logo || s.business.name ? " has-co" : "") + '">' + brandHTML +
-      (b.logo || s.business.name ? '<span class="co">' + (b.logo ? '<img src="' + b.logo + '" alt="">' : "") + (s.business.name ? "<span>" + esc(s.business.name) + "</span>" : "") + "</span>" : "") +
+      (b.logo || s.business.name ? '<span class="co">' + (b.logo ? '<img src="' + esc(safeImg(b.logo)) + '" alt="">' : "") + (s.business.name ? "<span>" + esc(s.business.name) + "</span>" : "") + "</span>" : "") +
       '<span class="top-spacer"></span>' +
       (acc.state === "trial" ? '<button class="pill ' + (acc.days <= 3 ? "pill-warn" : "pill-draft") + '" style="border:0" data-act="nav" data-v="settings">Trial: ' + plural(acc.days, "day") + " left</button>" : "") +
       (W.canEdit(r) ? '<button class="btn btn-primary btn-sm" data-act="new-order" title="New ' + esc(lnoun()) + ' (N)">' + icon("plus") + '<span class="hide-sm">New ' + esc(lnoun()) + "</span></button>" : "") +
@@ -698,8 +742,8 @@
     var files = o.files || [], cur = files.filter(function (f) { return f.current !== false; }), old = files.filter(function (f) { return f.current === false; });
     var row = function (f) {
       var img = /^image\//.test(f.type || "") && f.url, isLink = f.kind === "link";
-      return '<div class="file' + (f.current === false ? " old" : "") + '"><span class="thumb">' + (img ? '<img src="' + esc(f.url) + '" alt="">' : icon(isLink ? "link" : "file")) + '</span><span class="grow"><b>' + esc(f.name) + "</b><span>" + (isLink ? "Link" : fmtSize(f.size)) + " · " + esc(f.byName || "") + " · " + ago(f.at) + "</span></span>" +
-        (!isLink ? '<span class="revtag">' + (f.current === false ? "Old " : "") + "v" + (f.revNo || 1) + "</span>" : "") + '<a class="btn btn-sm btn-ghost" href="' + esc(f.url) + '" target="_blank" rel="noopener"' + (isLink ? "" : ' download="' + esc(f.name) + '"') + ">Open</a></div>";
+      return '<div class="file' + (f.current === false ? " old" : "") + '"><span class="thumb">' + (img ? '<img src="' + esc(safeUrl(f.url)) + '" alt="">' : icon(isLink ? "link" : "file")) + '</span><span class="grow"><b>' + esc(f.name) + "</b><span>" + (isLink ? "Link" : fmtSize(f.size)) + " · " + esc(f.byName || "") + " · " + ago(f.at) + "</span></span>" +
+        (!isLink ? '<span class="revtag">' + (f.current === false ? "Old " : "") + "v" + (f.revNo || 1) + "</span>" : "") + '<a class="btn btn-sm btn-ghost" href="' + esc(safeUrl(f.url)) + '" target="_blank" rel="noopener"' + (isLink ? "" : ' download="' + esc(f.name) + '"') + ">Open</a></div>";
     };
     var h = "";
     if (W.canWork(r)) h += '<div class="row"><label class="btn btn-sm btn-primary">' + icon("upload") + 'Upload a file<input type="file" data-change="upload" hidden></label><label class="btn btn-sm">' + icon("camera") + 'Take a photo<input type="file" accept="image/*" capture="environment" data-change="upload" hidden></label><button class="btn btn-sm" data-act="add-link">' + icon("link") + "Add a link</button></div>" +
@@ -1087,14 +1131,15 @@
       '<div class="set-row"><div class="txt"><b>Spreadsheet of all ' + esc(lnoun()) + 's</b><span>Opens in Excel or Google Sheets.</span></div><button class="btn btn-sm" data-act="export-all">' + icon("download") + "Download (.csv)</button></div>" +
       '<div class="set-row"><div class="txt"><b>Import a spreadsheet</b><span>Add or update orders from Excel or CSV.</span></div><button class="btn btn-sm" data-act="nav" data-v="import">' + icon("upload") + "Import</button></div>" +
       (St.mode === "local" ? '<div class="set-row"><div class="txt"><b>Start over</b><span>Erase everything saved in this ' + (window.WO_DEMO ? "tab" : "browser") + '.</span></div><button class="btn btn-sm btn-danger" data-act="reset-local">Erase all</button></div>' : "") + "</div></div>";
+    if (St.mode !== "local" && St.role === "owner") h += '<div class="set-section"><h2>Delete</h2><div class="card set-list"><div class="set-row"><div class="txt"><b>Delete this workspace</b><span>Erases every ' + esc(lnoun()) + ', customer, file and team member, and your account, within 30 days. Download everything first.</span></div><a class="btn btn-sm btn-danger" href="mailto:' + esc((window.WO_BILLING || {}).contact || "") + "?subject=" + encodeURIComponent("Delete my Work Order Manager workspace") + "&body=" + encodeURIComponent("Please delete my Work Order Manager workspace and account.\n\nAccount email: " + ((St.user && St.user.email) || "") + "\nWorkspace ID: " + (St.org || "") + "\n") + '">Request deletion</a></div></div></div>';
     if (St.mode !== "local") h += '<div class="set-section"><h2>Account</h2><div class="card set-list"><div class="set-row"><div class="txt"><b>Signed in</b><span>' + esc((St.user && St.user.email) || "") + '</span></div><button class="btn btn-sm" data-act="sign-out">Sign out</button></div></div></div>';
     return h;
   }
   function brandingHTML(s) {
     var b = s.brand || {}, cur = (b.accent || "").toUpperCase();
-    return '<div class="row" style="gap:16px;align-items:center"><div class="logo-box">' + (b.logo ? '<img src="' + b.logo + '" alt="Your logo">' : '<span class="faint" style="font-size:12px;text-align:center">Your logo</span>') + '</div><div style="display:grid;gap:8px"><div class="row"><label class="btn btn-sm">' + icon("upload") + (b.logo ? "Replace logo" : "Upload logo") + '<input type="file" accept="image/*" data-change="logo" hidden></label>' + (b.logo ? '<button class="btn btn-sm btn-ghost" data-act="logo-del">Remove</button>' : "") + '</div><span class="faint" style="font-size:12px">Shown at the top of the app, on phones and on printed travelers.</span></div></div>' +
+    return '<div class="row" style="gap:16px;align-items:center"><div class="logo-box">' + (b.logo ? '<img src="' + esc(safeImg(b.logo)) + '" alt="Your logo">' : '<span class="faint" style="font-size:12px;text-align:center">Your logo</span>') + '</div><div style="display:grid;gap:8px"><div class="row"><label class="btn btn-sm">' + icon("upload") + (b.logo ? "Replace logo" : "Upload logo") + '<input type="file" accept="image/*" data-change="logo" hidden></label>' + (b.logo ? '<button class="btn btn-sm btn-ghost" data-act="logo-del">Remove</button>' : "") + '</div><span class="faint" style="font-size:12px">Shown at the top of the app, on phones and on printed travelers.</span></div></div>' +
       '<div class="field" style="margin-top:16px"><span>Theme color</span><div class="swatches">' + THEMES.map(function (t) { return '<button class="swatch' + (cur === t[1] ? " on" : "") + '" style="background:' + t[1] + '" data-act="theme" data-v="' + t[1] + '" title="' + t[0] + '" aria-label="' + t[0] + '"></button>'; }).join("") +
-      '<label class="swatch swatch-custom' + (THEMES.some(function (t) { return t[1] === cur; }) ? "" : " on") + '" title="Any color"><input type="color" value="' + (b.accent || "#2F6FDE") + '" data-change="theme-custom" aria-label="Pick any color"></label></div>' + (b.logo ? '<div class="row" style="margin-top:4px"><button class="btn btn-sm btn-soft" data-act="theme-logo">' + icon("sparkle") + "Match my logo</button></div>" : "") + "</div>" +
+      '<label class="swatch swatch-custom' + (THEMES.some(function (t) { return t[1] === cur; }) ? "" : " on") + '" title="Any color"><input type="color" value="' + esc(hexOr(b.accent, "#2F6FDE")) + '" data-change="theme-custom" aria-label="Pick any color"></label></div>' + (b.logo ? '<div class="row" style="margin-top:4px"><button class="btn btn-sm btn-soft" data-act="theme-logo">' + icon("sparkle") + "Match my logo</button></div>" : "") + "</div>" +
       '<div class="field" style="margin-top:16px"><span>Appearance</span><div class="seg">' + [["light", "Light"], ["dark", "Dark"], ["system", "Match device"]].map(function (m) { return '<button class="' + ((b.mode || "light") === m[0] ? "on" : "") + '" data-act="theme-mode" data-v="' + m[0] + '">' + m[1] + "</button>"; }).join("") + "</div></div>";
   }
   function planCards() {
@@ -1274,7 +1319,7 @@
     if (!helperAllowed()) return "";
     var c = chat(), h = '<button class="helper-fab" data-act="helper">' + icon("sparkle") + "Assistant</button>";
     if (!U.helper) return h;
-    h += '<div class="card helper"><div class="row"><b style="flex:1">' + icon("sparkle") + " Assistant</b>" +
+    h += '<div class="card helper"><div class="row"><b style="flex:1">' + icon("sparkle") + " AI assistant</b>" +
       (c.msgs.length ? '<button class="btn btn-sm btn-ghost" data-act="helper-clear">New chat</button>' : "") +
       '<button class="btn btn-icon btn-ghost btn-sm" data-act="helper" aria-label="Close">' + icon("x") + "</button></div>";
     if (St.mode === "local") {
@@ -1300,7 +1345,7 @@
     if (c.busy) h += '<div class="bub ai typing"><i></i><i></i><i></i></div>';
     if (c.error) h += '<div class="note note-warn">' + icon("alert") + "<span>" + esc(c.error) + "</span></div>";
     h += '</div><div class="send-row"><input class="input" id="helper-in" placeholder="Ask or tell me what to change" value="' + esc(c.draft) + '" data-enter="helper-go" autocomplete="off" maxlength="600"' + (c.busy ? " disabled" : "") + '><button class="btn btn-icon btn-primary" data-act="helper-go" aria-label="Send"' + (c.busy ? " disabled" : "") + ">" + icon("send") + "</button></div>" +
-      '<p class="faint" style="font-size:11.5px;margin:0">AI can make mistakes. Check changes before you apply them.</p></div>';
+      '<p class="faint" style="font-size:11.5px;margin:0">This is an AI and can make mistakes. Check changes before you apply them. Questions are answered by Anthropic\'s Claude (<a href="../privacy.html" target="_blank" rel="noopener">privacy</a>).</p></div>';
     return h;
   }
 
@@ -1312,7 +1357,7 @@
     var list = allOrders().filter(function (o) { return !W.isClosed(o, s); });
     var mine = list.filter(function (o) { return o.assignee === me; });
     var sortU = function (a, b2) { var ua = W.urgency(a, s, today()), ub = W.urgency(b2, s, today()), rank = { overdue: 0, soon: 1, ok: 2, closed: 3 }; return rank[ua] - rank[ub] || natCmp(a.due, b2.due); };
-    var h = '<div class="floor"><div class="floor-wrap"><div class="floor-head">' + (b.logo ? '<img class="co-logo" src="' + b.logo + '" alt="">' : brandMark) + '<div style="flex:1;min-width:0"><h1>' + esc(F.job ? F.job : s.business.name || "Work orders") + "</h1><small>" + esc(pname(me) || "Shop floor") + "</small></div>" +
+    var h = '<div class="floor"><div class="floor-wrap"><div class="floor-head">' + (b.logo ? '<img class="co-logo" src="' + esc(safeImg(b.logo)) + '" alt="">' : brandMark) + '<div style="flex:1;min-width:0"><h1>' + esc(F.job ? F.job : s.business.name || "Work orders") + "</h1><small>" + esc(pname(me) || "Shop floor") + "</small></div>" +
       (F.job ? '<button class="btn btn-sm" data-act="floor-back">' + icon("left") + "Back</button>" : inPreview ? "" : '<button class="btn btn-sm btn-ghost" data-act="sign-out">Sign out</button>') + '</div><div class="floor-body floor-scroll">';
     if (F.job && ord(F.job)) h += floorJob(ord(F.job), r);
     else {
@@ -1356,7 +1401,7 @@
         (!forward.length && !holds.length && W.isClosed(o, s) ? '<p class="muted" style="text-align:center">This job is closed.</p>' : "") +
         '<div class="grid2" style="grid-template-columns:1fr 1fr"><button class="bigbtn" data-act="floor-note">' + icon("note") + 'Note</button><label class="bigbtn" style="cursor:pointer">' + icon("camera") + 'Photo<input type="file" accept="image/*" capture="environment" data-change="floor-photo" hidden></label></div></div>';
     }
-    if (s.features.files && (o.files || []).some(function (f) { return f.current !== false; })) h += '<div class="card card-pad"><b style="font-size:13px">Files</b><div class="files" style="margin-top:8px">' + o.files.filter(function (f) { return f.current !== false; }).map(function (f) { return '<a class="file" href="' + esc(f.url) + '" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><span class="thumb">' + (/^image\//.test(f.type || "") ? '<img src="' + esc(f.url) + '" alt="">' : icon("file")) + '</span><span class="grow"><b>' + esc(f.name) + "</b><span>" + (f.kind === "link" ? "Link" : "v" + (f.revNo || 1)) + "</span></span></a>"; }).join("") + "</div></div>";
+    if (s.features.files && (o.files || []).some(function (f) { return f.current !== false; })) h += '<div class="card card-pad"><b style="font-size:13px">Files</b><div class="files" style="margin-top:8px">' + o.files.filter(function (f) { return f.current !== false; }).map(function (f) { return '<a class="file" href="' + esc(safeUrl(f.url)) + '" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><span class="thumb">' + (/^image\//.test(f.type || "") ? '<img src="' + esc(safeUrl(f.url)) + '" alt="">' : icon("file")) + '</span><span class="grow"><b>' + esc(f.name) + "</b><span>" + (f.kind === "link" ? "Link" : "v" + (f.revNo || 1)) + "</span></span></a>"; }).join("") + "</div></div>";
     return h + "</div>";
   }
   function renderPreview() {
@@ -1376,7 +1421,7 @@
         var qr = "";
         if (QR) { try { var q = QR(0, "M"); q.addData(location.origin + location.pathname + "#wo/" + encodeURIComponent(o.number)); q.make(); qr = q.createSvgTag({ cellSize: 3, margin: 0, scalable: true }); } catch (e) { qr = ""; } }
         var ops = s.statuses.filter(function (x) { return x.cat === "active" || x.cat === "done"; });
-        return '<div class="trav trav-page"><div class="trav-head"><div><div class="trav-co">' + (b.logo ? '<img src="' + b.logo + '" alt="">' : "<b>" + esc(s.business.name) + "</b>") + '</div><div style="font-size:11px;margin-top:4px">' + esc(noun()) + ' traveler</div><div class="big-num">' + esc(o.number) + '</div></div><div class="qr">' + (qr || "") + (qr ? "Scan to open" : "") + "</div></div>" +
+        return '<div class="trav trav-page"><div class="trav-head"><div><div class="trav-co">' + (b.logo ? '<img src="' + esc(safeImg(b.logo)) + '" alt="">' : "<b>" + esc(s.business.name) + "</b>") + '</div><div style="font-size:11px;margin-top:4px">' + esc(noun()) + ' traveler</div><div class="big-num">' + esc(o.number) + '</div></div><div class="qr">' + (qr || "") + (qr ? "Scan to open" : "") + "</div></div>" +
           "<table><tr><th>Customer</th><td>" + esc(o.customer) + "</td><th>Customer PO</th><td>" + esc(o.po) + "</td></tr><tr><th>Part</th><td>" + esc(o.part) + (o.rev ? " rev " + esc(o.rev) : "") + "</td><th>Quantity</th><td>" + esc(o.qty) + "</td></tr><tr><th>Received</th><td>" + fmtDate(o.received) + "</td><th>Due</th><td><b>" + fmtDate(o.due, true) + "</b></td></tr><tr><th>Assigned</th><td>" + esc(pname(o.assignee)) + "</td><th>Priority</th><td>" + esc({ normal: "Normal", high: "High", rush: "RUSH" }[o.priority || "normal"]) + "</td></tr>" +
           (o.title ? '<tr><th>Description</th><td colspan="3">' + esc(o.title) + "</td></tr>" : "") +
           (s.features.fields ? (s.fields || []).map(function (f) { return "<tr><th>" + esc(f.label) + '</th><td colspan="3">' + esc((o.custom || {})[f.id] || "") + "</td></tr>"; }).join("") : "") + "</table>" +

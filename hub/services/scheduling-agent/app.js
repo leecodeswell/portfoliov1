@@ -79,7 +79,43 @@
      Small helpers
      ------------------------------------------------------------------ */
   function $(s, r) { return (r || document).querySelector(s); }
+  // Logos are pictures the owner uploaded (data:image/...) or web images. Anything else is dropped.
+  function safeImg(u) { u = String(u == null ? "" : u); return /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+\/=\s]+$/i.test(u) || /^https:\/\//i.test(u) ? u : ""; }
+  function hexOr(c, d) { return /^#[0-9a-f]{6}$/i.test(String(c || "")) ? c : d; }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  // Accessibility safety net: any form field drawn without a label gets one from what's around it
+  // (the setting's title, its table column, or its placeholder), so screen readers can name it.
+  function nameFields(root) {
+    root.querySelectorAll("input:not([type=hidden]),select,textarea").forEach(function (el) {
+      var lab = el.closest("label") || (el.id && root.querySelector('label[for="' + el.id + '"]'));
+      if (el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || (lab && lab.textContent.trim())) return;
+      var t = "", row = el.closest(".set-row"), cell = el.closest("td,th"), n = +(el.dataset.i || 0) + 1;
+      var named = { "set-st-name": "Status " + n + " name", "set-st-cat": "Status " + n + " type", "fld-label": "Extra field " + n + " name", "fld-type": "Extra field " + n + " type", "fld-opts": "Extra field " + n + " choices" }[el.dataset.change || ""];
+      if (named) t = named;
+      else if (/^pa-/.test(el.id || "")) t = "First person";
+      else if (/^pb-/.test(el.id || "")) t = "Second person";
+      if (!t && row) { var b = row.querySelector(".txt b, .txt"); t = b ? b.textContent : ""; }
+      if (!t && cell && cell.parentElement) {
+        var table = cell.closest("table"), i = Array.prototype.indexOf.call(cell.parentElement.children, cell), th = table && table.querySelector("thead tr");
+        if (th && th.children[i]) t = th.children[i].textContent;
+      }
+      t = (t || el.placeholder || el.title || "").replace(/\s+/g, " ").trim();
+      if (t) el.setAttribute("aria-label", t.slice(0, 80));
+    });
+    root.querySelectorAll("button:disabled:empty").forEach(function (b) { b.setAttribute("aria-hidden", "true"); b.tabIndex = -1; });
+    // clickable rows, cards and headers: reachable with Tab, and Enter/Space work like a click
+    root.querySelectorAll("[data-act]").forEach(function (el) {
+      if (/^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY|OPTION)$/.test(el.tagName) || el.hasAttribute("tabindex")) return;
+      if (/^close-(self|pop)$/.test(el.dataset.act) || el.dataset.act === "close" && !el.textContent.trim()) return;   // backdrops: Escape closes them
+      el.tabIndex = 0;
+      if (!/^(TR|TH|TD)$/.test(el.tagName)) el.setAttribute("role", "button");
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    var el = e.target;
+    if ((e.key === "Enter" || e.key === " ") && el && el.dataset && el.dataset.act && !/^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY)$/.test(el.tagName)) { e.preventDefault(); el.click(); }
+  });
   function uid() { return Math.random().toString(36).slice(2, 9); }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -194,16 +230,16 @@
   function companyHTML() {
     var b = S.brand || {};
     if (!b.logo && !S.business.name) return "";
-    return '<span class="co">' + (b.logo ? '<img src="' + b.logo + '" alt="' + esc(S.business.name || "Company logo") + '">' : "") + (S.business.name ? "<span>" + esc(S.business.name) + "</span>" : "") + "</span>";
+    return '<span class="co">' + (b.logo ? '<img src="' + esc(safeImg(b.logo)) + '" alt="' + esc(S.business.name || "Company logo") + '">' : "") + (S.business.name ? "<span>" + esc(S.business.name) + "</span>" : "") + "</span>";
   }
   function brandingHTML(compact) {
     var b = S.brand, cur = (b.accent || "").toUpperCase();
-    var h = '<div class="row" style="gap:16px;align-items:center"><div class="logo-box">' + (b.logo ? '<img src="' + b.logo + '" alt="Your logo">' : '<span class="faint" style="font-size:12px;text-align:center">Your logo</span>') + '</div>' +
+    var h = '<div class="row" style="gap:16px;align-items:center"><div class="logo-box">' + (b.logo ? '<img src="' + esc(safeImg(b.logo)) + '" alt="Your logo">' : '<span class="faint" style="font-size:12px;text-align:center">Your logo</span>') + '</div>' +
       '<div style="display:grid;gap:8px"><div class="row"><label class="btn btn-sm">' + icon("upload") + (b.logo ? "Replace logo" : "Upload logo") + '<input type="file" accept="image/*" data-change="logo" hidden></label>' +
       (b.logo ? '<button class="btn btn-sm btn-ghost" data-act="logo-del">Remove</button>' : "") + '</div><span class="faint" style="font-size:12px">Shown at the top of the app and on your team\'s phones.</span></div></div>';
     h += '<div class="field" style="margin-top:16px"><span>Theme color</span><div class="swatches">' + THEMES.map(function (t) {
       return '<button class="swatch' + (cur === t[1] ? " on" : "") + '" style="background:' + t[1] + '" data-act="theme" data-v="' + t[1] + '" title="' + t[0] + '" aria-label="' + t[0] + '"></button>';
-    }).join("") + '<label class="swatch swatch-custom' + (THEMES.some(function (t) { return t[1] === cur; }) ? "" : " on") + '" title="Any color"><input type="color" value="' + (b.accent || "#6A58D6") + '" data-change="theme-custom" aria-label="Pick any color"></label></div>' +
+    }).join("") + '<label class="swatch swatch-custom' + (THEMES.some(function (t) { return t[1] === cur; }) ? "" : " on") + '" title="Any color"><input type="color" value="' + esc(hexOr(b.accent, "#6A58D6")) + '" data-change="theme-custom" aria-label="Pick any color"></label></div>' +
       '<div class="row" style="margin-top:4px">' + (b.logo ? '<button class="btn btn-sm btn-soft" data-act="theme-logo">' + icon("sparkle") + "Match my logo</button>" : "") + '<button class="btn btn-sm btn-ghost" data-act="theme-random">' + icon("rotate") + "Surprise me</button></div></div>";
     if (!compact) h += '<div class="field" style="margin-top:16px"><span>Appearance</span><div class="seg">' + [["light", "Light"], ["dark", "Dark"], ["system", "Match device"]].map(function (m) { return '<button class="' + ((b.mode || "light") === m[0] ? "on" : "") + '" data-act="theme-mode" data-v="' + m[0] + '">' + m[1] + "</button>"; }).join("") + "</div></div>";
     return h;
@@ -484,7 +520,7 @@
     else { S.ui.viewAs = null; html = renderFrame(); }
     html += renderOverlays();
     if (access().state === "locked") html += renderLock();
-    app.innerHTML = html;
+    app.innerHTML = html; nameFields(app);
     var m2 = $(".main"); if (m2) m2.scrollTop = y;
     var dk = overlayKey(T.drawer), mk = overlayKey(T.modal);
     if (dk && dk === shownDrawer) { var db2 = $(".drawer-body"); if (db2) db2.scrollTop = dy; }
@@ -1094,7 +1130,7 @@
       return '<button class="swatch shift-sw' + (on ? " on" : "") + '" data-act="t-color" data-c="' + o[0] + '" aria-label="' + o[1] + '" aria-pressed="' + on + '" title="' + o[1] + '" style="background:' + c.bg + ";border-color:" + c.fg + '"></button>';
     };
     h += '<div class="sec"><h4>Color</h4><div class="swatches shift-colors">' + SHIFT_COLORS.map(sw).join("") + '<span class="sw-sep" aria-hidden="true"></span>' + SHIFT_NEUTRALS.map(sw).join("") +
-      '<span class="sw-sep" aria-hidden="true"></span><label class="swatch swatch-custom' + (custom ? " on" : "") + '" title="Pick any color"><input type="color" value="' + (custom ? s.color : "#6A58D6") + '" data-change="t-color-custom" aria-label="Pick any color"></label>' +
+      '<span class="sw-sep" aria-hidden="true"></span><label class="swatch swatch-custom' + (custom ? " on" : "") + '" title="Pick any color"><input type="color" value="' + esc(custom ? hexOr(s.color, "#6A58D6") : "#6A58D6") + '" data-change="t-color-custom" aria-label="Pick any color"></label>' +
       (custom ? '<span class="sw-custom-chip" style="background:' + pal(s.color).bg + ";color:" + pal(s.color).fg + ";border-color:" + pal(s.color).bd + '">Custom</span>' : "") + "</div></div>";
     h += '</div><div class="drawer-foot"><button class="btn btn-danger" data-act="tpl-del">' + icon("trash") + 'Delete shift</button><span style="flex:1"></span><button class="btn btn-primary" data-act="close">Done</button></div>';
     return h;
@@ -1266,9 +1302,10 @@
       ? '<div class="set-row"><div class="txt"><b>Signed in</b><span>' + esc((SACloud.user && SACloud.user.email) || "") + ". Your schedule is saved to your account and works on any device.</span></div><button class=\"btn btn-sm\" data-act=\"sign-out\">Sign out</button></div>"
       : '<div class="set-row"><div class="txt"><b>Not connected</b><span>This copy saves only in this browser. Once your Firebase settings are added to config.js, you\'ll sign in here and can invite your team.</span></div></div>') + "</div></div>";
     h += '<div class="set-section"><h2>Your data</h2><div class="card set-list">' +
-      '<div class="set-row"><div class="txt"><b>Download a backup</b><span>Everything lives in this browser for now. Keep a backup file somewhere safe.</span></div><button class="btn btn-sm" data-act="backup">' + icon("download") + "Download</button></div>" +
+      '<div class="set-row"><div class="txt"><b>Download a backup</b><span>' + (CLOUD ? "Your schedule is saved to your account. Download a copy any time; it's your data." : "Everything lives in this browser for now. Keep a backup file somewhere safe.") + '</span></div><button class="btn btn-sm" data-act="backup">' + icon("download") + "Download</button></div>" +
       '<div class="set-row"><div class="txt"><b>Restore from a backup</b><span>Replaces what\'s here with the file\'s contents.</span></div><label class="btn btn-sm">' + icon("upload") + 'Choose file<input type="file" accept=".json,application/json" data-change="restore" hidden></label></div>' +
       '<div class="set-row"><div class="txt"><b>Run setup again</b><span>Walk through the setup questions. Your team and shifts stay.</span></div><button class="btn btn-sm" data-act="rerun">Run setup</button></div>' +
+      (CLOUD ? '<div class="set-row"><div class="txt"><b>Delete this workspace</b><span>Erases your business, team, schedules and account within 30 days. Download a backup first.</span></div><a class="btn btn-sm btn-danger" href="mailto:' + esc((window.SA_BILLING || {}).contact || "") + "?subject=" + encodeURIComponent("Delete my Scheduling Agent workspace") + "&body=" + encodeURIComponent("Please delete my Scheduling Agent workspace and account.\n\nAccount email: " + ((SACloud.user && SACloud.user.email) || "") + "\nWorkspace ID: " + ((SACloud.profile && SACloud.profile.bid) || "") + "\n") + '">Request deletion</a></div>' : "") +
       (CLOUD ? "" : '<div class="set-row"><div class="txt"><b>Start over</b><span>Erase everything in this browser.</span></div><button class="btn btn-sm btn-danger" data-act="reset">Erase all</button></div>') + "</div></div>";
     return h;
   }
@@ -1290,7 +1327,7 @@
         '<label class="viewas"><span>View as</span><select class="input input-sm" data-change="viewas"><option value="">Owner (you)</option>' + S.people.map(function (x) { return '<option value="' + x.id + '"' + (x.id === p.id ? " selected" : "") + ">" + esc(x.name) + "</option>"; }).join("") + "</select></label></header>" +
         '<main class="main" style="padding:0"><div class="emp-banner">' + icon("eye") + "<span>Preview: what " + esc(p.name) + " sees on their phone" + (CLOUD ? "" : " once sign-in is connected") + '.</span><span style="flex:1"></span><button class="btn btn-sm" data-act="exit-emp">Back to owner view</button></div><div class="emp-stage"><div class="phone">';
     }
-    h += '<div class="phone-head">' + (S.brand.logo ? '<img class="co-logo" src="' + S.brand.logo + '" alt="">' : "") + "<small>" + esc(S.business.name || "Your workplace") + "</small><h2>Hi, " + esc(p.name.split(" ")[0]) + "</h2></div><div class=\"phone-body\">";
+    h += '<div class="phone-head">' + (S.brand.logo ? '<img class="co-logo" src="' + esc(safeImg(S.brand.logo)) + '" alt="">' : "") + "<small>" + esc(S.business.name || "Your workplace") + "</small><h2>Hi, " + esc(p.name.split(" ")[0]) + "</h2></div><div class=\"phone-body\">";
     if (tab === "shifts") {
       h += '<div class="row" style="justify-content:space-between"><button class="btn btn-icon btn-ghost btn-sm" data-act="week" data-d="-7" aria-label="Previous week">' + icon("left") + '</button><b>' + weekLabel(key) + '</b><button class="btn btn-icon btn-ghost btn-sm" data-act="week" data-d="7" aria-label="Next week">' + icon("right") + "</button></div>";
       if (w.status !== "published") h += '<div class="note">' + icon("clock") + "<span>This week's schedule isn't out yet. You'll get a notification when it's published.</span></div>";
@@ -1593,7 +1630,7 @@
   function renderHelper() {
     var c = chat(), h = '<button class="helper-fab" data-act="helper">' + icon("sparkle") + "Helper</button>";
     if (!T.helper) return h;
-    h += '<div class="card helper"><div class="row"><b style="flex:1">' + icon("sparkle") + ' Scheduling helper</b>' +
+    h += '<div class="card helper"><div class="row"><b style="flex:1">' + icon("sparkle") + ' AI scheduling helper</b>' +
       (c.msgs.length ? '<button class="btn btn-sm btn-ghost" data-act="helper-clear">New chat</button>' : "") +
       '<button class="btn btn-icon btn-ghost btn-sm" data-act="helper" aria-label="Close">' + icon("x") + "</button></div>";
     if (!helperReady()) {
@@ -1618,7 +1655,7 @@
     if (c.busy) h += '<div class="bub ai typing"><i></i><i></i><i></i></div>';
     if (c.error) h += '<div class="note note-warn">' + icon("alert") + "<span>" + esc(c.error) + "</span></div>";
     h += '</div><div class="send-row"><input class="input" id="helper-in" placeholder="Ask or tell me what to change" value="' + esc(c.draft) + '" data-enter="helper-go" autocomplete="off" maxlength="600"' + (c.busy ? " disabled" : "") + '><button class="btn btn-icon btn-primary" data-act="helper-go" aria-label="Send"' + (c.busy ? " disabled" : "") + ">" + icon("send") + "</button></div>" +
-      '<p class="faint" style="font-size:11.5px;margin:0">AI can make mistakes. Check changes before you apply them.</p></div>';
+      '<p class="faint" style="font-size:11.5px;margin:0">This is an AI and can make mistakes. Check changes before you apply them. Questions are answered by Anthropic\'s Claude (<a href="../privacy.html" target="_blank" rel="noopener">privacy</a>).</p></div>';
     return h;
   }
 
@@ -1641,7 +1678,7 @@
       if (T.importLocal == null) T.importLocal = !!has;
       return h + "<h1>Create your workspace</h1><p>This is where your team, shifts and schedules will live. You can invite your team once it's set up.</p></div><div class=\"ob-body\">" + err +
         (has ? '<label class="q" style="cursor:pointer"><input type="checkbox" data-change="au-import"' + (T.importLocal ? " checked" : "") + '><span class="txt"><b>Bring in what\'s saved in this browser</b><span>' + esc(browserData.business.name || "Your setup") + " · " + people(browserData.people.length) + " · " + plural(browserData.shifts.length, "shift") + "</span></span></label>" : "") +
-        '<div class="note">' + icon("sparkle") + "<span>Free for " + ((window.SA_BILLING || {}).trialDays || 14) + " days. No card needed.</span></div>" +
+        '<div class="note">' + icon("sparkle") + "<span>Free for " + ((window.SA_BILLING || {}).trialDays || 7) + " days. No card needed.</span></div>" +
         '<div class="note">' + icon("user") + "<span>Signed in as " + esc((C.user && C.user.email) || "") + '. <a href="#" data-act="sign-out">Not you?</a></span></div></div>' +
         '<div class="ob-foot"><span class="spacer"></span><button class="btn btn-primary" data-act="au-create">Create my workspace</button></div></div></div>';
     }

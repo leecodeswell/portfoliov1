@@ -14,7 +14,7 @@
   --line-2: #D6D9E3;
   --text: #1C1D24;
   --muted: #5D6170;
-  --faint: #8C90A0;
+  --faint: #676B7B;
   --input-hover: #C3C7D4;
   --logo-a: #6F707C; --logo-b: #24252C;
   --switch-off: #D5D8E2;
@@ -68,7 +68,7 @@
   --line-2: #393B48;
   --text: #ECEDF2;
   --muted: #A6A9B7;
-  --faint: #7B7E8D;
+  --faint: #878A99;
   --input-hover: #4A4D5C;
   --logo-a: #F0F0F4; --logo-b: #9A9AA6;
   --switch-off: #3A3C49;
@@ -403,7 +403,7 @@ body:has(.drawer) #demo-bar, body:has(.modal) #demo-bar { display: none !importa
 .due.closed { color: var(--faint); }
 .prio { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 7px; border-radius: 6px; }
 .prio.rush { background: var(--bad-soft); color: var(--bad); }
-.prio.high { background: var(--warn-soft); color: var(--warn); }
+.prio.high { background: var(--warn-soft); color: var(--warn-ink); }
 .tag-sample { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: var(--warn-soft); color: var(--warn-ink); padding: 2px 8px; border-radius: 999px; }
 
 /* dashboard */

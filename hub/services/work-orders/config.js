@@ -1,3 +1,10 @@
+/* Never run inside another site's frame (stops "clickjacking", where a page hides this app
+   under fake buttons to trick clicks). If framed, break out, and stay hidden if we can't. */
+if (window.top !== window.self) {
+  try { window.top.location.replace(window.location.href); } catch (e) { }
+  document.documentElement.style.visibility = "hidden";
+}
+
 /* Firebase connection for Work Order Manager.
    Same Firebase project as Scheduling Agent; the two apps keep their data apart
    (this one uses the wo_ collections). These values identify the project and are
@@ -15,9 +22,9 @@ window.WO_FIREBASE_CONFIG = {
 
 /* Plans and prices shown in the app. Change them here any time.
    url: the Payment Link from Stripe for that product (null until you have it).
-   If you change trialDays, change the "14" in firestore.rules too. */
+   Keep this the same as the trial length in firestore.rules (search that file for "created"); if you change one, change the other. */
 window.WO_BILLING = {
-  trialDays: 14,
+  trialDays: 7,
   contact: "thompsontechnologiesleet@gmail.com",
   plans: [
     { id: "lifetime", label: "Pay once", price: "$60", per: "one time", note: "Unlimited team members. Updates to version 1 included.", url: "https://buy.stripe.com/fZu14ncJ240380we7E2wU05" },
