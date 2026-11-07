@@ -802,3 +802,15 @@ button.chip-open:hover { border-color: var(--accent); }
   .founder { flex-direction: column; text-align: center; gap: var(--s-4); }
   .founder-frame { width: 190px; }
 }
+
+/* ---------- Built properly: a quiet strip after web design ---------- */
+.built { padding: var(--s-6) 0; border-bottom: 1px solid var(--line); }
+.built-inner { display: grid; grid-template-columns: 200px 1fr; gap: var(--s-4); align-items: baseline; }
+.built-inner .eyebrow { margin-bottom: 0; color: var(--gold-deep); }
+.built-inner p:last-child { margin: 0; max-width: 820px; color: var(--text-muted); font-size: 1.0625rem; line-height: 1.6; }
+@media (max-width: 720px) { .built-inner { grid-template-columns: 1fr; gap: var(--s-1); } }
+
+/* ---------- Get In Touch, always within reach ---------- */
+.float-cta { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 60;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55); opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity .3s ease, transform .3s ease; }
+.float-cta.is-on { opacity: 1; transform: none; pointer-events: auto; }

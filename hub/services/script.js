@@ -258,3 +258,13 @@
   /* ---------- Footer year ---------- */
   var yr = $("[data-year]"); if (yr) yr.textContent = new Date().getFullYear();
 })();
+
+/* Floating Get In Touch: shows once the hero is scrolled past, hides again over the contact form */
+(function () {
+  var b = document.querySelector(".float-cta"), hero = document.getElementById("top"), contact = document.getElementById("contact");
+  if (!b || !hero || !contact || !("IntersectionObserver" in window)) return;
+  var heroIn = true, contactIn = false;
+  function set() { b.classList.toggle("is-on", !heroIn && !contactIn); }
+  new IntersectionObserver(function (e) { heroIn = e[0].isIntersecting; set(); }).observe(hero);
+  new IntersectionObserver(function (e) { contactIn = e[0].isIntersecting; set(); }).observe(contact);
+})();

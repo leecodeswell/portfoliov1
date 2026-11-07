@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lee Thompson | Web Designer &amp; Developer for Small Businesses</title>
-<meta name="description" content="Lee Thompson — web design and development, online visibility, and AI tools for small to medium businesses.">
+<meta name="description" content="Lee Thompson — web design, custom software, and full stack development for small to medium businesses.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400&display=swap">
@@ -61,6 +61,9 @@ nav a.link{font:400 11px/1 var(--mono);letter-spacing:.14em;text-transform:upper
 nav a.link::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--fg);transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 nav a.link:hover,nav a.link:focus-visible{color:var(--fg)}
 nav a.link:hover::after,nav a.link:focus-visible::after{transform:scaleX(1)}
+nav a.link.cta{color:#0b0b0d;background:var(--fg);padding:9px 16px;border-radius:2px;transition:background .25s,color .25s}
+nav a.link.cta::after{display:none}
+nav a.link.cta:hover,nav a.link.cta:focus-visible{background:#fff;color:#000}
 .has-peek{position:relative}
 .peek{position:absolute;top:calc(100% + 14px);left:50%;width:140px;margin-left:-70px;display:grid;justify-items:center;gap:8px;padding:16px 14px 14px;
   background:rgba(8,8,10,.88);border:1px solid rgba(244,244,242,.12);border-radius:3px;box-shadow:0 18px 40px rgba(0,0,0,.6);
@@ -137,6 +140,15 @@ body.ready .skip{opacity:0;pointer-events:none}
   text-decoration:none;border-radius:6px;pointer-events:none;cursor:pointer}
 body.ready .door{pointer-events:auto}
 .door-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.clickme{position:fixed;left:0;top:0;z-index:5;transform:translate(var(--cx,0px),var(--cy,0px));display:flex;align-items:center;gap:12px;background:none;border:0;padding:6px 0;cursor:pointer;
+  font:400 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#a9abb2;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .9s ease .4s,color .25s}
+/* a thin line points from the label back at the bust */
+.clickme::before{content:"";width:46px;height:1px;background:linear-gradient(90deg,rgba(244,244,242,0),rgba(244,244,242,.6))}
+.clickme span{border-bottom:1px solid rgba(244,244,242,.25);padding-bottom:4px}
+.clickme.left{flex-direction:row-reverse}.clickme.left::before{background:linear-gradient(270deg,rgba(244,244,242,0),rgba(244,244,242,.6))}
+body.ready .clickme{opacity:1;pointer-events:auto}
+.clickme:hover,.clickme:focus-visible{color:var(--fg)}
+body.on-me{cursor:pointer}
 .door:focus-visible{outline:1px solid rgba(244,244,242,.5);outline-offset:6px}
 @media (max-width:640px){
   :root{--wdth:96}
@@ -152,12 +164,12 @@ body.ready .door{pointer-events:auto}
 <meta property="og:site_name" content="Lee Thompson">
 <meta property="og:url" content="https://ares-web.com/">
 <meta property="og:title" content="Lee Thompson | Web Designer &amp; Developer for Small Businesses">
-<meta property="og:description" content="Lee Thompson — web design and development, online visibility, and AI tools for small to medium businesses.">
+<meta property="og:description" content="Lee Thompson — web design, custom software, and full stack development for small to medium businesses.">
 <meta property="og:image" content="https://ares-web.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://ares-web.com/#organization", "name": "Ares Web Services", "alternateName": ["ARES"], "url": "https://ares-web.com/", "logo": "https://ares-web.com/services/assets/logo-mark-1024.png", "email": "thompsontechnologiesleet@gmail.com", "description": "Custom websites, web apps and AI tools for small and medium-sized businesses, designed and coded by Lee Thompson.", "areaServed": {"@type": "Country", "name": "United States"}, "sameAs": ["https://ares-web.com/", "https://www.facebook.com/areswebdev", "https://www.instagram.com/ares.webdev", "https://www.tiktok.com/@areswebdev", "https://www.youtube.com/@Areswebdevelopment"], "founder": {"@id": "https://ares-web.com/#lee"}}, {"@type": "Person", "@id": "https://ares-web.com/#lee", "name": "Lee Thompson", "url": "https://ares-web.com/", "image": "https://ares-web.com/services/assets/lee-thompson.jpg", "jobTitle": "Web designer and developer", "worksFor": {"@id": "https://ares-web.com/#organization"}, "alumniOf": "Embry-Riddle Aeronautical University"}, {"@type": "WebSite", "@id": "https://ares-web.com/#website", "url": "https://ares-web.com/", "name": "Lee Thompson", "publisher": {"@id": "https://ares-web.com/#organization"}}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://ares-web.com/#organization", "name": "Ares Web Services", "alternateName": ["ARES"], "url": "https://ares-web.com/", "logo": "https://ares-web.com/services/assets/logo-mark-1024.png", "email": "thompsontechnologiesleet@gmail.com", "description": "Web design, custom software and full stack development for small and medium-sized businesses, designed and coded by Lee Thompson.", "areaServed": {"@type": "Country", "name": "United States"}, "sameAs": ["https://ares-web.com/", "https://www.facebook.com/areswebdev", "https://www.instagram.com/ares.webdev", "https://www.tiktok.com/@areswebdev", "https://www.youtube.com/@Areswebdevelopment"], "founder": {"@id": "https://ares-web.com/#lee"}}, {"@type": "Person", "@id": "https://ares-web.com/#lee", "name": "Lee Thompson", "url": "https://ares-web.com/", "image": "https://ares-web.com/services/assets/lee-thompson.jpg", "jobTitle": "Web designer and developer", "worksFor": {"@id": "https://ares-web.com/#organization"}, "alumniOf": "Embry-Riddle Aeronautical University"}, {"@type": "WebSite", "@id": "https://ares-web.com/#website", "url": "https://ares-web.com/", "name": "Lee Thompson", "publisher": {"@id": "https://ares-web.com/#organization"}}]}</script>
 </head>
 <body>
 
@@ -169,9 +181,10 @@ body.ready .door{pointer-events:auto}
   <div class="clipwin left" id="winName"><div class="clipin" id="inName"><div class="row" id="rowName"></div></div></div>
   <div class="clipwin right" id="winServ"><div class="clipin" id="inServ"><div class="row" id="rowServ"></div></div></div>
   <div class="slash" id="slash">/</div>
-  <div class="tag" id="tag">Web Design · Online Visibility · AI Integration</div>
+  <div class="tag" id="tag">Web Design · Custom Software · Full Stack Development</div>
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
+<button class="clickme" id="clickme" type="button" data-open="contact"><span>Click me to contact me</span></button>
 <a class="door" id="doorS" href="/services/" aria-label="Services"><span class="door-label">Services</span></a>
 <a class="door" id="doorD" href="/desk/" aria-label="Designs: open my portfolio desk"><span class="door-label">Designs</span></a>
 <div class="grain" id="grain"></div>
@@ -193,7 +206,7 @@ body.ready .door{pointer-events:auto}
       </div>
     </li>
     <li><a class="link" href="#about">About</a></li>
-    <li><a class="link" href="#contact">Contact</a></li>
+    <li><a class="link cta" href="#contact">Get in touch</a></li>
   </ul>
 </nav>
 <div class="sheet" id="about" role="dialog" aria-modal="true" aria-labelledby="about-h">
@@ -202,9 +215,9 @@ body.ready .door{pointer-events:auto}
     <p class="eyebrow">About</p>
     <h2 class="ph" id="about-h">Lee Thompson</h2>
     <p class="role">Founder · Ares Web Services</p>
-    <p class="body">I'm an engineering student at Embry-Riddle Aeronautical University who builds websites and custom software for small to medium businesses. Ares Web Services designs sites around a business's own look and story, gets them found online, and builds the AI tools and apps that take work off their plate.</p>
+    <p class="body">I'm an engineering student at Embry-Riddle Aeronautical University who builds websites and custom software for small to medium businesses. Ares Web Services designs sites around a business's own look and story, and engineers the custom software and full stack applications that help them grow.</p>
     <p class="body">You talk to the person writing the code. Every project is scoped clearly and priced up front.</p>
-    <div class="mission"><p class="eyebrow">Mission</p><p>Helping small to medium sized businesses optimize their online conversion rates.</p></div>
+    <div class="mission"><p class="eyebrow">Mission</p><p>Giving businesses the design and software they need to grow.</p></div>
     <div class="row-links">
       <a href="/desk/">See my desk</a>
       <a href="/services/">Services</a>
@@ -227,9 +240,9 @@ body.ready .door{pointer-events:auto}
       <div class="field"><label for="c-topic">What's it about</label>
         <select id="c-topic" name="topic">
           <option>A website</option>
-          <option>Online visibility &amp; marketing</option>
-          <option>AI tools &amp; integration</option>
+          <option>Custom software</option>
           <option>An app</option>
+          <option>AI tools</option>
           <option>Ongoing partnership</option>
           <option>Something else</option>
         </select></div>
@@ -519,13 +532,18 @@ function placeDoors(){
     const hx=box.x+box.w*.489,half=box.w*.165,gap=Math.max(48,W*.04);
     const leftSpace=hx-half,rightSpace=W-(hx+half),room=Math.min(leftSpace,rightSpace)-gap-Math.max(24,W*.02);
     fontPx=Math.max(22,Math.min(64,room/6.6));iconW=Math.min(150,Math.max(84,fontPx*2.3));
-    y=box.y+box.h*.3;cs=(leftSpace-gap)/2;cd=hx+half+gap+(rightSpace-gap)/2;}
+    y=box.y+box.h*.56;cs=(leftSpace-gap)/2;cd=hx+half+gap+(rightSpace-gap)/2;}
   const iconH=iconW*48/60,wordGap=fontPx*.55,boxW=Math.max(iconW,fontPx*6.4),boxH=iconH+wordGap+fontPx*1.1;
   doorGeo={iconW,iconH,fontPx,wordGap,tall,doors:[{id:"doorS",x:cs,y,word:"SERVICES",icon:"window"},{id:"doorD",x:cd,y,word:"DESIGNS",icon:"book"}]};
   for(const d of doorGeo.doors){const el=$(d.id);el.style.setProperty("--dx",Math.round(d.x)+"px");el.style.setProperty("--dy",Math.round(d.y)+"px");
     el.style.setProperty("--dw",Math.round(boxW+24)+"px");el.style.setProperty("--dh",Math.round(boxH+24)+"px");}
+  placeClickMe(tall);
   if(window.__fxBuild)window.__fxBuild();
 }
+// "Click me to contact me": beside the face, its line pointing back at the bust
+function placeClickMe(tall){const c=$("clickme"),hx=box.x+box.w*.489;
+  if(tall){c.classList.add("left");c.style.setProperty("--cx",Math.round(hx+box.w*.12)+"px");c.style.setProperty("--cy",Math.round(box.y+box.h*.2)+"px");return;}
+  c.classList.remove("left");c.style.setProperty("--cx",Math.round(hx+box.w*.15)+"px");c.style.setProperty("--cy",Math.round(box.y+box.h*.14)+"px");}
 function finalState(){rowName.style.visibility="hidden";SHOW_N();SHOW_S();slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
   if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
@@ -540,6 +558,15 @@ $("skip").addEventListener("click",()=>{speed=.08;});
 /* ================= About / Contact panels ================= */
 const CONTACT_EMAIL="thompsontechnologiesleet@gmail.com";
 let openSheet=null,lastFocus=null;
+// clicking anywhere on the bust opens the contact form: hit-test against the portrait's own shape
+let hitMask=null;
+function onMe(x,y){if(!img||!ready||openSheet)return false;
+  if(!hitMask){const o=document.createElement("canvas");o.width=192;o.height=108;const c=o.getContext("2d",{willReadFrequently:true});c.drawImage(img,0,0,192,108);hitMask=c.getImageData(0,0,192,108).data;}
+  const u=(x-box.x)/box.w,v=(y-box.y)/box.h;if(u<0||u>=1||v<0||v>=1)return false;
+  return hitMask[((v*108|0)*192+(u*192|0))*4+3]>128;}
+const free=t=>!t.closest("a,button,input,select,textarea,label,nav,.sheet,.door");
+addEventListener("pointermove",e=>{document.body.classList.toggle("on-me",free(e.target)&&onMe(e.clientX,e.clientY));},{passive:true});
+addEventListener("click",e=>{if(free(e.target)&&onMe(e.clientX,e.clientY))openPanel("contact");});
 function openPanel(id){const s=$(id);if(!s)return;if(openSheet&&openSheet!==s)openSheet.classList.remove("open");
   lastFocus=document.activeElement;openSheet=s;s.classList.add("open");
   const f=s.querySelector(id==="contact"?"input":".x");setTimeout(()=>f&&f.focus({preventScroll:true}),60);
@@ -607,12 +634,12 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
       const n=icon.length/3,m=word.length/3;
       const P={n,m,hx:new Float32Array(n),hy:new Float32Array(n),x:new Float32Array(n),y:new Float32Array(n),vx:new Float32Array(n),vy:new Float32Array(n),c:new Float32Array(n),ph:new Float32Array(n),
         wx:new Float32Array(m),wy:new Float32Array(m),ox:new Uint16Array(m),t:new Float32Array(m),r:new Float32Array(m),wc:new Float32Array(m),
-        ax:d.x,ay:d.y,sx:new Float32Array(n),sy:new Float32Array(n),cx:new Float32Array(n),cy:new Float32Array(n),dl:new Float32Array(n),du:new Float32Array(n),landed:false};
-      // each dot leaves from somewhere on the face, arcs out and lands on its place in the icon
-      const fx0=box.x+box.w*.489,fy0=box.y+box.h*.3,fr=box.w*.11;
+        sx:new Float32Array(n),sy:new Float32Array(n),cx:new Float32Array(n),cy:new Float32Array(n),dl:new Float32Array(n),du:new Float32Array(n),landed:false};
+      // each dot comes in from off the nearest side of the screen, arcs over and lands on its place in the icon
+      const fromL=d.x<W/2;
       for(let i=0;i<n;i++){P.hx[i]=ix+icon[i*3];P.hy[i]=iy+icon[i*3+1];P.c[i]=.55+.45*icon[i*3+2];P.ph[i]=Math.random()*6.283;
-        const a=Math.random()*6.283,rr=Math.sqrt(Math.random())*fr;P.sx[i]=fx0+Math.cos(a)*rr;P.sy[i]=fy0+Math.sin(a)*rr*1.2;
-        P.cx[i]=(P.sx[i]+P.hx[i])/2+(Math.random()-.5)*W*.08;P.cy[i]=Math.min(P.sy[i],P.hy[i])-H*(.06+Math.random()*.14);
+        P.sx[i]=fromL?-20-Math.random()*W*.25:W+20+Math.random()*W*.25;P.sy[i]=H*(.1+Math.random()*.8);
+        P.cx[i]=(P.sx[i]+P.hx[i])/2+(Math.random()-.5)*W*.08;P.cy[i]=(P.sy[i]+P.hy[i])/2+(Math.random()-.5)*H*.4;
         P.dl[i]=Math.random()*.55;P.du[i]=.85+Math.random()*.5;
         if(launched){P.x[i]=P.hx[i];P.y[i]=P.hy[i];}else{P.x[i]=P.sx[i];P.y[i]=P.sy[i];}}
       P.landed=launched;
@@ -661,12 +688,6 @@ if(location.hash==="#about"||location.hash==="#contact")setTimeout(()=>openPanel
         const x=sx+(P.wx[j]-sx)*k+Math.sin(T*1.7+j)*.4*(1-k),y=sy+(P.wy[j]-sy)*k-Math.sin(k*3.1416)*14;
         const L=Math.round(255*P.wc[j]);cx.fillStyle="rgba("+L+","+L+","+(L+6)+","+(Math.min(1,t*1.4)*fade)+")";cx.fillRect(x,y,1.3,1.3);}
     });
-    // a faint trail of dots drifting from the cursor to each icon
-    if(mx>-1e3&&launched){const sp=11;
-      for(const P of groups){const dx=P.ax-mx,dy=P.ay-my,len=Math.hypot(dx,dy);if(len<40)continue;
-        const nx=-dy/len,ny=dx/len,n=len/sp|0,off=(T*28)%sp;
-        for(let i=0;i<n;i++){const d=i*sp+off,f=d/len,w=Math.sin(T*2+i*.7)*1.2,a=.22*fade*Math.sin(Math.PI*f);
-          if(a<.01)continue;cx.fillStyle="rgba(220,222,230,"+a.toFixed(3)+")";cx.fillRect(mx+dx*f+nx*w,my+dy*f+ny*w,1.2,1.2);}}}
   }
   requestAnimationFrame(draw);
 })();
