@@ -145,7 +145,7 @@ body.ready .door{pointer-events:auto}
 /* a thin line points from the label back at the bust */
 .clickme::before{content:"";width:46px;height:1px;background:linear-gradient(90deg,rgba(244,244,242,0),rgba(244,244,242,.6))}
 .clickme span{border-bottom:1px solid rgba(244,244,242,.25);padding-bottom:4px}
-.clickme.left{flex-direction:row-reverse}.clickme.left::before{background:linear-gradient(270deg,rgba(244,244,242,0),rgba(244,244,242,.6))}
+.clickme.down{flex-direction:column-reverse;gap:8px;translate:-50% -100%}.clickme.down::before{width:1px;height:16px;background:linear-gradient(180deg,rgba(244,244,242,0),rgba(244,244,242,.6))}
 body.ready .clickme{opacity:1;pointer-events:auto}
 .clickme:hover,.clickme:focus-visible{color:var(--fg)}
 body.on-me{cursor:pointer}
@@ -156,6 +156,16 @@ body.on-me{cursor:pointer}
   nav{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
   nav ul{gap:12px}
   nav a.link{font-size:9.5px;letter-spacing:.1em}
+  nav a.link.cta{padding:8px 10px;white-space:nowrap}
+  /* the tagline wraps instead of running off the sides */
+  .tag{white-space:normal;width:calc(100vw - 32px);max-width:420px;box-sizing:border-box;text-align:center;font-size:9.5px;letter-spacing:.12em;text-wrap:balance}
+  .clickme{font-size:10px;letter-spacing:.14em}
+}
+/* the smallest phones: the name moves out of the bar so the links and the button fit */
+@media (max-width:400px){
+  nav .brand{display:none}
+  nav{justify-content:center}
+  nav ul{gap:10px}
   .foot{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:9px}
 }
 @media (max-width:380px){nav ul{gap:9px} nav a.link{font-size:8.5px;letter-spacing:.06em}}
@@ -320,7 +330,8 @@ function layout(){
   // the whole photo, shoulders included (it spans the full frame width). Phones are too narrow for that
   // without shrinking the face to a thumbnail, so portrait screens keep the head large and crop the shoulder tips.
   const top=Math.max(70,H*.08),hv=(H-top)/(1-.037),tall=H>W*1.02;
-  const h=Math.min(hv,(tall?W*1.75:W)/PA),w=h*PA;
+  // tall screens keep the top 42% (and at least 370px) clear for the headline, icons and "click me" (tablets would otherwise crowd them)
+  const h=Math.min(hv,(tall?W*1.75:W)/PA,tall?(H-Math.max(H*.42,370))/(1-.037):1e9),w=h*PA;
   box={w,h,x:tall?W/2-.489*w:(W-w)/2,y:H-h};
   document.documentElement.style.setProperty("--spot-y",((box.y+box.h*.26)/H*100).toFixed(1)+"%");
 }
@@ -508,11 +519,12 @@ const lightY=()=>((box.y+box.h*.28)/H*100);
 // light lifts off the headline and opens up behind the head, like the reel (starts as soon as the name is in)
 let lightP=null;
 function liftLight(){if(!lightP){const ly=lightY(),hy=finalY/H*100;lightP=tween(1600,eout,p=>setLight(.9+.1*p,hy+(ly-hy)*p,30+(40-30)*p,26+(46-26)*p));}return lightP;}
+const CLICKME_H=44;   // room kept above the hair for "Click me to contact me" on phones
 function placeHeadline(){
   // phones/tall screens: centre the headline (+ tagline) in the open space between the nav and the top of the hair
   // phones/tall screens: headline (+ tagline), then the Services / Designs icons, then the bust, top to
   // bottom, with even gaps from the nav down to the top of the hair
-  if(H>W*1.02){const navB=Math.max(64,H*.075),hair=box.y+box.h*.037,blockH=servSize*.85+servSize*.85+16;
+  if(H>W*1.02){const navB=Math.max(64,H*.075),hair=box.y+box.h*.037-CLICKME_H,blockH=servSize*.85+Math.max(servSize*.85,tag.offsetHeight+8)+16;
     const m=tallDoorMetrics(),gap=Math.max(12,(hair-navB-blockH-m.h)/3);
     finalY=Math.round(navB+gap+servSize*.5);tallDoorY=navB+gap+blockH+gap+m.h/2;}
   else finalY=Math.round(Math.min(box.y+box.h*.72,H*.86));tag.style.top=`calc(50% + ${Math.round(servSize*.85)}px)`;head.style.transform=`translateY(${Math.round(finalY-H/2)}px)`;}
@@ -542,8 +554,11 @@ function placeDoors(){
 }
 // "Click me to contact me": beside the face, its line pointing back at the bust
 function placeClickMe(tall){const c=$("clickme"),hx=box.x+box.w*.489;
-  if(tall){c.classList.add("left");c.style.setProperty("--cx",Math.round(hx+box.w*.12)+"px");c.style.setProperty("--cy",Math.round(box.y+box.h*.2)+"px");return;}
-  c.classList.remove("left");c.style.setProperty("--cx",Math.round(hx+box.w*.15)+"px");c.style.setProperty("--cy",Math.round(box.y+box.h*.14)+"px");}
+  // phones: centred just above the hair, its line pointing down at the head
+  if(tall){const hair=box.y+box.h*.037,G=doorGeo,below=tallDoorY-(G.iconH+G.wordGap+G.fontPx)/2+4+G.iconH+G.wordGap+G.fontPx*1.15,ch=c.offsetHeight||36;
+    // centred in the space between the icons' words and the hair (anchored by its bottom, the arrow's tip)
+    c.classList.add("down");c.style.setProperty("--cx",Math.round(W/2)+"px");c.style.setProperty("--cy",Math.round(Math.max(below+ch+16,(below+hair+ch)/2))+"px");return;}
+  c.classList.remove("down");c.style.setProperty("--cx",Math.round(hx+box.w*.15)+"px");c.style.setProperty("--cy",Math.round(box.y+box.h*.14)+"px");}
 function finalState(){rowName.style.visibility="hidden";SHOW_N();SHOW_S();slash.style.opacity=1;slashAt(sv.gx,0,0,servSize*REST);}
 async function settle(){
   if(swarmT0<0)swarmT0=performance.now();$("grain").classList.add("on");$("vig").classList.add("on");
