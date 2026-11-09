@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ares-web.com/sitemap.xml
